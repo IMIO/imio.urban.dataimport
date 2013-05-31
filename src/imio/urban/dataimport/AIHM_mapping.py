@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from imio.urban.dataimport.AIHM_mappers import *
+from imio.urban.dataimport.access_mappers import SimpleMapper
 
 OBJECTS_STRUCTURE = [
     (

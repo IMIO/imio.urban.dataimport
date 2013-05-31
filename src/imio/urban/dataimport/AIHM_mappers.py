@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.mapper import Mapper, PostCreationMapper, SecondaryTableMapper
+from imio.urban.dataimport.access_mappers import Mapper, PostCreationMapper, SecondaryTableMapper
 from imio.urban.dataimport.factory import BaseFactory, MultiObjectsFactory
 from imio.urban.dataimport.AIHM_misc import TYPE_map, Titre_map, country_map, eventtype_id_map
 from imio.urban.dataimport.utils import cleanAndSplitWord, normalizeDate

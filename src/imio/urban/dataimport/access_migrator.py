@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from imio.urban.dataimport.access_mapper import PostCreationMapper
+from imio.urban.dataimport.access_mappers import PostCreationMapper
 import csv
 
 

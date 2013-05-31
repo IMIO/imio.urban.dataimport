@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from imio.urban.dataimport import logError
+from imio.urban.dataimport.loggers import logError
 from Products.CMFCore.utils import getToolByName
 import subprocess
 import csv
