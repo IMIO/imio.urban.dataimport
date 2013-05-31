@@ -1,0 +1,25 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="urban">
+
+  <include package="Products.GenericSetup" file="meta.zcml" />
+
+  <genericsetup:registerProfile
+      name="default"
+      title="imio.urban.dataimport"
+      directory="profiles/default"
+      description="Installs the imio.urban.dataimport package"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+
+
+  <-- exemple of city data import profile registery, copy paste and remove the "--" -->
+  <--genericsetup:registerProfile
+      name="profilecityname"
+      title="dataimport-profilecityname"
+      directory="profiles/profilecityname"
+      description="profilecityname data migration Extension profile for urban."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+  /-->
+</configure>

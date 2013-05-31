@@ -7,13 +7,6 @@
 
   <five:registerPackage package="." initialize=".initialize" />
 
-  <genericsetup:registerProfile
-      name="default"
-      title="imio.urban.dataimport"
-      directory="profiles/default"
-      description="Installs the imio.urban.dataimport package"
-      provides="Products.GenericSetup.interfaces.EXTENSION"
-      />
-  <!-- -*- extra stuff goes here -*- -->
-  
+  <include file="profiles.zcml" />
+
 </configure>
