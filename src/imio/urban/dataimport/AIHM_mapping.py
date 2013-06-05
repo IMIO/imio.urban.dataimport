@@ -1,20 +1,32 @@
 # -*- coding: utf-8 -*-
-from imio.urban.dataimport.AIHM_mappers import *
+
+from imio.urban.dataimport.mapping import ObjectsMapping
+from imio.urban.dataimport.AIHM_mappers import LicenceFactory, PortalTypeMapper, \
+    IdMapper, ReferenceMapper, WorklocationMapper, PcaMapper, ParcellingsMapper, \
+    ParcellingRemarksMapper, ObservationsMapper, ArchitectMapper, GeometricianMapper, \
+    NotaryMapper, CompletionStateMapper, ContactFactory, ContactTitleMapper, \
+    ContactNameMapper, ContactFirstnameMapper, ContactSreetMapper, ContactNumberMapper, \
+    ContactZipcodeMapper, ContactCityMapper, ContactCountryMapper, ContactPhoneMapper, \
+    ContactRepresentedByMapper, ContactIdMapper, ParcelFactory, ParcelDataMapper, \
+    RadicalMapper, ExposantMapper, BisMapper, UrbanEventFactory, DepositEventTypeMapper, \
+    DepositDateMapper, CompleteFolderEventTypeMapper, CompleteFolderDateMapper, \
+    DecisionEventTypeMapper, DecisionDateMapper, NotificationDateMapper, DecisionMapper
+
 from imio.urban.dataimport.access_mappers import SimpleMapper
 
-OBJECTS_STRUCTURE = [
+OBJECTS_NESTING = [
     (
         'LICENCE', [
-        ('CONTACT', []),
-        ('PARCEL', []),
-        ('DEPOSIT EVENT', []),
-        ('COMPLETE FOLDER EVENT', []),
-        ('DECISION EVENT', []),
+            ('CONTACT', []),
+            ('PARCEL', []),
+            ('DEPOSIT EVENT', []),
+            ('COMPLETE FOLDER EVENT', []),
+            ('DECISION EVENT', []),
         ],
     ),
 ]
 
-fields_mapping = {
+FIELDS_MAPPINGS = {
     'LICENCE':
     {
         'factory': [LicenceFactory],
@@ -259,3 +271,12 @@ fields_mapping = {
         },
     },
 }
+
+
+class AihmMapping(ObjectsMapping):
+
+    def getObjectsNesting(self):
+        return OBJECTS_NESTING
+
+    def getFieldsMapping(self):
+        return FIELDS_MAPPINGS

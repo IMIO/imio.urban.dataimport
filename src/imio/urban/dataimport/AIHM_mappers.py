@@ -30,22 +30,16 @@ class IdMapper(Mapper):
 
 
 class PortalTypeMapper(Mapper):
-    def mapPortal_type(self, line, custom_mapping, **kwargs):
+    def mapPortal_type(self, line, **kwargs):
         type_value = self.getData('TYPE')
-        if 'TYPE_map' in custom_mapping:
-            portal_type = custom_mapping['TYPE_map'][type_value]['portal_type']
-        else:
-            portal_type = TYPE_map[type_value]['portal_type']
+        portal_type = TYPE_map[type_value]['portal_type']
         if not portal_type:
             self.logError('No portal type found for this type value', {'TYPE value': type_value})
         return portal_type
 
-    def mapFoldercategory(self, line, custom_mapping, **kwargs):
+    def mapFoldercategory(self, line, **kwargs):
         type_value = self.getData('TYPE')
-        if 'TYPE_map' in custom_mapping:
-            foldercategory = custom_mapping['TYPE_map'][type_value]['foldercategory']
-        else:
-            foldercategory = TYPE_map[type_value]['foldercategory']
+        foldercategory = TYPE_map[type_value]['foldercategory']
         return foldercategory
 
 

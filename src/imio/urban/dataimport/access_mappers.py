@@ -1,17 +1,24 @@
 # -*- coding: utf-8 -*-
 from imio.urban.dataimport.loggers import logError
+from imio.urban.dataimport.interfaces import IPostCreationMapper
+
 from Products.CMFCore.utils import getToolByName
+
+from zope.interface import implements
+
 import subprocess
 import csv
 
 
 class BaseMapper(object):
 
-    def __init__(self, db_name, table_name, site):
-        self.db_name = db_name
-        self.header = self._extractHeader(table_name)
-        self.site = site
-        self.catalog = getToolByName(site, 'portal_catalog')
+    def __init__(self, access_importer, table_name=None, **kwargs):
+        self.importer = access_importer
+        self.db_name = self.importer.db_name
+        self.table_name = table_name and table_name or self.importer.table_name
+        self.header = self._extractHeader(self.table_name)
+        self.site = self.importer.site
+        self.catalog = getToolByName(self.site, 'portal_catalog')
 
     def _extractHeader(self, table_name):
         query = "Select * from %s Where CLEF = ''" % table_name
@@ -32,8 +39,8 @@ class BaseMapper(object):
 
 class SimpleMapper(BaseMapper):
 
-    def __init__(self, db_name, table_name, site, args, **kwargs):
-        super(SimpleMapper, self).__init__(db_name, table_name, site)
+    def __init__(self, access_importer, args, **kwargs):
+        super(SimpleMapper, self).__init__(access_importer, **kwargs)
         self.bijections = []
         for bijection in args:
             self.bijections.append((bijection['to'], self.header.index(bijection['from']),))
@@ -44,8 +51,8 @@ class SimpleMapper(BaseMapper):
 
 class Mapper(BaseMapper):
 
-    def __init__(self, db_name, table_name, site, args, **kwargs):
-        super(Mapper, self).__init__(db_name, table_name, site)
+    def __init__(self, access_importer, args, **kwargs):
+        super(Mapper, self).__init__(access_importer, **kwargs)
         sources = type(args['from']) == str and [args['from']] or args['from']
         self.sources = dict([(source_name, self.header.index(source_name),) for source_name in sources if source_name])
         self.destinations = type(args['to']) == str and [args['to']] or args['to']
@@ -71,8 +78,10 @@ class Mapper(BaseMapper):
 
 class PostCreationMapper(Mapper):
 
-    def __init__(self, db_name, table_name, site, args, **kwargs):
-        super(PostCreationMapper, self).__init__(db_name, table_name, site, args, **kwargs)
+    implements(IPostCreationMapper)
+
+    def __init__(self, access_importer, args, **kwargs):
+        super(PostCreationMapper, self).__init__(access_importer, args, **kwargs)
         self.allowed_containers = 'allowed_containers' in args.keys() and args['allowed_containers'] or []
 
     def map(self, line, plone_object, **kwargs):
@@ -92,10 +101,10 @@ class PostCreationMapper(Mapper):
 
 class SecondaryTableMapper(Mapper):
 
-    def __init__(self, db_name, table_name, site, args, mappers_module=None):
+    def __init__(self, access_importer, args):
         args['from'] = 'from' in args.keys() and args['from'] or [args['KEY']]
         args['to'] = 'to' in args.keys() and args['to'] or []
-        super(SecondaryTableMapper, self).__init__(db_name, table_name, site, args)
+        super(SecondaryTableMapper, self).__init__(access_importer, args)
         self.key = args['KEY']
         self.secondary_table = args['table']
         self.mappers = self._setMappers(args['mappers'])
@@ -103,7 +112,7 @@ class SecondaryTableMapper(Mapper):
     def _setMappers(self, mappers_dscr):
         mappers = []
         for mapper_class, mapper_args in mappers_dscr.iteritems():
-            mapper = mapper_class(self.db_name, self.secondary_table, self.site, mapper_args)
+            mapper = mapper_class(self.importer, mapper_args, table_name=self.secondary_table)
             mappers.append(mapper)
         return mappers
 
