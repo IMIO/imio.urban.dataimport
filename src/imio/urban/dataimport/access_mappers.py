@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from imio.urban.dataimport.loggers import logError
 from imio.urban.dataimport.interfaces import IPostCreationMapper
 
 from Products.CMFCore.utils import getToolByName
@@ -33,8 +32,8 @@ class BaseMapper(object):
         result = csv.reader(temp, delimiter=';')
         return result
 
-    def logError(self, msg, data={}):
-        logError(self, msg, data)
+    def logError(self, mapper, line, msg, data={}):
+        self.importer.logError(mapper, line, msg, data)
 
 
 class SimpleMapper(BaseMapper):
@@ -74,6 +73,9 @@ class Mapper(BaseMapper):
                 print '%s: NO MAPPING METHOD FOUND' % self
                 print 'target field : %s' % dest
         return mapped
+
+    def getValueMapping(self, mapping_name):
+        return self.importer.values_mappings.getValueMapping(mapping_name)
 
 
 class PostCreationMapper(Mapper):

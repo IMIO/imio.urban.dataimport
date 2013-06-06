@@ -31,12 +31,6 @@ class IUrbanDataImporter(Interface):
     def setupAllowedContainer(self, object_name, mapping):
         """ list allowed containers for each object """
 
-    def getFactoryArgument(self):
-        """ extract all the values from a data fragment that will be used as factory arguments """
-
-    def getAfterCreationValues(self):
-        """ extract all the values that will be set on the object after its creation """
-
     def logError(self):
         """ log an error occuring during the import """
 
@@ -69,10 +63,19 @@ class IObjectsMapping(Interface):
 class IValuesMapping(Interface):
     """ Object representing a mapping between static values (eg: BE -- map to --> Belgium) """
 
+    def getValueMapping(self, mapping_name):
+        """ return a static values mapping named 'mapping_name' """
+
+
+class IImportErrorMessage(Interface):
+    """
+      Receive a data importer, a mapping/factory object, a data line, an error message, a dict of data.
+      __str__ should return a human readable string representation of all these objects.
+    """
+
+    def __str__(self):
+        """ to implements """
+
 
 class IPostCreationMapper(Interface):
     """ marker interface for post creation mapper """
-
-
-class IAihmDataImporter(Interface):
-    """ marker interface for AIHM migrator """

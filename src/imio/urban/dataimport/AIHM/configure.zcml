@@ -1,0 +1,27 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="imio.urban.dataimport">
+
+  <adapter
+     for="imio.urban.dataimport.interfaces.IAihmDataImporter"
+     factory=".AIHM_import.AihmImportSource"
+     provides="imio.urban.dataimport.interfaces.IUrbanImportSource"
+     name="data source"
+  />
+
+  <adapter
+     for="imio.urban.dataimport.interfaces.IAihmDataImporter"
+     factory=".AIHM_import.AihmMapping"
+     provides="imio.urban.dataimport.interfaces.IObjectsMapping"
+     name="objects mapping"
+  />
+
+  <adapter
+     for="imio.urban.dataimport.interfaces.IAihmDataImporter"
+     factory=".AIHM_import.AihmValuesMapping"
+     provides="imio.urban.dataimport.interfaces.IValuesMapping"
+     name="values mapping"
+  />
+
+</configure>

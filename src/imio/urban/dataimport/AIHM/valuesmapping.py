@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 
-def table(table):
-    header = table['header']
-    del table['header']
-    for key, line in table.iteritems():
-        table[key] = dict([(header[i], line[i],) for i in range(len(header))])
-    return table
+from imio.urban.dataimport.mapping import table
 
-TYPE_map = table({
+VALUES_MAPS = {
+
+'type_map': table({
 'header': ['portal_type',         'foldercategory', 'abreviation'],
 '0'     : ['BuildLicence',        'uap',            'PU'],
 '1'     : ['BuildLicence',        'upp',            'PU'],
@@ -21,10 +18,10 @@ TYPE_map = table({
 '80'    : ['BuildLicence',        'pu',             'PU'],
 '82'    : ['Declaration',         'dup',            'Decl'],
 '100'   : ['MiscDemand',          'apct',           'Decl'],
-})
+}),
 
 
-eventtype_id_map = table({
+'eventtype_id_map': table({
 'header'             : ['decision_event',                       'folder_complete',     'deposit_event'],
 'BuildLicence'       : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande'],
 'UrbanCertificateOne': ['octroi-cu1',                           '',                    'depot-de-la-demande'],
@@ -34,9 +31,9 @@ eventtype_id_map = table({
 'Declaration'        : ['deliberation-college',                 '',                    'depot-de-la-demande'],
 'MiscDemand'         : ['deliberation-college',                 '',                    'depot-de-la-demande'],
 'Division'           : ['decision-octroi-refus',                '',                    'depot-de-la-demande'],
-})
+}),
 
-Titre_map = {
+'titre_map': {
     'monsieur': 'mister',
     'm': 'mister',
     'm.': 'mister',
@@ -59,12 +56,13 @@ Titre_map = {
     'notaires': 'masters',
     'ma\xc3\xaetre': 'master',
     'ma\xc3\xaetres': 'masters',
-}
+},
 
-country_map = {
+'country_map': {
     'belgique': 'belgium',
     'france': 'france',
     'allemagne': 'germany',
     'luxembourg': 'luxembourg',
     'pays bas': 'netherlands',
+},
 }

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.mapping import ObjectsMapping
 from imio.urban.dataimport.AIHM_mappers import LicenceFactory, PortalTypeMapper, \
     IdMapper, ReferenceMapper, WorklocationMapper, PcaMapper, ParcellingsMapper, \
     ParcellingRemarksMapper, ObservationsMapper, ArchitectMapper, GeometricianMapper, \
@@ -271,12 +270,3 @@ FIELDS_MAPPINGS = {
         },
     },
 }
-
-
-class AihmMapping(ObjectsMapping):
-
-    def getObjectsNesting(self):
-        return OBJECTS_NESTING
-
-    def getFieldsMapping(self):
-        return FIELDS_MAPPINGS

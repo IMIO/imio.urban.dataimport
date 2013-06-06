@@ -2,7 +2,6 @@
 
 from imio.urban.dataimport.access_mappers import Mapper, PostCreationMapper, SecondaryTableMapper
 from imio.urban.dataimport.factory import BaseFactory, MultiObjectsFactory
-from imio.urban.dataimport.AIHM_misc import TYPE_map, Titre_map, country_map, eventtype_id_map
 from imio.urban.dataimport.utils import cleanAndSplitWord, normalizeDate
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
@@ -32,14 +31,14 @@ class IdMapper(Mapper):
 class PortalTypeMapper(Mapper):
     def mapPortal_type(self, line, **kwargs):
         type_value = self.getData('TYPE')
-        portal_type = TYPE_map[type_value]['portal_type']
+        portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
         if not portal_type:
-            self.logError('No portal type found for this type value', {'TYPE value': type_value})
+            self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
         return portal_type
 
     def mapFoldercategory(self, line, **kwargs):
         type_value = self.getData('TYPE')
-        foldercategory = TYPE_map[type_value]['foldercategory']
+        foldercategory = self.getValueMapping('type_map')[type_value]['foldercategory']
         return foldercategory
 
 
@@ -55,7 +54,7 @@ class WorklocationMapper(Mapper):
         if len(brains) == 1:
             return ({'street': brains[0].UID, 'number': num},)
         if street:
-            self.logError('Couldnt find street or found too much streets', {'street': street_keywords, 'search result': len(brains)})
+            self.logError(self, line, 'Couldnt find street or found too much streets', {'street': street_keywords, 'search result': len(brains)})
         return {}
 
 
@@ -69,7 +68,7 @@ class PcaMapper(Mapper):
         pca_date = normalizeDate(self.getData('DatePPA'))
         pcas = self.catalog(Title=pca_date)
         if len(pcas) != 1:
-            self.logError('Couldnt find pca or found too much pca', {'date': pca_date})
+            self.logError(self, line, 'Couldnt find pca or found too much pca', {'date': pca_date})
             return []
         return pcas[0].id
 
@@ -92,7 +91,7 @@ class ParcellingsMapper(Mapper):
         parcellings = self.catalog(Title=keywords)
         if len(parcellings) == 1:
             return parcellings[0].getObject().UID()
-        self.logError('Couldnt find parcelling or found too much parcelling', {'approval date': approval_date, 'auth_date': auth_date, 'city': city})
+        self.logError(self, line, 'Couldnt find parcelling or found too much parcelling', {'approval date': approval_date, 'auth_date': auth_date, 'city': city})
         return []
 
 
@@ -123,7 +122,7 @@ class ArchitectMapper(PostCreationMapper):
         architects = self.catalog(portal_type='Architect', Title=name_keywords)
         if len(architects) == 1:
             return architects[0].getObject()
-        self.logError('No architects found or too much architects found', {'name': name_keywords, 'search_result': len(architects)})
+        self.logError(self, line, 'No architects found or too much architects found', {'name': name_keywords, 'search_result': len(architects)})
         return []
 
 
@@ -143,7 +142,7 @@ class GeometricianMapper(PostCreationMapper):
             geometrician = self.catalog(portal_type='Geometrician', Title=name)
         if len(geometrician) == 1:
             return geometrician[0].getObject()
-        self.logError('no geometricians found or too much geometricians found',
+        self.logError(self, line, 'no geometricians found or too much geometricians found',
                       {'title': self.getData('Titre'), 'name': name, 'firstname': firstname, 'search_result': len(geometrician)})
         return []
 
@@ -151,7 +150,8 @@ class GeometricianMapper(PostCreationMapper):
 class NotaryMapper(PostCreationMapper):
     def mapNotarycontact(self, line, plone_object, **kwargs):
         title = self.getData('Titre').lower()
-        if title not in Titre_map or Titre_map[title] not in ['master', 'masters']:
+        titre_mapping = self.getValueMapping('titre_map')
+        if title not in titre_mapping or titre_mapping[title] not in ['master', 'masters']:
             return
         name = self.getData('Nom')
         firstname = self.getData('Prenom')
@@ -160,7 +160,7 @@ class NotaryMapper(PostCreationMapper):
             notary = self.catalog(portal_type='Notary', Title=name)
         if len(notary) == 1:
             return notary[0].getObject()
-        self.logError('no notaries found or too much notaries found',
+        self.logError(self, line, 'no notaries found or too much notaries found',
                       {'title': self.getData('Titre'), 'name': name, 'firstname': firstname, 'search_result': len(notary)})
         return []
 
@@ -220,8 +220,9 @@ class ContactTitleMapper(Mapper):
     def mapPersontitle(self, line, **kwargs):
         m = self.getData('MandantNom') and 'Mandant' or ''
         titre = self.getData('%sTitre' % m).lower()
-        if titre in Titre_map.keys():
-            return Titre_map[titre]
+        titre_mapping = self.getValueMapping('titre_map')
+        if titre in titre_mapping.keys():
+            return titre_mapping[titre]
         return 'notitle'
 
 
@@ -267,9 +268,9 @@ class ContactCountryMapper(Mapper):
     def mapCountry(self, line, **kwargs):
         m = self.getData('MandantNom') and 'Mandant' or ''
         try:
-            return country_map[self.getData('%sPays' % m).lower()]
+            return self.getValueMapping('country_map')[self.getData('%sPays' % m).lower()]
         except:
-            self.logError('Unknown country', {'country': self.getData('Pays')})
+            self.logError(self, line, 'Unknown country', {'country': self.getData('Pays')})
 
 
 class ContactPhoneMapper(Mapper):
@@ -313,7 +314,7 @@ class ParcelFactory(MultiObjectsFactory):
                 found_parcels[index] = args
             else:
                 not_found_parcels[index] = args
-                self.logError('Too much parcels found or not enough parcels found', {'args': args, 'search result': len(found)})
+                self.logError(self, 'Too much parcels found or not enough parcels found', {'args': args, 'search result': len(found)})
         return super(ParcelFactory, self).create(place=place, **found_parcels)
 
 # mappers
@@ -376,7 +377,7 @@ class DepositEventTypeMapper(Mapper):
     def mapEventtype(self, line, **kwargs):
         licence = kwargs['container']
         urban_tool = getToolByName(licence, 'portal_urban')
-        eventtype_id = eventtype_id_map[licence.portal_type]['deposit_event']
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['deposit_event']
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
@@ -386,7 +387,7 @@ class DepositDateMapper(PostCreationMapper):
         date = self.getData('DateRecDem')
         date = date and DateTime(date) or None
         if not date:
-            self.logError('No deposit date found')
+            self.logError(self, line, 'No deposit date found')
         return date
 
 #
@@ -400,7 +401,7 @@ class CompleteFolderEventTypeMapper(Mapper):
     def mapEventtype(self, line, **kwargs):
         licence = kwargs['container']
         urban_tool = getToolByName(licence, 'portal_urban')
-        eventtype_id = eventtype_id_map[licence.portal_type]['folder_complete']
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['folder_complete']
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
@@ -410,7 +411,7 @@ class CompleteFolderDateMapper(PostCreationMapper):
         date = self.getData('AvisDossierComplet')
         date = date and DateTime(date) or None
         if not date:
-            self.logError("No 'folder complete' date found")
+            self.logError(self, line, "No 'folder complete' date found")
         return date
 
 #
@@ -426,7 +427,7 @@ class DecisionEventTypeMapper(Mapper):
             return ''
         licence = kwargs['container']
         urban_tool = getToolByName(licence, 'portal_urban')
-        eventtype_id = eventtype_id_map[licence.portal_type]['decision_event']
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['decision_event']
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
@@ -436,7 +437,7 @@ class DecisionDateMapper(PostCreationMapper):
         date = self.getData('DateDecisionCollege')
         date = date and DateTime(date) or None
         if not date:
-            self.logError('No decision date found')
+            self.logError(self, line, 'No decision date found')
         return date
 
 
@@ -445,7 +446,7 @@ class NotificationDateMapper(PostCreationMapper):
         date = self.getData('DateNotif')
         date = date and DateTime(date) or None
         if not date:
-            self.logError('No notification date found')
+            self.logError(self, line, 'No notification date found')
         return date
 
 

@@ -5,21 +5,8 @@
     i18n_domain="imio.urban.dataimport">
 
 
+  <include package=".AIHM" />
+
   <include file="profiles.zcml" />
-
-  <!-- -->
-  <adapter
-     for="imio.urban.dataimport.interfaces.IAihmDataImporter"
-     factory=".AIHM_import.AihmImportSource"
-     provides="imio.urban.dataimport.interfaces.IUrbanImportSource"
-     name="data source"
-  />
-
-  <adapter
-     for="imio.urban.dataimport.interfaces.IAihmDataImporter"
-     factory=".AIHM_mapping.AihmMapping"
-     provides="imio.urban.dataimport.interfaces.IObjectsMapping"
-     name="objects mapping"
-  />
 
 </configure>

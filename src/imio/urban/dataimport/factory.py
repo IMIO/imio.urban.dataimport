@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from imio.urban.dataimport import loggers
 from Products.CMFPlone.utils import normalizeString
 
 #
@@ -31,8 +30,9 @@ class BaseFactory(object):
         obj._renameAfterCreation()
         return [obj]
 
-    def logError(self, msg, data={}):
-        loggers.logError(self, msg, data)
+    def logError(self, factory, line, msg, data={}):
+        """ """
+        # self.importer.logError(self, factory, line, msg, data)
 
     def getCreationPlace(self, **kwargs):
         return None

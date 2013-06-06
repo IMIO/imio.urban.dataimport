@@ -2,6 +2,7 @@
 
 from imio.urban.dataimport.importer import UrbanDataImporter
 from imio.urban.dataimport.importsource import UrbanImportSource
+from imio.urban.dataimport.errormessage import ImportErrorMessage
 
 import csv
 import subprocess
@@ -11,15 +12,35 @@ class AccessImportSource(UrbanImportSource):
     """ """
 
     def iterdata(self):
-        csv_source = self.exportSourceAsCSVFile()
+        csv_source = self.exportMdbToCsv()
         lines = csv.reader(csv_source)
         lines.next()  # skip header
         return lines
 
-    def exportSourceAsCSVFile(self):
+    def exportMdbToCsv(self):
         command_line = ['mdb-export', self.importer.db_name, self.importer.table_name]
         csv_export = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         return csv_export.stdout
+
+
+class AcessErrorMessage(ImportErrorMessage):
+
+    def __str__(self):
+        key = self.importer.getData(self.line, self.importer.key_column)
+        migration_step = self.error_location.__class__.__name__
+        factory_stack = self.importer.current_containers_stack
+        stack_display = '\n'.join(['%sid: %s Title: %s' % (''.join(['    ' for i in range(factory_stack.index(obj))]), obj.id, obj.Title()) for obj in factory_stack])
+
+        message = [
+            'line %s (key %s)' % (self.importer.current_line, key),
+            'migration substep: %s' % migration_step,
+            'error message: %s' % self.message,
+            'data: %s' % self.data,
+            'plone containers stack:\n  %s' % stack_display,
+        ]
+        message = '\n'.join(message)
+
+        return message
 
 
 class AccessDataImporter(UrbanDataImporter):
@@ -35,34 +56,14 @@ class AccessDataImporter(UrbanDataImporter):
         self.db_name = db_name
         self.table_name = table_name
         self.key_column = key_column
-        self.header = []
-        self.initHeader(db_name, table_name)
+        self.header = self.getHeader(db_name=db_name, table_name=table_name)
 
-    def initHeader(self, db_name, table_name):
+    def getHeader(self, db_name=None, table_name=None):
+        db_name = db_name or self.db_name
+        table_name = table_name or self.table_name
         command_line = ['mdb-export', db_name, table_name]
         csv_export = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        self.header = csv_export.stdout.next()
-
-    def logError(self, migrator_locals, location, message, factory_stack, data):
-        line_num = int(migrator_locals['lines'].line_num)
-        key = self.getData(migrator_locals['line'], self.key)
-        migration_step = str(location).split()[0].split('.')[-1]
-        stack_display = '\n'.join(['%sid: %s Title: %s' % (''.join(['    ' for i in range(factory_stack.index(obj))]), obj.id, obj.Title()) for obj in factory_stack])
-        msg = 'line %s (or +- %s, key %s)\n\
- migration substep: %s\n\
- error message: %s\n\
- data: %s\n\
- plone containers stack:\n  %s\n' % (self.current_line, line_num, key, migration_step, message, data, stack_display)
-        print msg
-        if line_num not in self.errors.keys():
-            self.errors[line_num] = []
-        self.errors[line_num].append(msg)
-        if migration_step not in self.sorted_errors.keys():
-            self.sorted_errors[migration_step] = []
-        self.sorted_errors[migration_step].append(msg)
-
-    def log(self, migrator_locals, location, message, factory_stack, data):
-        pass
+        return csv_export.stdout.next()
 
     def getData(self, line, cellname):
         data = line[self.header.index(cellname)]

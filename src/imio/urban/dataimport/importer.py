@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping, \
-    IUrbanImportSource, IValuesMapping, IPostCreationMapper
+    IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage
 
 from zope.interface import implements
 import zope
@@ -28,6 +28,7 @@ class UrbanDataImporter(object):
 
         # log and tracing vars
         self.current_line = 1
+        self.current_containers_stack = []
         self.errors = {}
         self.sorted_errors = {}
 
@@ -52,7 +53,7 @@ class UrbanDataImporter(object):
 
         self.datasource = zope.component.getAdapter(self, IUrbanImportSource, 'data source')
         self.objects_mappings = zope.component.getAdapter(self, IObjectsMapping, 'objects mapping')
-        # self.values_mappings = zope.component.getAdapter(self, IValuesMapping, 'values mapping')
+        self.values_mappings = zope.component.getAdapter(self, IValuesMapping, 'values mapping')
 
         fields_mappings = self.objects_mappings.getFieldsMapping()
 
@@ -92,33 +93,68 @@ class UrbanDataImporter(object):
             self.allowed_containers[objectname] = allowed_containers
 
     def createPloneObjects(self, node, line, stack=[]):
+
+        # to be sure to create a different empty list at each new non-recursive call
+        stack = stack and stack or []
+        self.current_containers_stack = stack
+
         for object_name, subobjects in node:
-            factory_args = {}
+
             container = stack and stack[-1] or None
-            # next line means, we create the object if we have no explicit container or if we have a legal one
-            allowcreation = not container or self.allowed_containers.get(object_name, '') == container.portal_type
-            if allowcreation:
-                #collect all the data(s) that will be passed to the factory
-                for mapper in self.mappers[object_name]['pre']:
-                    factory_args.update(mapper.map(line, container=container))
-                #create the object(s)
+
+            if self.canBecreated(object_name, container):
+
+                factory_args = self.getFactoryArguments(line, object_name, container)
                 factory = self.factories[object_name]
-                objs = factory.create(place=container, **factory_args)
-                # if for some reasons the object creation went wrong, we skip this line and continue the import
-                if objs is None:
+                urban_objects = factory.create(place=container, **factory_args)
+
+                # if for some reasons the object creation went wrong, we skip this data line and continue the import
+                if urban_objects is None:
                     return
-                #update some fields after creation
-                for obj in objs:
-                    for mapper in self.mappers[object_name]['post']:
-                        mapper.map(line, plone_object=obj, site=self.site)
-                    obj.processForm()
+
+                for obj in urban_objects:
+                    # update some fields after creation
+                    self.updateObjectFields(line, object_name, obj)
+
                     stack.append(obj)
-                    # recursive call
                     self.createPloneObjects(subobjects, line, stack)
                     stack.pop()
 
-    def logError(self, migrator_locals, location, message, factory_stack, data):
-        pass
+    def canBecreated(self, object_name, container):
+        no_explicit_container = not container
+        unrestricted_container = object_name not in self.allowed_containers
+        allowed_container = self.allowed_containers.get(object_name, '') == container.portal_type
+
+        canbecreated = no_explicit_container or unrestricted_container or allowed_container
+
+        return canbecreated
+
+    def getFactoryArguments(self, line, object_name, container):
+        factory_args = {}
+        for mapper in self.mappers[object_name]['pre']:
+            factory_args.update(mapper.map(line, container=container))
+
+        return factory_args
+
+    def updateObjectFields(self, line, object_name, urban_object):
+        for mapper in self.mappers[object_name]['post']:
+            mapper.map(line, plone_object=urban_object, site=self.site)
+        urban_object.processForm()
+
+    def logError(self, error_location, line, message, data):
+
+        error_message = zope.component.getMultiAdapter((self, error_location, line, message, data), IImportErrorMessage)
+        message = str(error_message)
+
+        line_num = self.current_line
+        if line_num not in self.errors.keys():
+            self.errors[line_num] = []
+        self.errors[line_num].append(message)
+
+        migration_step = error_location.__class__.__name__
+        if migration_step not in self.sorted_errors.keys():
+            self.sorted_errors[migration_step] = []
+        self.sorted_errors[migration_step].append(message)
 
     def log(self, migrator_locals, location, message, factory_stack, data):
         pass
