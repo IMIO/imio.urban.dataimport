@@ -4,24 +4,34 @@
     i18n_domain="imio.urban.dataimport">
 
   <adapter
-     for="imio.urban.dataimport.interfaces.IAihmDataImporter"
-     factory=".AIHM_import.AihmImportSource"
+     for="imio.urban.dataimport.AIHM.interfaces.IAIHMDataImporter"
+     factory=".importer.AIHMImportSource"
      provides="imio.urban.dataimport.interfaces.IUrbanImportSource"
      name="data source"
   />
 
   <adapter
-     for="imio.urban.dataimport.interfaces.IAihmDataImporter"
-     factory=".AIHM_import.AihmMapping"
+     for="imio.urban.dataimport.AIHM.interfaces.IAIHMDataImporter"
+     factory=".importer.AIHMMapping"
      provides="imio.urban.dataimport.interfaces.IObjectsMapping"
      name="objects mapping"
   />
 
   <adapter
-     for="imio.urban.dataimport.interfaces.IAihmDataImporter"
-     factory=".AIHM_import.AihmValuesMapping"
+     for="imio.urban.dataimport.AIHM.interfaces.IAIHMDataImporter"
+     factory=".importer.AIHMValuesMapping"
      provides="imio.urban.dataimport.interfaces.IValuesMapping"
      name="values mapping"
+  />
+
+  <adapter
+     for="imio.urban.dataimport.AIHM.interfaces.IAIHMDataImporter
+          imio.urban.dataimport.interfaces.IImportSection
+          zope.interface.Interface
+          zope.interface.Interface
+          zope.interface.Interface"
+     factory="..access_import.AccessErrorMessage"
+     provides="imio.urban.dataimport.interfaces.IImportErrorMessage"
   />
 
 </configure>

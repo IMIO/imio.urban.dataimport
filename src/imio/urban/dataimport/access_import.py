@@ -23,7 +23,7 @@ class AccessImportSource(UrbanImportSource):
         return csv_export.stdout
 
 
-class AcessErrorMessage(ImportErrorMessage):
+class AccessErrorMessage(ImportErrorMessage):
 
     def __str__(self):
         key = self.importer.getData(self.line, self.importer.key_column)

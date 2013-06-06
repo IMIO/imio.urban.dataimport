@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 from Products.CMFPlone.utils import normalizeString
 
+from imio.urban.dataimport.interfaces import IFactory
+
+from zope.interface import implements
+
+
 #
 # Factories
 #
 
 
 class BaseFactory(object):
+
+    implements(IFactory)
 
     def __init__(self, site, portal_type=''):
         self.site = site

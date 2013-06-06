@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.AIHM_mappers import LicenceFactory, PortalTypeMapper, \
+from imio.urban.dataimport.AIHM.mappers import LicenceFactory, PortalTypeMapper, \
     IdMapper, ReferenceMapper, WorklocationMapper, PcaMapper, ParcellingsMapper, \
     ParcellingRemarksMapper, ObservationsMapper, ArchitectMapper, GeometricianMapper, \
     NotaryMapper, CompletionStateMapper, ContactFactory, ContactTitleMapper, \

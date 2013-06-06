@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from imio.urban.dataimport.interfaces import IPostCreationMapper
+from imio.urban.dataimport.interfaces import IPostCreationMapper, IMapper
 
 from Products.CMFCore.utils import getToolByName
 
@@ -10,6 +10,8 @@ import csv
 
 
 class BaseMapper(object):
+
+    implements(IMapper)
 
     def __init__(self, access_importer, table_name=None, **kwargs):
         self.importer = access_importer

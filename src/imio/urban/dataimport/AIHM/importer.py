@@ -50,4 +50,4 @@ def importAIHM(context, aihm_filename='export.csv', db_name='Urbanisme.mdb'):
 
     AIHM_dataimporter.importData(start=1, end=10)
 
-    AIHM_dataimporter.picklesErrorLog(filename='aihm error log')
+    # AIHM_dataimporter.picklesErrorLog(filename='aihm error log')

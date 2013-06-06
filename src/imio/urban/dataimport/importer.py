@@ -121,11 +121,13 @@ class UrbanDataImporter(object):
                     stack.pop()
 
     def canBecreated(self, object_name, container):
-        no_explicit_container = not container
+        if not container:
+            return True
+
         unrestricted_container = object_name not in self.allowed_containers
         allowed_container = self.allowed_containers.get(object_name, '') == container.portal_type
 
-        canbecreated = no_explicit_container or unrestricted_container or allowed_container
+        canbecreated = unrestricted_container or allowed_container
 
         return canbecreated
 
@@ -145,6 +147,7 @@ class UrbanDataImporter(object):
 
         error_message = zope.component.getMultiAdapter((self, error_location, line, message, data), IImportErrorMessage)
         message = str(error_message)
+        print message
 
         line_num = self.current_line
         if line_num not in self.errors.keys():

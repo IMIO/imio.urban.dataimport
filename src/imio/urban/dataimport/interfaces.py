@@ -67,6 +67,18 @@ class IValuesMapping(Interface):
         """ return a static values mapping named 'mapping_name' """
 
 
+class IImportSection(Interface):
+    """ marker interface for any mapper or factory class """
+
+
+class IFactory(IImportSection):
+    """ marker interface for factory objects """
+
+
+class IMapper(IImportSection):
+    """ marker interface for mapper objects """
+
+
 class IImportErrorMessage(Interface):
     """
       Receive a data importer, a mapping/factory object, a data line, an error message, a dict of data.
