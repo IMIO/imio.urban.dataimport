@@ -10,11 +10,4 @@
      provides="imio.urban.dataimport.interfaces.IDataExtractor"
      />
 
-  <adapter
-     for="imio.urban.dataimport.access.interfaces.IAccessImportSource
-          imio.urban.dataimport.interfaces.ISimpleMapper"
-     factory=".importer.AccessDataExtractor"
-     provides="imio.urban.dataimport.interfaces.IDataExtractor"
-  />
-
 </configure>
