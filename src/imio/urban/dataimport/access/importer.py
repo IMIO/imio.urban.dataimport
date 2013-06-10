@@ -58,10 +58,7 @@ class AccessDataExtractor(DataExtractor):
         tablename = getattr(self.mapper, 'table_name', self.mapper.importer.table_name)
         datasource = self.datasource
 
-        try:
-            data = line[datasource.header_indexes[tablename][valuename]]
-        except:
-            import ipdb; ipdb.set_trace()
+        data = line[datasource.header_indexes[tablename][valuename]]
         return data
 
 
