@@ -65,7 +65,7 @@ class AccessDataExtractor(DataExtractor):
 class AccessErrorMessage(ImportErrorMessage):
 
     def __str__(self):
-        key = self.importer.getData(self.line, self.importer.key_column)
+        key = self.importer.getData(self.importer.key_column, self.line)
         migration_step = self.error_location.__class__.__name__
         factory_stack = self.importer.current_containers_stack
         stack_display = '\n'.join(['%sid: %s Title: %s' % (''.join(['    ' for i in range(factory_stack.index(obj))]), obj.id, obj.Title()) for obj in factory_stack])
@@ -95,15 +95,8 @@ class AccessDataImporter(UrbanDataImporter):
         self.db_name = db_name
         self.table_name = table_name
         self.key_column = key_column
-        self.header = self.getHeader(db_name=db_name, table_name=table_name)
 
-    def getHeader(self, db_name=None, table_name=None):
-        db_name = db_name or self.db_name
-        table_name = table_name or self.table_name
-        command_line = ['mdb-export', db_name, table_name]
-        csv_export = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        return csv_export.stdout.next()
-
-    def getData(self, line, cellname):
-        data = line[self.header.index(cellname)]
+    def getData(self, valuename, line):
+        data_index = self.datasource.header_indexes[self.table_name][valuename]
+        data = line[data_index]
         return data

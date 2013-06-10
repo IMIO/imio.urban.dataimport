@@ -1,0 +1,13 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="imio.urban.dataimport">
+
+  <adapter
+     for="imio.urban.dataimport.access.interfaces.ICSVImportSource
+          imio.urban.dataimport.interfaces.IMapper"
+     factory=".importer.CSVDataExtractor"
+     provides="imio.urban.dataimport.interfaces.IDataExtractor"
+     />
+
+</configure>

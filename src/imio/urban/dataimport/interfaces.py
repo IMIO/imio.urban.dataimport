@@ -51,7 +51,10 @@ class IUrbanImportSource(Interface):
 
 
 class IDataExtractor(Interface):
-    """ adapter between a mapper and data source to extract data from a line """
+    """ adapter for a mapper and a data source that implements extractData() """
+
+    datasource = Attribute('adapted import source (see IUrbanImportSource)')
+    mapper = Attribute('adapted mapper (see IMapper)')
 
     def extractData(self, line, valuename):
         """ get the value 'valuename' from data line 'line' """
