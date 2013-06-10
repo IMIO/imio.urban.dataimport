@@ -1,26 +1,68 @@
 # -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.importer import UrbanDataImporter
-from imio.urban.dataimport.importsource import UrbanImportSource
+from imio.urban.dataimport.importsource import UrbanImportSource, DataExtractor
 from imio.urban.dataimport.errormessage import ImportErrorMessage
+from imio.urban.dataimport.access.interfaces import IAccessImportSource
+
+from zope.interface import implements
 
 import csv
 import subprocess
 
 
 class AccessImportSource(UrbanImportSource):
-    """ """
+
+    implements(IAccessImportSource)
+
+    def __init__(self, importer):
+        super(AccessImportSource, self).__init__(importer)
+        headers = self.setHeaders()
+
+        self.headers = headers[0]
+        self.header_indexes = headers[1]
+
+    def setHeaders(self):
+
+        command_line = ['mdb-tables', '-d', '"', self.importer.db_name]
+        output = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        table_names = output.stdout.next()
+        table_names = table_names.split('"')[:-1]
+
+        headers = {}
+        header_indexes = {}
+
+        for table in table_names:
+            csv_source = self._exportMdbToCsv(table=table)
+            headers[table] = csv_source.next().split(',')
+            header_indexes[table] = dict([(headercell.strip(), index) for index, headercell in enumerate(headers[table])])
+
+        return (headers, header_indexes)
 
     def iterdata(self):
-        csv_source = self.exportMdbToCsv()
+        csv_source = self._exportMdbToCsv()
         lines = csv.reader(csv_source)
         lines.next()  # skip header
         return lines
 
-    def exportMdbToCsv(self):
-        command_line = ['mdb-export', self.importer.db_name, self.importer.table_name]
+    def _exportMdbToCsv(self, table=None):
+        table = table or self.importer.table_name
+        command_line = ['mdb-export', self.importer.db_name, table]
         csv_export = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         return csv_export.stdout
+
+
+class AccessDataExtractor(DataExtractor):
+
+    def extractData(self, valuename, line):
+        tablename = getattr(self.mapper, 'table_name', self.mapper.importer.table_name)
+        datasource = self.datasource
+
+        try:
+            data = line[datasource.header_indexes[tablename][valuename]]
+        except:
+            import ipdb; ipdb.set_trace()
+        return data
 
 
 class AccessErrorMessage(ImportErrorMessage):

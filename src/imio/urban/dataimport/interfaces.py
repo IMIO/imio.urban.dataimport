@@ -50,6 +50,40 @@ class IUrbanImportSource(Interface):
         """
 
 
+class IDataExtractor(Interface):
+    """ adapter between a mapper and data source to extract data from a line """
+
+    def extractData(self, line, valuename):
+        """ get the value 'valuename' from data line 'line' """
+
+
+class IMapper(Interface):
+    """
+     Object in charge extract and transform a subset of data from a data line into
+     values that will be used to create an Urban Object.
+    """
+
+    def map(line, container):
+        """
+         Take a line of data  and the future urban object's container.
+         Return a dict {fieldname: fieldvalue, ..} that will be passed to urban object factory
+        """
+
+
+class IPostCreationMapper(Interface):
+    """
+     Object in charge extract and transform a subset of data from a data line into
+     values that will be used to update field(s) of an Urban Object.
+    """
+
+    def map(line, plone_object):
+        """
+         Take a line and the urban object to to updated.
+         Transform/agreggate a data subset of data line into a field value(s). Then update field(s)
+         of urban_object with these value(s).
+        """
+
+
 class IObjectsMapping(Interface):
     """ Object representing an import mapping between data source and destinations objects """
 
@@ -79,6 +113,10 @@ class IMapper(IImportSection):
     """ marker interface for mapper objects """
 
 
+class ISimpleMapper(IMapper):
+    """ marker interface for simple bijection mapper """
+
+
 class IImportErrorMessage(Interface):
     """
       Receive a data importer, a mapping/factory object, a data line, an error message, a dict of data.
@@ -87,7 +125,3 @@ class IImportErrorMessage(Interface):
 
     def __str__(self):
         """ to implements """
-
-
-class IPostCreationMapper(Interface):
-    """ marker interface for post creation mapper """

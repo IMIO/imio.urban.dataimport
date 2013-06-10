@@ -2,7 +2,7 @@
 
 from zope.interface import implements
 
-from imio.urban.dataimport.access_import import AccessImportSource, AccessDataImporter
+from imio.urban.dataimport.access.importer import AccessImportSource, AccessDataImporter
 from imio.urban.dataimport.mapping import ObjectsMapping, ValuesMapping
 from imio.urban.dataimport.AIHM.interfaces import IAIHMDataImporter
 
@@ -50,4 +50,4 @@ def importAIHM(context, aihm_filename='export.csv', db_name='Urbanisme.mdb'):
 
     AIHM_dataimporter.importData(start=1, end=10)
 
-    # AIHM_dataimporter.picklesErrorLog(filename='aihm error log')
+    AIHM_dataimporter.picklesErrorLog(filename='aihm error log')

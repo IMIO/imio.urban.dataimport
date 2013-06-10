@@ -6,6 +6,9 @@ from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping
 from zope.interface import implements
 import zope
 
+import os
+import pickle
+
 
 class UrbanDataImporter(object):
     """
@@ -47,7 +50,7 @@ class UrbanDataImporter(object):
     def importDataLine(self, dataline):
         print "PROCESSING LINE %i" % self.current_line
         objects_nesting = self.objects_mappings.getObjectsNesting()
-        self.createPloneObjects(objects_nesting, dataline)
+        self.createUrbanObjects(objects_nesting, dataline)
 
     def setupImport(self):
 
@@ -92,7 +95,7 @@ class UrbanDataImporter(object):
         if allowed_containers:
             self.allowed_containers[objectname] = allowed_containers
 
-    def createPloneObjects(self, node, line, stack=[]):
+    def createUrbanObjects(self, node, line, stack=[]):
 
         # to be sure to create a different empty list at each new non-recursive call
         stack = stack and stack or []
@@ -117,7 +120,7 @@ class UrbanDataImporter(object):
                     self.updateObjectFields(line, object_name, obj)
 
                     stack.append(obj)
-                    self.createPloneObjects(subobjects, line, stack)
+                    self.createUrbanObjects(subobjects, line, stack)
                     stack.pop()
 
     def canBecreated(self, object_name, container):
@@ -161,3 +164,25 @@ class UrbanDataImporter(object):
 
     def log(self, migrator_locals, location, message, factory_stack, data):
         pass
+
+    def picklesErrorLog(self, filename='error_log.pickle', where='.'):
+        current_directory = os.getcwd()
+        os.chdir(where)
+
+        i = 1
+        new_filename = filename
+        while filename in os.listdir('.'):
+            i = i + 1
+            new_filename = '%s - %i' % (filename, i)
+
+        errors_export = open(new_filename, 'w')
+        os.chdir(current_directory)
+        errors = {
+            'by_line': self.errors,
+            'by_type': self.sorted_errors,
+        }
+        pickle.dump(errors, errors_export)
+
+        print 'error log "%s" pickled in : %s' % (new_filename, os.getcwd())
+
+        return new_filename

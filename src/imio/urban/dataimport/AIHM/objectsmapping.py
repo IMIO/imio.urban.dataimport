@@ -11,7 +11,7 @@ from imio.urban.dataimport.AIHM.mappers import LicenceFactory, PortalTypeMapper,
     DepositDateMapper, CompleteFolderEventTypeMapper, CompleteFolderDateMapper, \
     DecisionEventTypeMapper, DecisionDateMapper, NotificationDateMapper, DecisionMapper
 
-from imio.urban.dataimport.access_mappers import SimpleMapper
+from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
 OBJECTS_NESTING = [
     (

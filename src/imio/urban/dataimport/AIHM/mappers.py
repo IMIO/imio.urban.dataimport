@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.access_mappers import Mapper, PostCreationMapper, SecondaryTableMapper
+from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
+from imio.urban.dataimport.access.mapper import SecondaryTableMapper
+from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as PostCreationMapper
+
 from imio.urban.dataimport.factory import BaseFactory, MultiObjectsFactory
 from imio.urban.dataimport.utils import cleanAndSplitWord, normalizeDate
 from DateTime import DateTime

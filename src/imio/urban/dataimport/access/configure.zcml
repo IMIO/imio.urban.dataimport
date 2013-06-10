@@ -1,0 +1,20 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="imio.urban.dataimport">
+
+  <adapter
+     for="imio.urban.dataimport.access.interfaces.IAccessImportSource
+          imio.urban.dataimport.access.interfaces.IAccessMapper"
+     factory=".importer.AccessDataExtractor"
+     provides="imio.urban.dataimport.interfaces.IDataExtractor"
+     />
+
+  <adapter
+     for="imio.urban.dataimport.access.interfaces.IAccessImportSource
+          imio.urban.dataimport.interfaces.ISimpleMapper"
+     factory=".importer.AccessDataExtractor"
+     provides="imio.urban.dataimport.interfaces.IDataExtractor"
+  />
+
+</configure>
