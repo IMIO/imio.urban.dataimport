@@ -8,4 +8,4 @@ class IAccessMapper(IMapper):
 
 
 class IAccessImportSource(IUrbanImportSource):
-    """ marker interface for access mappers """
+    """ marker interface for access import source """

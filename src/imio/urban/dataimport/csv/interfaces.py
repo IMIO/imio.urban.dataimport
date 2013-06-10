@@ -4,4 +4,4 @@ from imio.urban.dataimport.interfaces import IUrbanImportSource
 
 
 class ICSVImportSource(IUrbanImportSource):
-    """ marker interface for csv mappers """
+    """ marker interface for csv import source """
