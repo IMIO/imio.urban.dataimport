@@ -20,11 +20,11 @@ class BaseFactory(object):
         self.portal_type = portal_type
 
     def create(self, place=None, **kwargs):
-        portal_type = 'portal_type' in kwargs.keys() and kwargs['portal_type'] or self.getPortalType(place, **kwargs)
+        portal_type = kwargs.get('portal_type', self.getPortalType(place, **kwargs))
         if not portal_type:
             return
         container = place and place or self.getCreationPlace(**kwargs)
-        if 'id' in kwargs.keys():
+        if 'id' in kwargs:
             kwargs['id'] = kwargs['id'].strip('_')
             try:
                 object_id = container.invokeFactory(portal_type, **kwargs)
