@@ -19,6 +19,7 @@ class UrbanDataImporter(object):
     def __init__(self, context):
         """ """
 
+        self.context = context
         self.site = context.getSite()
         self.datasource = None
         self.objects_mappings = None
@@ -58,7 +59,7 @@ class UrbanDataImporter(object):
         self.objects_mappings = zope.component.getAdapter(self, IObjectsMapping, 'objects mapping')
         self.values_mappings = zope.component.getAdapter(self, IValuesMapping, 'values mapping')
 
-        fields_mappings = self.objects_mappings.getFieldsMapping()
+        fields_mappings = self.objects_mappings.getRegisteredFieldsMapping()
 
         for objectname, mapping in fields_mappings.iteritems():
             self.setupFactory(objectname, mapping)

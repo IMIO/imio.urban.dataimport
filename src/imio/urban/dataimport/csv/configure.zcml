@@ -4,7 +4,7 @@
     i18n_domain="imio.urban.dataimport">
 
   <adapter
-     for="imio.urban.dataimport.access.interfaces.ICSVImportSource
+     for="imio.urban.dataimport.csv.interfaces.ICSVImportSource
           imio.urban.dataimport.interfaces.IMapper"
      factory=".importer.CSVDataExtractor"
      provides="imio.urban.dataimport.interfaces.IDataExtractor"

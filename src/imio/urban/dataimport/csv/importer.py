@@ -16,12 +16,13 @@ class CSVImportSource(UrbanImportSource):
 
     def __init__(self, importer):
         super(CSVImportSource, self).__init__(importer)
-        self.header = self.setHeaders()
+        self.csv_file = None
+        self.header = self.setHeader()
 
     def setHeader(self):
         header_indexes = {}
         header = self.getSourceAsCSV()
-        header = self.next()
+        header = header.next()
 
         header_indexes = dict([(headercell.strip(), index) for index, headercell in enumerate(header)])
 
@@ -33,7 +34,10 @@ class CSVImportSource(UrbanImportSource):
         return lines
 
     def getSourceAsCSV(self):
-        return csv.reader(self.importer.datasource)
+        csv_filename = self.importer.csv_filename
+        csv_file = self.importer.context.openDataFile(csv_filename)
+        csv_reader = csv.reader(csv_file)
+        return csv_reader
 
 
 class CSVDataExtractor(DataExtractor):
@@ -70,8 +74,9 @@ class CSVDataImporter(UrbanDataImporter):
         key_column: will be use in logs to refer to a migrated line of data
     """
 
-    def __init__(self, context, db_name, table_name, key_column):
+    def __init__(self, context, csv_filename, key_column):
         super(CSVDataImporter, self).__init__(context)
+        self.csv_filename = csv_filename
         self.key_column = key_column
 
     def getData(self, valuename, line):
