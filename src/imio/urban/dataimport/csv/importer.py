@@ -16,7 +16,6 @@ class CSVImportSource(UrbanImportSource):
 
     def __init__(self, importer):
         super(CSVImportSource, self).__init__(importer)
-        self.csv_file = None
         self.header = self.setHeader()
 
     def setHeader(self):
@@ -51,7 +50,7 @@ class CSVDataExtractor(DataExtractor):
 class CSVErrorMessage(ImportErrorMessage):
 
     def __str__(self):
-        key = self.importer.getData(self.line, self.importer.key_column)
+        key = self.importer.getData(self.importer.key_column, self.line)
         migration_step = self.error_location.__class__.__name__
         factory_stack = self.importer.current_containers_stack
         stack_display = '\n'.join(['%sid: %s Title: %s' % (''.join(['    ' for i in range(factory_stack.index(obj))]), obj.id, obj.Title()) for obj in factory_stack])

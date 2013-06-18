@@ -99,7 +99,7 @@ class UrbanDataImporter(object):
     def createUrbanObjects(self, node, line, stack=[]):
 
         # to be sure to create a different empty list at each new non-recursive call
-        stack = stack and stack or []
+        stack = stack or []
         self.current_containers_stack = stack
 
         for object_name, subobjects in node:
@@ -128,8 +128,10 @@ class UrbanDataImporter(object):
         if not container:
             return True
 
+        portal_type = container.portal_type
+
         unrestricted_container = object_name not in self.allowed_containers
-        allowed_container = self.allowed_containers.get(object_name, '') == container.portal_type
+        allowed_container = portal_type in self.allowed_containers.get(object_name, '')
 
         canbecreated = unrestricted_container or allowed_container
 
@@ -154,12 +156,12 @@ class UrbanDataImporter(object):
         print message
 
         line_num = self.current_line
-        if line_num not in self.errors.keys():
+        if line_num not in self.errors:
             self.errors[line_num] = []
         self.errors[line_num].append(message)
 
         migration_step = error_location.__class__.__name__
-        if migration_step not in self.sorted_errors.keys():
+        if migration_step not in self.sorted_errors:
             self.sorted_errors[migration_step] = []
         self.sorted_errors[migration_step].append(message)
 
@@ -172,7 +174,7 @@ class UrbanDataImporter(object):
 
         i = 1
         new_filename = filename
-        while filename in os.listdir('.'):
+        while new_filename in os.listdir('.'):
             i = i + 1
             new_filename = '%s - %i' % (filename, i)
 

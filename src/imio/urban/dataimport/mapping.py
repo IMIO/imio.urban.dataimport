@@ -20,6 +20,32 @@ class ObjectsMapping:
     def getFieldsMapping(self):
         """ to implements """
 
+    def getRegisteredFieldsMapping(self):
+        def recursiveIter(node, flatlist):
+            name = node[0]
+            subnodes = node[1]
+
+            flatlist.append(name)
+
+            for subnode in subnodes:
+                if subnode:
+                    recursiveIter(subnode, flatlist)
+
+            return flatlist
+
+        names = []
+        nestings = self.getObjectsNesting()
+        for nesting in nestings:
+            recursiveIter(nesting, names)
+        fields_mappings = self.getFieldsMapping()
+
+        try:
+            registered_mapping = dict([(k, fields_mappings[k]) for k in names])
+        except KeyError:
+            import ipdb; ipdb.set_trace()
+
+        return registered_mapping
+
 
 class ValuesMapping:
     """

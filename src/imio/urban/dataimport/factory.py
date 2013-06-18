@@ -26,6 +26,8 @@ class BaseFactory(object):
         container = place and place or self.getCreationPlace(**kwargs)
         if 'id' in kwargs:
             kwargs['id'] = kwargs['id'].strip('_')
+            if not kwargs['id']:
+                return []
             try:
                 object_id = container.invokeFactory(portal_type, **kwargs)
             except:
@@ -57,7 +59,7 @@ class MultiObjectsFactory(BaseFactory):
     def create(self, place=None, **kwargs):
         objs = []
         for index, args in kwargs.iteritems():
-            if 'id' not in args.keys():
+            if 'id' not in args:
                 args['id'] = self.getDefaultId(place, **args)
             objs.append(super(MultiObjectsFactory, self).create(place, **args)[0])
         return objs
