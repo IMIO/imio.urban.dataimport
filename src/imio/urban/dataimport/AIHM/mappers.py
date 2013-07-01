@@ -48,7 +48,7 @@ class PortalTypeMapper(Mapper):
 class WorklocationMapper(Mapper):
     def mapWorklocations(self, line, **kwargs):
         num = self.getData('NumPolParcelle')
-        noisy_words = set(('d', 'du', 'de', 'des', 'le', 'la', 'les', 'à', ',', 'rues'))
+        noisy_words = set(('d', 'du', 'de', 'des', 'le', 'la', 'les', 'à', ',', 'rues', 'terrain', 'terrains', 'garage', 'magasin', 'entrepôt'))
         street = self.getData('AdresseDuBien')
         street = cleanAndSplitWord(street)
         street_keywords = [word for word in street if word not in noisy_words and len(word) > 1]
