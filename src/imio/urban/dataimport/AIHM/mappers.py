@@ -110,8 +110,8 @@ class ObservationsMapper(Mapper):
 
 class ReferenceMapper(PostCreationMapper):
     def mapReference(self, line, plone_object, **kwargs):
-        date = self.getData('DateRecDem') and self.getData('DateRecDem') or None
-        return self.site.portal_urban.generateReference(plone_object, **{'date': DateTime(date)})
+        ref = self.getData('CLEF')
+        return ref
 
 
 class ArchitectMapper(PostCreationMapper):

@@ -36,12 +36,9 @@ class AIHMValuesMapping(ValuesMapping):
         return valuesmapping.VALUES_MAPS.get(mapping_name, None)
 
 
-def importAIHM(context, aihm_filename='export.csv', db_name='Urbanisme.mdb'):
+def importAIHM(context, db_name='Urbanisme.mdb'):
     """
     """
-    aihm_file = context.openDataFile(aihm_filename)
-    AIHMImportSource.raw_source = aihm_file
-
     db = context.openDataFile(db_name)
     db_filepath = db.name
     table_name = 'Urbanisme'

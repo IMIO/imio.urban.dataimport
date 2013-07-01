@@ -53,7 +53,7 @@ FIELDS_MAPPINGS = {
             },
 
             ReferenceMapper: {
-                'from': ('TYPE', 'DateRecDem'),
+                'from': ('CLEF'),
                 'to': ('reference',)
             },
 
