@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.mapper import BaseMapper, Mapper, SimpleMapper, PostCreationMapper
+from imio.urban.dataimport.mapper import BaseMapper, Mapper, SimpleMapper,\
+    PostCreationMapper, FinalMapper
 from imio.urban.dataimport.access.interfaces import IAccessMapper
 
 from zope.interface import implements
@@ -28,6 +29,10 @@ class AccessSimpleMapper(AccessBaseMapper, SimpleMapper):
 
 
 class AccessPostCreationMapper(AccessMapper, PostCreationMapper):
+    """" """
+
+
+class AccessFinalMapper(AccessMapper, FinalMapper):
     """" """
 
 

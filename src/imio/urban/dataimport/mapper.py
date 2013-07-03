@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.interfaces import IMapper, ISimpleMapper, IPostCreationMapper, IDataExtractor
+from imio.urban.dataimport.interfaces import IMapper, ISimpleMapper, IPostCreationMapper, \
+    IDataExtractor, IFinalMapper
 
 from Products.CMFCore.utils import getToolByName
 
@@ -63,12 +64,10 @@ class Mapper(BaseMapper):
         return self.importer.values_mappings.getValueMapping(mapping_name)
 
 
-class PostCreationMapper(Mapper):
-
-    implements(IPostCreationMapper)
+class AfterCreationMapper(Mapper):
 
     def __init__(self, importer, args):
-        super(PostCreationMapper, self).__init__(importer, args)
+        super(AfterCreationMapper, self).__init__(importer, args)
         self.allowed_containers = args.get('allowed_containers', [])
 
     def map(self, line, plone_object, **kwargs):
@@ -84,6 +83,16 @@ class PostCreationMapper(Mapper):
             else:
                 print '%s: NO MAPPING METHOD FOUND' % self
                 print 'target field : %s' % dest
+
+
+class PostCreationMapper(AfterCreationMapper):
+
+    implements(IPostCreationMapper)
+
+
+class FinalMapper(AfterCreationMapper):
+
+    implements(IFinalMapper)
 
 
 class SimpleMapper(BaseMapper):

@@ -3,6 +3,7 @@
 from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
 from imio.urban.dataimport.access.mapper import SecondaryTableMapper
 from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as PostCreationMapper
+from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 
 from imio.urban.dataimport.factory import BaseFactory, MultiObjectsFactory
 from imio.urban.dataimport.utils import cleanAndSplitWord, normalizeDate
@@ -49,15 +50,19 @@ class WorklocationMapper(Mapper):
     def mapWorklocations(self, line, **kwargs):
         num = self.getData('NumPolParcelle')
         noisy_words = set(('d', 'du', 'de', 'des', 'le', 'la', 'les', 'à', ',', 'rues', 'terrain', 'terrains', 'garage', 'magasin', 'entrepôt'))
-        street = self.getData('AdresseDuBien')
-        street = cleanAndSplitWord(street)
+        raw_street = self.getData('AdresseDuBien')
+        street = cleanAndSplitWord(raw_street)
         street_keywords = [word for word in street if word not in noisy_words and len(word) > 1]
         street_keywords.extend(cleanAndSplitWord(self.getData('AncCommune')))
         brains = self.catalog(portal_type='Street', Title=street_keywords)
         if len(brains) == 1:
             return ({'street': brains[0].UID, 'number': num},)
         if street:
-            self.logError(self, line, 'Couldnt find street or found too much streets', {'street': street_keywords, 'search result': len(brains)})
+            self.logError(self, line, 'Couldnt find street or found too much streets', {
+                'address': '%s, %s' % (num, raw_street),
+                'street': street_keywords,
+                'search result': len(brains)
+            })
         return {}
 
 
@@ -109,13 +114,13 @@ class ObservationsMapper(Mapper):
 
 
 class ReferenceMapper(PostCreationMapper):
-    def mapReference(self, line, plone_object, **kwargs):
+    def mapReference(self, line, plone_object):
         ref = self.getData('CLEF')
         return ref
 
 
 class ArchitectMapper(PostCreationMapper):
-    def mapArchitects(self, line, plone_object, **kwargs):
+    def mapArchitects(self, line, plone_object):
         archi_name = self.getData('NomArchitecte')
         fullname = cleanAndSplitWord(archi_name)
         if not fullname:
@@ -130,7 +135,7 @@ class ArchitectMapper(PostCreationMapper):
 
 
 class GeometricianMapper(PostCreationMapper):
-    def mapGeometricians(self, line, plone_object, **kwargs):
+    def mapGeometricians(self, line, plone_object):
         title_words = [word for word in self.getData('Titre').lower().split()]
         for word in title_words:
             if word not in ['géometre', 'géomètre']:
@@ -151,7 +156,7 @@ class GeometricianMapper(PostCreationMapper):
 
 
 class NotaryMapper(PostCreationMapper):
-    def mapNotarycontact(self, line, plone_object, **kwargs):
+    def mapNotarycontact(self, line, plone_object):
         title = self.getData('Titre').lower()
         titre_mapping = self.getValueMapping('titre_map')
         if title not in titre_mapping or titre_mapping[title] not in ['master', 'masters']:
@@ -169,7 +174,7 @@ class NotaryMapper(PostCreationMapper):
 
 
 class CompletionStateMapper(PostCreationMapper):
-    def map(self, line, plone_object, **kwargs):
+    def map(self, line, plone_object):
         self.line = line
         state = ''
         if bool(int(self.getData('DossierIncomplet'))):
@@ -188,6 +193,27 @@ class CompletionStateMapper(PostCreationMapper):
         workflow_state = workflow_tool.getStatusOf(workflow_id, plone_object)
         workflow_state['review_state'] = state
         workflow_tool.setStatusOf(workflow_id, plone_object, workflow_state.copy())
+
+
+class ErrorsMapper(FinalMapper):
+    def mapDescription(self, line, plone_object):
+
+        line_number = self.importer.current_line
+        errors = self.importer.errors.get(line_number, None)
+        description = plone_object.Description()
+
+        error_trace = []
+
+        if errors:
+            for error in errors:
+                data = error.data
+                if 'streets' in error.message:
+                    error_trace.append('<p>adresse : %s</p>' % data['address'])
+                elif 'notaries' in error.message:
+                    error_trace.append('<p>notaire : %s %s %s</p>' % (data['title'], data['firstname'], data['name']))
+        error_trace = ''.join(error_trace)
+
+        return '%s%s' % (error_trace, description)
 
 #
 # CONTACT
@@ -386,7 +412,7 @@ class DepositEventTypeMapper(Mapper):
 
 
 class DepositDateMapper(PostCreationMapper):
-    def mapEventdate(self, line, plone_object, **kwargs):
+    def mapEventdate(self, line, plone_object):
         date = self.getData('DateRecDem')
         date = date and DateTime(date) or None
         if not date:
@@ -410,7 +436,7 @@ class CompleteFolderEventTypeMapper(Mapper):
 
 
 class CompleteFolderDateMapper(PostCreationMapper):
-    def mapEventdate(self, line, plone_object, **kwargs):
+    def mapEventdate(self, line, plone_object):
         date = self.getData('AvisDossierComplet')
         date = date and DateTime(date) or None
         if not date:
@@ -426,8 +452,6 @@ class CompleteFolderDateMapper(PostCreationMapper):
 
 class DecisionEventTypeMapper(Mapper):
     def mapEventtype(self, line, **kwargs):
-        if self.getData('Refus') == 'A':
-            return ''
         licence = kwargs['container']
         urban_tool = getToolByName(licence, 'portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['decision_event']
@@ -436,7 +460,7 @@ class DecisionEventTypeMapper(Mapper):
 
 
 class DecisionDateMapper(PostCreationMapper):
-    def mapDecisiondate(self, line, plone_object, **kwargs):
+    def mapDecisiondate(self, line, plone_object):
         date = self.getData('DateDecisionCollege')
         date = date and DateTime(date) or None
         if not date:
@@ -445,7 +469,7 @@ class DecisionDateMapper(PostCreationMapper):
 
 
 class NotificationDateMapper(PostCreationMapper):
-    def mapEventdate(self, line, plone_object, **kwargs):
+    def mapEventdate(self, line, plone_object):
         date = self.getData('DateNotif')
         date = date and DateTime(date) or None
         if not date:
@@ -454,7 +478,7 @@ class NotificationDateMapper(PostCreationMapper):
 
 
 class DecisionMapper(PostCreationMapper):
-    def mapDecision(self, line, plone_object, **kwargs):
+    def mapDecision(self, line, plone_object):
         decision = self.getData('Refus')
         if decision == 'O':
             return 'favorable'

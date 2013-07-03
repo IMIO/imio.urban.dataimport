@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping, \
-    IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage
+    IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage, \
+    IFinalMapper
 
 from zope.interface import implements
 import zope
@@ -79,6 +80,7 @@ class UrbanDataImporter(object):
         mappers = {
             'pre': [],
             'post': [],
+            'final': [],
         }
 
         for mapper_class, mapper_args in mapping['mappers'].iteritems():
@@ -86,6 +88,8 @@ class UrbanDataImporter(object):
             mapper = mapper_class(self, mapper_args)
             if IPostCreationMapper.implementedBy(mapper_class):
                 mappers['post'].append(mapper)
+            elif IFinalMapper.implementedBy(mapper_class):
+                mappers['final'].append(mapper)
             else:
                 mappers['pre'].append(mapper)
 
@@ -117,12 +121,15 @@ class UrbanDataImporter(object):
                     return
 
                 for obj in urban_objects:
-                    # update some fields after creation
-                    self.updateObjectFields(line, object_name, obj)
+                    # update some fields after creation but before child objects creation
+                    self.updateObjectFields(line, object_name, obj, 'post')
 
                     stack.append(obj)
                     self.createUrbanObjects(subobjects, line, stack)
                     stack.pop()
+
+                    # update some fields after every child object has been created
+                    self.updateObjectFields(line, object_name, obj, 'final')
 
     def canBecreated(self, object_name, container):
         if not container:
@@ -144,26 +151,26 @@ class UrbanDataImporter(object):
 
         return factory_args
 
-    def updateObjectFields(self, line, object_name, urban_object):
-        for mapper in self.mappers[object_name]['post']:
-            mapper.map(line, plone_object=urban_object, site=self.site)
+    def updateObjectFields(self, line, object_name, urban_object, mapper_type):
+        for mapper in self.mappers[object_name][mapper_type]:
+            mapper.map(line, plone_object=urban_object)
         urban_object.processForm()
 
     def logError(self, error_location, line, message, data):
 
-        error_message = zope.component.getMultiAdapter((self, error_location, line, message, data), IImportErrorMessage)
-        message = str(error_message)
+        error = zope.component.getMultiAdapter((self, error_location, line, message, data), IImportErrorMessage)
+        message = str(error)
         print message
 
         line_num = self.current_line
         if line_num not in self.errors:
             self.errors[line_num] = []
-        self.errors[line_num].append(message)
+        self.errors[line_num].append(error)
 
         migration_step = error_location.__class__.__name__
         if migration_step not in self.sorted_errors:
             self.sorted_errors[migration_step] = []
-        self.sorted_errors[migration_step].append(message)
+        self.sorted_errors[migration_step].append(error)
 
     def log(self, migrator_locals, location, message, factory_stack, data):
         pass
@@ -179,12 +186,16 @@ class UrbanDataImporter(object):
             new_filename = '%s - %i' % (filename, i)
 
         errors_export = open(new_filename, 'w')
+
+        errors = dict([(k, str(v)) for k, v in self.errors.iteritems()])
+        sorted_errors = dict([(k, str(v)) for k, v in self.sorted_errors.iteritems()])
+
         os.chdir(current_directory)
-        errors = {
-            'by_line': self.errors,
-            'by_type': self.sorted_errors,
+        all_errors = {
+            'by_line': errors,
+            'by_type': sorted_errors,
         }
-        pickle.dump(errors, errors_export)
+        pickle.dump(all_errors, errors_export)
 
         print 'error log "%s" pickled in : %s' % (new_filename, os.getcwd())
 

@@ -83,7 +83,21 @@ class IPostCreationMapper(Interface):
         """
          Take a line and the urban object to to updated.
          Transform/agreggate a data subset of data line into a field value(s). Then update field(s)
-         of urban_object with these value(s).
+         of urban_object with these value(s) before any child object creation.
+        """
+
+
+class IFinalMapper(Interface):
+    """
+     Object in charge extract and transform a subset of data from a data line into
+     values that will be used to update field(s) of an Urban Object.
+    """
+
+    def map(line, plone_object):
+        """
+         Take a line and the urban object to to updated.
+         Transform/agreggate a data subset of data line into a field value(s). Then update field(s)
+         of urban_object with these value(s) after every child object has been created.
         """
 
 

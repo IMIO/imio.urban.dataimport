@@ -9,7 +9,8 @@ from imio.urban.dataimport.AIHM.mappers import LicenceFactory, PortalTypeMapper,
     ContactRepresentedByMapper, ContactIdMapper, ParcelFactory, ParcelDataMapper, \
     RadicalMapper, ExposantMapper, BisMapper, UrbanEventFactory, DepositEventTypeMapper, \
     DepositDateMapper, CompleteFolderEventTypeMapper, CompleteFolderDateMapper, \
-    DecisionEventTypeMapper, DecisionDateMapper, NotificationDateMapper, DecisionMapper
+    DecisionEventTypeMapper, DecisionDateMapper, NotificationDateMapper, DecisionMapper, \
+    ErrorsMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -103,6 +104,11 @@ FIELDS_MAPPINGS = {
             CompletionStateMapper: {
                 'from': ('DossierIncomplet', 'Refus'),
                 'to': (),  # <- no field to fill, its the workflow state that has to be changed
+            },
+
+            ErrorsMapper: {
+                'from': (),
+                'to': ('description',),  # log all the errors in the description field
             }
         },
     },
