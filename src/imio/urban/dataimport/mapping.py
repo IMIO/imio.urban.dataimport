@@ -39,10 +39,7 @@ class ObjectsMapping:
             recursiveIter(nesting, names)
         fields_mappings = self.getFieldsMapping()
 
-        try:
-            registered_mapping = dict([(k, fields_mappings[k]) for k in names])
-        except KeyError:
-            import ipdb; ipdb.set_trace()
+        registered_mapping = dict([(k, fields_mappings[k]) for k in names])
 
         return registered_mapping
 
