@@ -131,6 +131,8 @@ class UrbanDataImporter(object):
                     # update some fields after every child object has been created
                     self.updateObjectFields(line, object_name, obj, 'final')
 
+                    obj.processForm()
+
     def canBecreated(self, object_name, container):
         if not container:
             return True
@@ -154,7 +156,6 @@ class UrbanDataImporter(object):
     def updateObjectFields(self, line, object_name, urban_object, mapper_type):
         for mapper in self.mappers[object_name][mapper_type]:
             mapper.map(line, plone_object=urban_object)
-        urban_object.processForm()
 
     def logError(self, error_location, line, message, data):
 

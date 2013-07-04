@@ -53,13 +53,14 @@ class WorklocationMapper(Mapper):
         raw_street = self.getData('AdresseDuBien')
         street = cleanAndSplitWord(raw_street)
         street_keywords = [word for word in street if word not in noisy_words and len(word) > 1]
-        street_keywords.extend(cleanAndSplitWord(self.getData('AncCommune')))
+        locality = self.getData('AncCommune')
+        street_keywords.extend(cleanAndSplitWord(locality))
         brains = self.catalog(portal_type='Street', Title=street_keywords)
         if len(brains) == 1:
             return ({'street': brains[0].UID, 'number': num},)
         if street:
             self.logError(self, line, 'Couldnt find street or found too much streets', {
-                'address': '%s, %s' % (num, raw_street),
+                'address': '%s, %s %s' % (num, raw_street, locality),
                 'street': street_keywords,
                 'search result': len(brains)
             })
@@ -90,7 +91,8 @@ class ParcellingsMapper(Mapper):
             return []
         auth_date = normalizeDate(self.getData('DateLot'))
         approval_date = normalizeDate(self.getData('DateLotUrbanisme'))
-        city = self.getData('AncCommune').split('-')
+        raw_city = self.getData('AncCommune')
+        city = raw_city.split('-')
         keywords = [approval_date] + city
         parcellings = self.catalog(Title=keywords)
         if len(parcellings) == 1:
@@ -99,7 +101,7 @@ class ParcellingsMapper(Mapper):
         parcellings = self.catalog(Title=keywords)
         if len(parcellings) == 1:
             return parcellings[0].getObject().UID()
-        self.logError(self, line, 'Couldnt find parcelling or found too much parcelling', {'approval date': approval_date, 'auth_date': auth_date, 'city': city})
+        self.logError(self, line, 'Couldnt find parcelling or found too much parcelling', {'approval date': approval_date, 'auth_date': auth_date, 'city': raw_city})
         return []
 
 
@@ -130,7 +132,12 @@ class ArchitectMapper(PostCreationMapper):
         architects = self.catalog(portal_type='Architect', Title=name_keywords)
         if len(architects) == 1:
             return architects[0].getObject()
-        self.logError(self, line, 'No architects found or too much architects found', {'name': name_keywords, 'search_result': len(architects)})
+        self.logError(self, line, 'No architects found or too much architects found',
+                      {
+                          'raw_name': archi_name,
+                          'name': name_keywords,
+                          'search_result': len(architects)
+                      })
         return []
 
 
@@ -141,8 +148,9 @@ class GeometricianMapper(PostCreationMapper):
             if word not in ['géometre', 'géomètre']:
                 return
         name = self.getData('Nom')
-        name = cleanAndSplitWord(name)
         firstname = self.getData('Prenom')
+        raw_name = firstname + name
+        name = cleanAndSplitWord(name)
         firstname = cleanAndSplitWord(firstname)
         names = name + firstname
         geometrician = self.catalog(portal_type='Geometrician', Title=names)
@@ -151,7 +159,13 @@ class GeometricianMapper(PostCreationMapper):
         if len(geometrician) == 1:
             return geometrician[0].getObject()
         self.logError(self, line, 'no geometricians found or too much geometricians found',
-                      {'title': self.getData('Titre'), 'name': name, 'firstname': firstname, 'search_result': len(geometrician)})
+                      {
+                          'raw_name': raw_name,
+                          'title': self.getData('Titre'),
+                          'name': name,
+                          'firstname': firstname,
+                          'search_result': len(geometrician)
+                      })
         return []
 
 
@@ -211,6 +225,12 @@ class ErrorsMapper(FinalMapper):
                     error_trace.append('<p>adresse : %s</p>' % data['address'])
                 elif 'notaries' in error.message:
                     error_trace.append('<p>notaire : %s %s %s</p>' % (data['title'], data['firstname'], data['name']))
+                elif 'architects' in error.message:
+                    error_trace.append('<p>architecte : %s</p>' % data['raw_name'])
+                elif 'geometricians' in error.message:
+                    error_trace.append('<p>géomètre : %s</p>' % data['raw_name'])
+                elif 'parcelling' in error.message:
+                    error_trace.append('<p>lotissement : %s %s, autorisé le %s</p>' % (data['approval date'], data['city'], data['auth_date']))
         error_trace = ''.join(error_trace)
 
         return '%s%s' % (error_trace, description)
