@@ -112,7 +112,7 @@ class UrbanDataImporter(object):
 
             if self.canBecreated(object_name, container):
 
-                factory_args = self.getFactoryArguments(line, object_name, container)
+                factory_args = self.getFactoryArguments(line, object_name)
                 factory = self.factories[object_name]
                 urban_objects = factory.create(place=container, **factory_args)
 
@@ -146,10 +146,10 @@ class UrbanDataImporter(object):
 
         return canbecreated
 
-    def getFactoryArguments(self, line, object_name, container):
+    def getFactoryArguments(self, line, object_name):
         factory_args = {}
         for mapper in self.mappers[object_name]['pre']:
-            factory_args.update(mapper.map(line, container=container))
+            factory_args.update(mapper.map(line))
 
         return factory_args
 

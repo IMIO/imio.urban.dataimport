@@ -27,7 +27,7 @@ class BaseMapper(object):
         value = data_extractor.extractData(valuename, line)
         return value
 
-    def map(self, line, **kwargs):
+    def map(self, line):
         """ to implements """
 
 
@@ -39,13 +39,13 @@ class Mapper(BaseMapper):
         self.destinations = type(args['to']) == str and [args['to']] or args['to']
         self.line = ''
 
-    def map(self, line, **kwargs):
+    def map(self, line):
         self.line = line
         mapped = {}
         for dest in self.destinations:
             mapping_method = 'map%s' % dest.capitalize()
             if hasattr(self, mapping_method):
-                mapped[dest] = getattr(self, mapping_method)(line, **kwargs)
+                mapped[dest] = getattr(self, mapping_method)(line)
             else:
                 print '%s: NO MAPPING METHOD FOUND' % self
                 print 'target field : %s' % dest
@@ -70,7 +70,7 @@ class AfterCreationMapper(Mapper):
         super(AfterCreationMapper, self).__init__(importer, args)
         self.allowed_containers = args.get('allowed_containers', [])
 
-    def map(self, line, plone_object, **kwargs):
+    def map(self, line, plone_object):
         if self.allowed_containers and plone_object.portal_type not in self.allowed_containers:
             return
         self.line = line
@@ -78,7 +78,7 @@ class AfterCreationMapper(Mapper):
             mapping_method = 'map%s' % dest.capitalize()
             if hasattr(self, mapping_method):
                 mutator = plone_object.getField(dest).getMutator(plone_object)
-                value = getattr(self, mapping_method)(line, plone_object, **kwargs)
+                value = getattr(self, mapping_method)(line, plone_object)
                 mutator(value)
             else:
                 print '%s: NO MAPPING METHOD FOUND' % self
@@ -109,5 +109,5 @@ class SimpleMapper(BaseMapper):
         data = self.getValueFromLine(valuename, line)
         return data
 
-    def map(self, line, **kwargs):
+    def map(self, line):
         return dict([(bij[0], self.getData(bij[1], line)) for bij in self.bijections])

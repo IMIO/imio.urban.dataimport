@@ -28,26 +28,26 @@ class LicenceFactory(BaseFactory):
 
 
 class IdMapper(Mapper):
-    def mapId(self, line, **kwargs):
+    def mapId(self, line):
         return normalizeString(self.getData('CLEF'))
 
 
 class PortalTypeMapper(Mapper):
-    def mapPortal_type(self, line, **kwargs):
+    def mapPortal_type(self, line):
         type_value = self.getData('TYPE')
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
         return portal_type
 
-    def mapFoldercategory(self, line, **kwargs):
+    def mapFoldercategory(self, line):
         type_value = self.getData('TYPE')
         foldercategory = self.getValueMapping('type_map')[type_value]['foldercategory']
         return foldercategory
 
 
 class WorklocationMapper(Mapper):
-    def mapWorklocations(self, line, **kwargs):
+    def mapWorklocations(self, line):
         num = self.getData('NumPolParcelle')
         noisy_words = set(('d', 'du', 'de', 'des', 'le', 'la', 'les', 'à', ',', 'rues', 'terrain', 'terrains', 'garage', 'magasin', 'entrepôt'))
         raw_street = self.getData('AdresseDuBien')
@@ -68,11 +68,11 @@ class WorklocationMapper(Mapper):
 
 
 class PcaMapper(Mapper):
-    def mapIsinpca(self, line, **kwargs):
+    def mapIsinpca(self, line):
         return bool(self.getData('DatePPA'))
 
-    def mapPca(self, line, **kwargs):
-        if not self.mapIsinpca(line, **kwargs):
+    def mapPca(self, line):
+        if not self.mapIsinpca(line):
             return []
         pca_date = normalizeDate(self.getData('DatePPA'))
         pcas = self.catalog(Title=pca_date)
@@ -83,11 +83,11 @@ class PcaMapper(Mapper):
 
 
 class ParcellingsMapper(Mapper):
-    def mapIsinsubdivision(self, line, **kwargs):
+    def mapIsinsubdivision(self, line):
         return any([self.getData('NumLot'), self.getData('DateLot'), self.getData('DateLotUrbanisme')])
 
-    def mapParcellings(self, line, **kwargs):
-        if not self.mapIsinsubdivision(line, **kwargs):
+    def mapParcellings(self, line):
+        if not self.mapIsinsubdivision(line):
             return []
         auth_date = normalizeDate(self.getData('DateLot'))
         approval_date = normalizeDate(self.getData('DateLotUrbanisme'))
@@ -106,12 +106,12 @@ class ParcellingsMapper(Mapper):
 
 
 class ParcellingRemarksMapper(Mapper):
-    def mapLocationtechnicalremarks(self, line, **kwargs):
+    def mapLocationtechnicalremarks(self, line):
         return '<p>%s</p>' % self.getData('PPAObservations')
 
 
 class ObservationsMapper(Mapper):
-    def mapDescription(self, line, **kwargs):
+    def mapDescription(self, line):
         return '<p>%s</p>' % self.getData('Observations')
 
 
@@ -259,14 +259,14 @@ class ContactFactory(BaseFactory):
 
 
 class ContactIdMapper(Mapper):
-    def mapId(self, line, **kwargs):
+    def mapId(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         name = '%s %s' % (self.getData('%sNom' % m), self.getData('%sPrenom' % m))
         return normalizeString(self.site.portal_urban.generateUniqueId(name))
 
 
 class ContactTitleMapper(Mapper):
-    def mapPersontitle(self, line, **kwargs):
+    def mapPersontitle(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         titre = self.getData('%sTitre' % m).lower()
         titre_mapping = self.getValueMapping('titre_map')
@@ -276,25 +276,25 @@ class ContactTitleMapper(Mapper):
 
 
 class ContactNameMapper(Mapper):
-    def mapName1(self, line, **kwargs):
+    def mapName1(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         return self.getData('%sNom' % m)
 
 
 class ContactFirstnameMapper(Mapper):
-    def mapName2(self, line, **kwargs):
+    def mapName2(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         return self.getData('%sPrenom' % m)
 
 
 class ContactSreetMapper(Mapper):
-    def mapStreet(self, line, **kwargs):
+    def mapStreet(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         return self.getData('%sAdresse' % m)
 
 
 class ContactNumberMapper(Mapper):
-    def mapNumber(self, line, **kwargs):
+    def mapNumber(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         number = self.getData('%sNumPolice' % m)
         box = self.getData('%sBtePost' % m)
@@ -302,19 +302,19 @@ class ContactNumberMapper(Mapper):
 
 
 class ContactZipcodeMapper(Mapper):
-    def mapZipcode(self, line, **kwargs):
+    def mapZipcode(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         return self.getData('%sCP' % m)
 
 
 class ContactCityMapper(Mapper):
-    def mapCity(self, line, **kwargs):
+    def mapCity(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         return self.getData('%sLocalite' % m)
 
 
 class ContactCountryMapper(Mapper):
-    def mapCountry(self, line, **kwargs):
+    def mapCountry(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         try:
             return self.getValueMapping('country_map')[self.getData('%sPays' % m).lower()]
@@ -323,13 +323,14 @@ class ContactCountryMapper(Mapper):
 
 
 class ContactPhoneMapper(Mapper):
-    def mapPhone(self, line, **kwargs):
+    def mapPhone(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
         return self.getData('%sTelephone' % m)
 
 
 class ContactRepresentedByMapper(Mapper):
-    def mapRepresentedby(self, line, container, **kwargs):
+    def mapRepresentedby(self, line):
+        container = self.importer.current_containers_stack[-1]
         if not self.getData('MandantNom'):
             return ''
         if container.portal_type == 'BuildLicence':
@@ -374,7 +375,7 @@ class ParcelDataMapper(SecondaryTableMapper):
 
 
 class RadicalMapper(Mapper):
-    def mapRadical(self, line, **kwargs):
+    def mapRadical(self, line):
         radical = self.getData('RADICAL')
         if not radical:
             return radical
@@ -382,13 +383,13 @@ class RadicalMapper(Mapper):
 
 
 class ExposantMapper(Mapper):
-    def mapExposant(self, line, **kwargs):
+    def mapExposant(self, line):
         raw_val = self.getData('EXPOSANT')
         result = re.search('[a-z]', raw_val, re.I)
         exposant = result and result.group().capitalize() or ''
         return exposant
 
-    def mapPuissance(self, line, **kwargs):
+    def mapPuissance(self, line):
         raw_val = self.getData('EXPOSANT')
         result = re.search('\d+', raw_val)
         puissance = result and result.group() or ''
@@ -396,7 +397,7 @@ class ExposantMapper(Mapper):
 
 
 class BisMapper(Mapper):
-    def mapBis(self, line, **kwargs):
+    def mapBis(self, line):
         bis = self.getData('BIS')
         if not bis:
             return bis
@@ -423,8 +424,8 @@ class UrbanEventFactory(BaseFactory):
 
 
 class DepositEventTypeMapper(Mapper):
-    def mapEventtype(self, line, **kwargs):
-        licence = kwargs['container']
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
         urban_tool = getToolByName(licence, 'portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['deposit_event']
         config = urban_tool.getUrbanConfig(licence)
@@ -447,8 +448,8 @@ class DepositDateMapper(PostCreationMapper):
 
 
 class CompleteFolderEventTypeMapper(Mapper):
-    def mapEventtype(self, line, **kwargs):
-        licence = kwargs['container']
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
         urban_tool = getToolByName(licence, 'portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['folder_complete']
         config = urban_tool.getUrbanConfig(licence)
@@ -471,8 +472,8 @@ class CompleteFolderDateMapper(PostCreationMapper):
 
 
 class DecisionEventTypeMapper(Mapper):
-    def mapEventtype(self, line, **kwargs):
-        licence = kwargs['container']
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
         urban_tool = getToolByName(licence, 'portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['decision_event']
         config = urban_tool.getUrbanConfig(licence)
