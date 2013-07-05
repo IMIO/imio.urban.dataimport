@@ -94,14 +94,15 @@ class ParcellingsMapper(Mapper):
         raw_city = self.getData('AncCommune')
         city = raw_city.split('-')
         keywords = [approval_date] + city
-        parcellings = self.catalog(Title=keywords)
-        if len(parcellings) == 1:
-            return parcellings[0].getObject().UID()
-        keywords = [auth_date] + city
-        parcellings = self.catalog(Title=keywords)
-        if len(parcellings) == 1:
-            return parcellings[0].getObject().UID()
-        self.logError(self, line, 'Couldnt find parcelling or found too much parcelling', {'approval date': approval_date, 'auth_date': auth_date, 'city': raw_city})
+        if raw_city or approval_date:
+            parcellings = self.catalog(Title=keywords)
+            if len(parcellings) == 1:
+                return parcellings[0].getObject().UID()
+            keywords = [auth_date] + city
+            parcellings = self.catalog(Title=keywords)
+            if len(parcellings) == 1:
+                return parcellings[0].getObject().UID()
+            self.logError(self, line, 'Couldnt find parcelling or found too much parcelling', {'approval date': approval_date, 'auth_date': auth_date, 'city': raw_city})
         return []
 
 
