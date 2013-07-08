@@ -128,7 +128,7 @@ class ArchitectMapper(PostCreationMapper):
         fullname = cleanAndSplitWord(archi_name)
         if not fullname:
             return []
-        noisy_words = ['monsieur', 'madame', 'architecte', '&', ',', '.']
+        noisy_words = ['monsieur', 'madame', 'architecte', '&', ',', '.', 'or']
         name_keywords = [word.lower() for word in fullname if word.lower() not in noisy_words]
         architects = self.catalog(portal_type='Architect', Title=name_keywords)
         if len(architects) == 1:

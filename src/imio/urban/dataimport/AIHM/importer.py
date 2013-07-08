@@ -18,6 +18,9 @@ class AIHMDataImporter(AccessDataImporter):
 
     implements(IAIHMDataImporter)
 
+    def __init__(self, context, db_name, table_name='Urbanisme', key_column='CLEF'):
+        super(AIHMDataImporter, self).__init__(context, db_name, table_name, key_column)
+
 
 class AIHMMapping(ObjectsMapping):
     """ """
@@ -41,9 +44,7 @@ def importAIHM(context, db_name='Urbanisme.mdb'):
     """
     db = context.openDataFile(db_name)
     db_filepath = db.name
-    table_name = 'Urbanisme'
-    key_column = 'CLEF'
-    AIHM_dataimporter = AIHMDataImporter(context, db_filepath, table_name, key_column)
+    AIHM_dataimporter = AIHMDataImporter(context, db_filepath)
 
     AIHM_dataimporter.importData(start=1, end=10)
 

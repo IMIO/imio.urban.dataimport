@@ -130,8 +130,11 @@ class UrbanDataImporter(object):
 
                     # update some fields after every child object has been created
                     self.updateObjectFields(line, object_name, obj, 'final')
-
                     obj.processForm()
+
+        if not stack:
+            self.errors = {}
+            self.sorted_errors = {}
 
     def canBecreated(self, object_name, container):
         if not container:
