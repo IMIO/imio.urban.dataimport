@@ -6,6 +6,7 @@ from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping
 
 from zope.interface import implements
 import zope
+import transaction
 
 import os
 import pickle
@@ -25,6 +26,7 @@ class UrbanDataImporter(object):
         self.datasource = None
         self.objects_mappings = None
         self.values_mappings = None
+        self.savepoint_length = -1
 
         # attributes to be set up before running import
         self.factories = {}
@@ -34,25 +36,37 @@ class UrbanDataImporter(object):
         # log and tracing vars
         self.current_line = 1
         self.current_containers_stack = []
+        self.processed_lines = 0
         self.errors = {}
         self.sorted_errors = {}
+
+    def setSavePoint(self, length):
+        self.savepoint_length = length
 
     def importData(self, start=1, end=0):
         """ import data from line 'start' to line 'end' """
 
         self.setupImport()
+        savepoint = self.savepoint_length
+        processed_lines = 0
 
         for dataline in self.datasource.iterdata():
             if end and self.current_line > end:
                 break
             elif start <= self.current_line:
                 self.importDataLine(dataline)
+
+                # save the import work every Nth line processed by commiting a transaction
+                processed_lines += 1
+                if savepoint and self.processed_lines % savepoint == 0:
+                    transaction.commit()
+
             self.current_line += 1
 
     def importDataLine(self, dataline):
         print "PROCESSING LINE %i" % self.current_line
         objects_nesting = self.objects_mappings.getObjectsNesting()
-        self.createUrbanObjects(objects_nesting, dataline)
+        self.createGroupOfObjects(objects_nesting, dataline)
 
     def setupImport(self):
 
@@ -100,41 +114,50 @@ class UrbanDataImporter(object):
         if allowed_containers:
             self.allowed_containers[objectname] = allowed_containers
 
-    def createUrbanObjects(self, node, line, stack=[]):
-
-        # to be sure to create a different empty list at each new non-recursive call
-        stack = stack or []
-        self.current_containers_stack = stack
+    def createGroupOfObjects(self, node, line):
 
         for object_name, subobjects in node:
+            stack = []
+            self.recursiveCreateObjects(object_name, subobjects, line, stack)
 
-            container = stack and stack[-1] or None
+        # once a full group of objects has been created, we can store errors in
+        # a simplified string  format
+        if self.current_line in self.errors:
+            line_num = self.current_line
+            self.errors[line_num] = [str(error) for error in self.errors[line_num]]
 
-            if self.canBecreated(object_name, container):
+    def recursiveCreateObjects(self, object_name, childs, line, stack):
 
-                factory_args = self.getFactoryArguments(line, object_name)
-                factory = self.factories[object_name]
-                urban_objects = factory.create(place=container, **factory_args)
+        self.current_containers_stack = stack
 
-                # if for some reasons the object creation went wrong, we skip this data line and continue the import
-                if urban_objects is None:
-                    return
+        container = stack and stack[-1] or None
 
-                for obj in urban_objects:
-                    # update some fields after creation but before child objects creation
-                    self.updateObjectFields(line, object_name, obj, 'post')
+        if not self.canBecreated(object_name, container):
+            return
 
-                    stack.append(obj)
-                    self.createUrbanObjects(subobjects, line, stack)
-                    stack.pop()
+        factory_args = self.getFactoryArguments(line, object_name)
+        factory = self.factories[object_name]
+        urban_objects = factory.create(place=container, **factory_args)
 
-                    # update some fields after every child object has been created
-                    self.updateObjectFields(line, object_name, obj, 'final')
-                    obj.processForm()
+        # if for some reasons the object creation went wrong, we skip this data line
+        if urban_objects is None:
+            return
 
-        if not stack:
-            self.errors = {}
-            self.sorted_errors = {}
+        for obj in urban_objects:
+            # update some fields after creation but before child objects creation
+            self.updateObjectFields(line, object_name, obj, 'post')
+
+            stack.append(obj)
+
+            # recursive call
+            for name, subobjects in childs:
+                self.recursiveCreateObjects(name, subobjects, line, stack)
+
+            stack.pop()
+
+            # update some fields after every child object has been created
+            self.updateObjectFields(line, object_name, obj, 'final')
+            obj.processForm()
 
     def canBecreated(self, object_name, container):
         if not container:
@@ -174,7 +197,7 @@ class UrbanDataImporter(object):
         migration_step = error_location.__class__.__name__
         if migration_step not in self.sorted_errors:
             self.sorted_errors[migration_step] = []
-        self.sorted_errors[migration_step].append(error)
+        self.sorted_errors[migration_step].append(str(error))
 
     def log(self, migrator_locals, location, message, factory_stack, data):
         pass
@@ -191,8 +214,8 @@ class UrbanDataImporter(object):
 
         errors_export = open(new_filename, 'w')
 
-        errors = dict([(k, str(v)) for k, v in self.errors.iteritems()])
-        sorted_errors = dict([(k, str(v)) for k, v in self.sorted_errors.iteritems()])
+        errors = dict([(k, v) for k, v in self.errors.iteritems()])
+        sorted_errors = dict([(k, v) for k, v in self.sorted_errors.iteritems()])
 
         os.chdir(current_directory)
         all_errors = {
