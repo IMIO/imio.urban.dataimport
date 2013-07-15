@@ -53,6 +53,8 @@ class WorklocationMapper(Mapper):
         raw_street = self.getData('AdresseDuBien')
         street = cleanAndSplitWord(raw_street)
         street_keywords = [word for word in street if word not in noisy_words and len(word) > 1]
+        if len(street_keywords) and street_keywords[-1] == 'or':
+            street_keywords = street_keywords[:-1]
         locality = self.getData('AncCommune')
         street_keywords.extend(cleanAndSplitWord(locality))
         brains = self.catalog(portal_type='Street', Title=street_keywords)
@@ -128,7 +130,7 @@ class ArchitectMapper(PostCreationMapper):
         fullname = cleanAndSplitWord(archi_name)
         if not fullname:
             return []
-        noisy_words = ['monsieur', 'madame', 'architecte', '&', ',', '.', 'or', 'mr', 'mme']
+        noisy_words = ['monsieur', 'madame', 'architecte', '&', ',', '.', 'or', 'mr', 'mme', '/']
         name_keywords = [word.lower() for word in fullname if word.lower() not in noisy_words]
         architects = self.catalog(portal_type='Architect', Title=name_keywords)
         if len(architects) == 1:
@@ -262,7 +264,8 @@ class ContactFactory(BaseFactory):
 class ContactIdMapper(Mapper):
     def mapId(self, line):
         m = self.getData('MandantNom') and 'Mandant' or ''
-        name = '%s %s' % (self.getData('%sNom' % m), self.getData('%sPrenom' % m))
+        name = '%s%s' % (self.getData('%sNom' % m), self.getData('%sPrenom' % m))
+        name = name.replace(' ', '').replace('-', '')
         return normalizeString(self.site.portal_urban.generateUniqueId(name))
 
 
@@ -347,7 +350,7 @@ class ContactRepresentedByMapper(Mapper):
 
 
 class ParcelFactory(MultiObjectsFactory):
-    def create(self, place=None, **kwargs):
+    def create(self, place=None, line=None, **kwargs):
         found_parcels = {}
         not_found_parcels = {}
         searchview = self.site.restrictedTraverse('searchparcels')
@@ -365,7 +368,7 @@ class ParcelFactory(MultiObjectsFactory):
                 found_parcels[index] = args
             else:
                 not_found_parcels[index] = args
-                self.logError(self, 'Too much parcels found or not enough parcels found', {'args': args, 'search result': len(found)})
+                self.logError(self, line, 'Too much parcels found or not enough parcels found', {'args': args, 'search result': len(found)})
         return super(ParcelFactory, self).create(place=place, **found_parcels)
 
 # mappers

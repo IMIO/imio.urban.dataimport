@@ -26,7 +26,7 @@ class UrbanDataImporter(object):
         self.datasource = None
         self.objects_mappings = None
         self.values_mappings = None
-        self.savepoint_length = -1
+        self.savepoint_length = 0
 
         # attributes to be set up before running import
         self.factories = {}
@@ -87,7 +87,7 @@ class UrbanDataImporter(object):
         factory_args = {}
         if len(factory_settings) == 2:
             factory_args = factory_settings[1]
-        factory = factory_class(self.site, **factory_args)
+        factory = factory_class(self, **factory_args)
         self.factories[objectname] = factory
 
     def setupObjectMappers(self, objectname, mapping):
@@ -137,7 +137,7 @@ class UrbanDataImporter(object):
 
         factory_args = self.getFactoryArguments(line, object_name)
         factory = self.factories[object_name]
-        urban_objects = factory.create(place=container, **factory_args)
+        urban_objects = factory.create(place=container, line=line, **factory_args)
 
         # if for some reasons the object creation went wrong, we skip this data line
         if urban_objects is None:

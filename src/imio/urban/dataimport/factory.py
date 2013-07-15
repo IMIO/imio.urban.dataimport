@@ -15,11 +15,12 @@ class BaseFactory(object):
 
     implements(IFactory)
 
-    def __init__(self, site, portal_type=''):
-        self.site = site
+    def __init__(self, importer, portal_type=''):
+        self.importer = importer
+        self.site = importer.site
         self.portal_type = portal_type
 
-    def create(self, place=None, **kwargs):
+    def create(self, place=None, line=None, **kwargs):
         portal_type = kwargs.get('portal_type', self.getPortalType(place, **kwargs))
         if not portal_type:
             return
@@ -41,7 +42,7 @@ class BaseFactory(object):
 
     def logError(self, factory, line, msg, data={}):
         """ """
-        # self.importer.logError(self, factory, line, msg, data)
+        self.importer.logError(factory, line, msg, data)
 
     def getCreationPlace(self, **kwargs):
         return None
@@ -56,7 +57,7 @@ class BaseFactory(object):
 
 class MultiObjectsFactory(BaseFactory):
 
-    def create(self, place=None, **kwargs):
+    def create(self, place=None, line=None, **kwargs):
         objs = []
         for index, args in kwargs.iteritems():
             if 'id' not in args:
