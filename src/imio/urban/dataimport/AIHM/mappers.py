@@ -351,8 +351,7 @@ class ContactRepresentedByMapper(Mapper):
 
 class ParcelFactory(MultiObjectsFactory):
     def create(self, place=None, line=None, **kwargs):
-        found_parcels = {}
-        not_found_parcels = {}
+        parcels = {}
         searchview = self.site.restrictedTraverse('searchparcels')
         for index, args in kwargs.iteritems():
             #need to trick the search browser view about the args in its request
@@ -365,11 +364,11 @@ class ParcelFactory(MultiObjectsFactory):
             if len(found) == 1:
                 args['divisionCode'] = args['division']
                 args['division'] = args['division']
-                found_parcels[index] = args
+                parcels[index] = args
             else:
-                not_found_parcels[index] = args
+                parcels[index] = args
                 self.logError(self, line, 'Too much parcels found or not enough parcels found', {'args': args, 'search result': len(found)})
-        return super(ParcelFactory, self).create(place=place, **found_parcels)
+        return super(ParcelFactory, self).create(place=place, **parcels)
 
 # mappers
 
