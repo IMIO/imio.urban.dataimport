@@ -2,15 +2,11 @@
 
 from zope.interface import implements
 
-from imio.urban.dataimport.access.importer import AccessImportSource, AccessDataImporter
+from imio.urban.dataimport.access.importer import AccessDataImporter
 from imio.urban.dataimport.mapping import ObjectsMapping, ValuesMapping
 from imio.urban.dataimport.AIHM.interfaces import IAIHMDataImporter
 
 from imio.urban.dataimport.AIHM import objectsmapping, valuesmapping
-
-
-class AIHMImportSource(AccessImportSource):
-    """ """
 
 
 class AIHMDataImporter(AccessDataImporter):

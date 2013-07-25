@@ -23,10 +23,10 @@
   /-->
 
   <genericsetup:registerProfile
-      name="lalouviere"
-      title="imio.urban.dataimport-lalouviere"
-      directory="profiles/lalouviereAIHM"
-      description="lalouviereAIHM data migration Extension profile for urban."
+      name="thuin"
+      title="imio.urban.dataimport-thuin"
+      directory="profiles/thuinAgorawin"
+      description="Thuin data migration Extension profile for urban."
       provides="Products.GenericSetup.interfaces.EXTENSION"
   />
 

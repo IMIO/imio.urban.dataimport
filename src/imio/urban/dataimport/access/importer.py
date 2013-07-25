@@ -3,7 +3,7 @@
 from imio.urban.dataimport.importer import UrbanDataImporter
 from imio.urban.dataimport.importsource import UrbanImportSource, DataExtractor
 from imio.urban.dataimport.errormessage import ImportErrorMessage
-from imio.urban.dataimport.access.interfaces import IAccessImportSource
+from imio.urban.dataimport.access.interfaces import IAccessImportSource, IAccessImporter
 
 from zope.interface import implements
 
@@ -89,6 +89,8 @@ class AccessDataImporter(UrbanDataImporter):
         table_name: the main table in the data base (the one that will be used as 'central node' to recover licences)
         key_column: the db column used as key value when querying tables joint
     """
+
+    implements(IAccessImporter)
 
     def __init__(self, context, db_name, table_name, key_column):
         super(AccessDataImporter, self).__init__(context)

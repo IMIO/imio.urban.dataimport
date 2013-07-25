@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from zope.interface import Interface
+from imio.urban.dataimport.access.interfaces import IAcessImporter
 
 
-class IAIHMDataImporter(Interface):
+class IAIHMDataImporter(IAcessImporter):
     """ marker interface for AIHM importer """
