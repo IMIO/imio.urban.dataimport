@@ -22,12 +22,4 @@
       provides="Products.GenericSetup.interfaces.EXTENSION"
   /-->
 
-  <genericsetup:registerProfile
-      name="thuin"
-      title="imio.urban.dataimport-thuin"
-      directory="profiles/thuinAgorawin"
-      description="Thuin data migration Extension profile for urban."
-      provides="Products.GenericSetup.interfaces.EXTENSION"
-  />
-
 </configure>

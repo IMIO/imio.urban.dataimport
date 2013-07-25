@@ -10,7 +10,6 @@
   <include package=".csv" />
 
   <!-- include package=".profiles.cityname" / -->
-  <include package=".profiles.thuinAgorawin" />
 
   <include file="profiles.zcml" />
 
