@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.interfaces import IUrbanImportSource
+from imio.urban.dataimport.interfaces import IUrbanImportSource, IUrbanDataImporter
+
+
+class ICSVImporter(IUrbanDataImporter):
+    """ marker interface for csv data importer """
 
 
 class ICSVImportSource(IUrbanImportSource):

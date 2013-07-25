@@ -3,7 +3,7 @@
 from imio.urban.dataimport.importer import UrbanDataImporter
 from imio.urban.dataimport.importsource import UrbanImportSource, DataExtractor
 from imio.urban.dataimport.errormessage import ImportErrorMessage
-from imio.urban.dataimport.csv.interfaces import ICSVImportSource
+from imio.urban.dataimport.csv.interfaces import ICSVImportSource, ICSVImporter
 
 from zope.interface import implements
 
@@ -72,6 +72,8 @@ class CSVDataImporter(UrbanDataImporter):
     expect:
         key_column: will be use in logs to refer to a migrated line of data
     """
+
+    implements(ICSVImporter)
 
     def __init__(self, context, csv_filename, key_column):
         super(CSVDataImporter, self).__init__(context)

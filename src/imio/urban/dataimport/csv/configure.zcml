@@ -4,10 +4,27 @@
     i18n_domain="imio.urban.dataimport">
 
   <adapter
+     for="imio.urban.dataimport.csv.interfaces.ICSVImporter"
+     factory=".importer.CSVImportSource"
+     provides="imio.urban.dataimport.interfaces.IUrbanImportSource"
+     name="data source"
+  />
+
+  <adapter
      for="imio.urban.dataimport.csv.interfaces.ICSVImportSource
           imio.urban.dataimport.interfaces.IMapper"
      factory=".importer.CSVDataExtractor"
      provides="imio.urban.dataimport.interfaces.IDataExtractor"
      />
+
+  <adapter
+     for="imio.urban.dataimport.csv.interfaces.ICSVImporter
+          imio.urban.dataimport.interfaces.IImportSection
+          zope.interface.Interface
+          zope.interface.Interface
+          zope.interface.Interface"
+     factory="imio.urban.dataimport.csv.importer.CSVErrorMessage"
+     provides="imio.urban.dataimport.interfaces.IImportErrorMessage"
+  />
 
 </configure>
