@@ -419,9 +419,8 @@ class UrbanEventFactory(BaseFactory):
     def create(self, place, **kwargs):
         if not kwargs['eventtype']:
             return []
-        urban_tool = getToolByName(place, 'portal_urban')
-        edit_url = urban_tool.createUrbanEvent(place.UID(), kwargs['eventtype'])
-        return [getattr(place, edit_url.split('/')[-2])]
+        event = place.createUrbanEvent(kwargs['eventtype'])
+        return [event]
 
 #mappers
 
