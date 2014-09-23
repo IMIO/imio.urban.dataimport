@@ -1,33 +1,23 @@
 #!/usr/bin/make
 #
-#
-#options =
+all: run
 
-.PHONY: test instance cleanall portals
+.PHONY: bootstrap buildout run test cleanall
+bootstrap:
+	virtualenv-2.7 .
+	./bin/python bootstrap.py
 
-all: test
+buildout:
+	if ! test -f bin/buildout;then make bootstrap;fi
+	bin/buildout -Nvt 5
 
-bin/python:
-		virtualenv-2.6 --no-site-packages .
+run:
+	if ! test -f bin/instance;then make buildout;fi
+	bin/instance fg
 
-develop-eggs: bin/python bootstrap.py
-		./bin/python bootstrap.py
-
-bin/buildout: develop-eggs
-
-bin/test: versions.cfg buildout.cfg bin/buildout setup.py
-		./bin/buildout -Nvt 5
-			touch $@
-
-bin/instance: versions.cfg buildout.cfg bin/buildout setup.py
-		./bin/buildout -Nvt 5 install instance
-			touch $@
-
-test: bin/test
-		bin/test -s Products.urban $(options)
-
-instance: bin/instance
-		bin/instance fg
+test:
+	if ! test -f bin/test;then make buildout;fi
+	bin/test
 
 cleanall:
-		rm -fr bin develop-eggs downloads eggs parts 
+	rm -fr bin develop-eggs htmlcov include .installed.cfg lib .mr.developer.cfg parts downloads eggs devel
