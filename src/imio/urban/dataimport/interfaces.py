@@ -118,6 +118,10 @@ class IValuesMapping(Interface):
         """ return a static values mapping named 'mapping_name' """
 
 
+class IImportSettingsForm(Interface):
+    """Adapts a import settings z3c form to an importer and initialize it with the form values."""
+
+
 class IImportSection(Interface):
     """ marker interface for any mapper or factory class """
 

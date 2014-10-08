@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from imio.urban.dataimport.config import IMPORT_FOLDER_PATH
 from imio.urban.dataimport.importer import UrbanDataImporter
 from imio.urban.dataimport.importsource import UrbanImportSource, DataExtractor
 from imio.urban.dataimport.errormessage import ImportErrorMessage
@@ -34,7 +35,8 @@ class CSVImportSource(UrbanImportSource):
 
     def getSourceAsCSV(self):
         csv_filename = self.importer.csv_filename
-        csv_file = self.importer.context.openDataFile(csv_filename)
+        csv_filepath = '{}/{}'.format(IMPORT_FOLDER_PATH, csv_filename)
+        csv_file = open(csv_filepath)
         csv_reader = csv.reader(csv_file)
         return csv_reader
 
@@ -75,8 +77,8 @@ class CSVDataImporter(UrbanDataImporter):
 
     implements(ICSVImporter)
 
-    def __init__(self, context, csv_filename, key_column):
-        super(CSVDataImporter, self).__init__(context)
+    def __init__(self, csv_filename, key_column):
+        super(CSVDataImporter, self).__init__()
         self.csv_filename = csv_filename
         self.key_column = key_column
 

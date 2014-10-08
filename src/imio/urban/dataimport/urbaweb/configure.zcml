@@ -17,4 +17,10 @@
         name="values mapping"
         />
 
+    <adapter
+        for="imio.urban.dataimport.interfaces.IImportSettingsForm"
+        factory=".settings.UrbawebImporterFromSettingsForm"
+        provides="imio.urban.dataimport.urbaweb.interfaces.IUrbawebDataImporter"
+        />
+
 </configure>

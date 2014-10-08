@@ -5,6 +5,8 @@ from imio.urban.dataimport.interfaces import IMapper, ISimpleMapper, IPostCreati
 
 from Products.CMFCore.utils import getToolByName
 
+from plone import api
+
 from zope.interface import implements
 import zope
 
@@ -16,7 +18,7 @@ class BaseMapper(object):
 
     def __init__(self, importer):
         self.importer = importer
-        self.site = importer.site
+        self.site = api.portal.get()
         self.catalog = getToolByName(self.site, 'portal_catalog')
 
     def logError(self, mapper, line, msg, data={}):

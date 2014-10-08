@@ -2,16 +2,21 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:five="http://namespaces.zope.org/five"
     xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     i18n_domain="imio.urban.dataimport">
 
+    <include package=".AIHM" />
+    <include package=".access" />
+    <include package=".csv" />
+    <include package=".urbaweb" />
 
-  <include package=".AIHM" />
-  <include package=".access" />
-  <include package=".csv" />
-  <include package=".urbaweb" />
+    <include file="profiles.zcml" />
 
-  <!-- include package=".profiles.cityname" / -->
-
-  <include file="profiles.zcml" />
+    <genericsetup:importStep
+        name="imio.urban.dataimport-postInstall"
+        title="imio.urban.dataimport post_install import step"
+        description="Post install import step from imio.urban.dataimport"
+        handler=".setuphandlers.post_install">
+    </genericsetup:importStep>
 
 </configure>

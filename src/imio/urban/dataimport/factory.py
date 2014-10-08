@@ -3,6 +3,8 @@ from Products.CMFPlone.utils import normalizeString
 
 from imio.urban.dataimport.interfaces import IFactory
 
+from plone import api
+
 from zope.interface import implements
 
 
@@ -17,7 +19,7 @@ class BaseFactory(object):
 
     def __init__(self, importer, portal_type=''):
         self.importer = importer
-        self.site = importer.site
+        self.site = api.portal.get()
         self.portal_type = portal_type
 
     def create(self, place=None, line=None, **kwargs):

@@ -18,15 +18,14 @@ class UrbanDataImporter(object):
 
     implements(IUrbanDataImporter)
 
-    def __init__(self, context):
+    def __init__(self):
         """ """
 
-        self.context = context
-        self.site = context.getSite()
         self.datasource = None
         self.objects_mappings = None
         self.values_mappings = None
         self.savepoint_length = 0
+        self.error_log_name = 'urban_dataimport'
 
         # attributes to be set up before running import
         self.factories = {}
@@ -202,7 +201,10 @@ class UrbanDataImporter(object):
     def log(self, migrator_locals, location, message, factory_stack, data):
         pass
 
-    def picklesErrorLog(self, filename='error_log.pickle', where='.'):
+    def picklesErrorLog(self, filename='', where='.'):
+        if not filename:
+            filename = '{}-errors-log.pickle'.format(self.error_log_name)
+
         current_directory = os.getcwd()
         os.chdir(where)
 

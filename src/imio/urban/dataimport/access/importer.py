@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from imio.urban.dataimport.config import IMPORT_FOLDER_PATH
 from imio.urban.dataimport.importer import UrbanDataImporter
 from imio.urban.dataimport.importsource import UrbanImportSource, DataExtractor
 from imio.urban.dataimport.errormessage import ImportErrorMessage
@@ -17,14 +18,11 @@ class AccessImportSource(UrbanImportSource):
 
     def __init__(self, importer):
         super(AccessImportSource, self).__init__(importer)
-        headers = self.setHeaders()
-
-        self.headers = headers[0]
-        self.header_indexes = headers[1]
+        self.headers, self.header_indexes = self.setHeaders()
 
     def setHeaders(self):
 
-        command_line = ['mdb-tables', '-d', '"', self.importer.db_name]
+        command_line = ['mdb-tables', '-d', '"', self.importer.db_path]
         output = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         table_names = output.stdout.next()
         table_names = table_names.split('"')[:-1]
@@ -37,7 +35,7 @@ class AccessImportSource(UrbanImportSource):
             headers[table] = csv_source.next().split(',')
             header_indexes[table] = dict([(headercell.strip(), index) for index, headercell in enumerate(headers[table])])
 
-        return (headers, header_indexes)
+        return headers, header_indexes
 
     def iterdata(self):
         csv_source = self._exportMdbToCsv()
@@ -47,7 +45,7 @@ class AccessImportSource(UrbanImportSource):
 
     def _exportMdbToCsv(self, table=None):
         table = table or self.importer.table_name
-        command_line = ['mdb-export', self.importer.db_name, table]
+        command_line = ['mdb-export', self.importer.db_path, table]
         csv_export = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         return csv_export.stdout
 
@@ -92,9 +90,10 @@ class AccessDataImporter(UrbanDataImporter):
 
     implements(IAccessImporter)
 
-    def __init__(self, context, db_name, table_name, key_column):
-        super(AccessDataImporter, self).__init__(context)
+    def __init__(self, db_name, table_name, key_column):
+        super(AccessDataImporter, self).__init__()
         self.db_name = db_name
+        self.db_path = '{}/{}'.format(IMPORT_FOLDER_PATH, self.db_name)
         self.table_name = table_name
         self.key_column = key_column
 

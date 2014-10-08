@@ -17,4 +17,10 @@
      name="values mapping"
   />
 
+  <adapter
+      for="imio.urban.dataimport.interfaces.IImportSettingsForm"
+      factory=".settings.AIHMImporterFromSettingsForm"
+      provides="imio.urban.dataimport.AIHM.interfaces.IAIHMDataImporter"
+      />
+
 </configure>

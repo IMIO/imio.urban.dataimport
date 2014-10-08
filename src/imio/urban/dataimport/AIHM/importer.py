@@ -33,15 +33,3 @@ class AIHMValuesMapping(ValuesMapping):
 
     def getValueMapping(self, mapping_name):
         return valuesmapping.VALUES_MAPS.get(mapping_name, None)
-
-
-def importAIHM(context, db_name='Urbanisme.mdb'):
-    """
-    """
-    db = context.openDataFile(db_name)
-    db_filepath = db.name
-    AIHM_dataimporter = AIHMDataImporter(context, db_filepath)
-
-    AIHM_dataimporter.importData(start=1, end=10)
-
-    AIHM_dataimporter.picklesErrorLog(filename='aihm error log')
