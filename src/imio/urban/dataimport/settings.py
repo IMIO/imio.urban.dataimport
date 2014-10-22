@@ -48,11 +48,10 @@ class ImporterSettingsEditForm(RegistryEditForm):
         data, errors = self.extractData()
         if errors:
             self.status = self.formErrorsMessage
-        return
 
         self.applyChanges(data)
         IStatusMessage(self.request).addStatusMessage(_(u"Changes saved"), "info")
-        self.context.REQUEST.RESPONSE.redirect("@@dataimport-settings")
+        self.context.REQUEST.RESPONSE.redirect("@@dataimport-controlpanel")
 
     @button.buttonAndHandler(_('Cancel'), name='cancel')
     def handleCancel(self, action):
