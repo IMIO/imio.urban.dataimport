@@ -11,7 +11,9 @@ VALUES_MAPS = {
 'NH'    : ['BuildLicence',        '',               'PU'],
 'LO'    : ['ParcelOutLicence',    '',               'PL'],
 'DI'    : ['MiscDemand',          'apct',           'DD'],
+''      : ['MiscDemand',          'apct',           'DD'],
 'TC'    : ['BuildLicence',        'pu',             'PU'],
+'TH'    : ['BuildLicence',        'pu',             'PU'],
 'DU'    : ['Declaration',         'dup',            'Decl'],
 }),
 
