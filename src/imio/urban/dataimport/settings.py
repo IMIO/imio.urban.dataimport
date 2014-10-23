@@ -80,19 +80,21 @@ class ImporterFromSettingsForm(object):
 
     def __init__(self, settings_form, importer_factory=UrbanDataImporter):
         self.form_datas, errors = settings_form.extractData()
-        self.importer = importer_factory()
-        self.set_importer_values(self.form_datas)
+        importer_settings = self.get_importer_settings()
+        self.importer = importer_factory(**importer_settings)
 
     def importData(self):
         start = self.form_datas.get('start')
         end = self.form_datas.get('end')
         self.importer.importData(start, end)
 
-    def set_importer_values(self, form_datas):
+    def get_importer_settings(self):
         """
-        Hook to set dataimporter parameters with values found on the settings form.
+        Hook to get dataimporter parameters (can be either on the form or from elsewhere..).
+        Should return a dict like {'arg1_name': arg1_value, 'arg2_name': arg2_value, ...}
         To be overrided/implemented.
         """
+        return {}
 
     def __getattr__(self, attr_name):
         """
