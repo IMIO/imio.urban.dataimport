@@ -22,11 +22,10 @@ class BaseFactory(object):
         self.site = api.portal.get()
         self.portal_type = portal_type
 
-    def create(self, place=None, line=None, **kwargs):
-        portal_type = kwargs.get('portal_type', self.getPortalType(place, **kwargs))
+    def create(self, container=None, line=None, **kwargs):
+        portal_type = kwargs.get('portal_type', self.getPortalType(container, **kwargs))
         if not portal_type:
             return
-        container = place and place or self.getCreationPlace(**kwargs)
         if 'id' in kwargs:
             kwargs['id'] = kwargs['id'].strip('_')
             if not kwargs['id']:
@@ -40,7 +39,7 @@ class BaseFactory(object):
             object_id = container.invokeFactory(portal_type, id=proposed_id, **kwargs)
         obj = getattr(container, object_id)
         obj._renameAfterCreation()
-        return [obj]
+        return obj
 
     def logError(self, factory, line, msg, data={}):
         """ """

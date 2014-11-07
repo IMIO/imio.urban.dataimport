@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 
+from imio.urban.dataimport.config import PRESERVE, OVERRIDE, UPDATE
+from imio.urban.dataimport.errors import IdentifierError
+from imio.urban.dataimport.errors import FactoryArgumentsError
 from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping, \
-    IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage, \
-    IFinalMapper
+        IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage, \
+        IFinalMapper
+
+from plone import api
 
 from zope.interface import implements
+
 import zope
 import transaction
 
@@ -24,6 +30,7 @@ class UrbanDataImporter(object):
         self.datasource = None
         self.objects_mappings = None
         self.values_mappings = None
+        self.mode = PRESERVE
         self.savepoint_length = 0
         self.error_log_name = 'urban_dataimport'
 
@@ -65,7 +72,7 @@ class UrbanDataImporter(object):
     def importDataLine(self, dataline):
         print "PROCESSING LINE %i" % self.current_line
         objects_nesting = self.objects_mappings.getObjectsNesting()
-        self.createGroupOfObjects(objects_nesting, dataline)
+        self.importGroupOfObjects(objects_nesting, dataline)
 
     def setupImport(self):
 
@@ -113,52 +120,77 @@ class UrbanDataImporter(object):
         if allowed_containers:
             self.allowed_containers[objectname] = allowed_containers
 
-    def createGroupOfObjects(self, node, line):
+    def importGroupOfObjects(self, node, line):
 
         for object_name, subobjects in node:
             stack = []
-            self.recursiveCreateObjects(object_name, subobjects, line, stack)
+            self.recursiveImportObjects(object_name, subobjects, line, stack)
 
-        # once a full group of objects has been created, we can store errors in
+        # once a full group of objects has been imported, we can store errors in
         # a simplified string  format
         if self.current_line in self.errors:
             line_num = self.current_line
             self.errors[line_num] = [str(error) for error in self.errors[line_num]]
 
-    def recursiveCreateObjects(self, object_name, childs, line, stack):
+    def recursiveImportObjects(self, object_name, childs, line, stack):
 
         self.current_containers_stack = stack
 
-        container = stack and stack[-1] or None
+        factory_args = self.getFactoryArguments(line, object_name)
+        multiple_factory_args = self.getMultipleFactoryArguments(line, object_name)
 
-        if not self.canBecreated(object_name, container):
+        if multiple_factory_args is not None and not factory_args:
+            for args in multiple_factory_args:
+                self.recursiveImportOneObject(object_name, childs, line, stack, args)
+        elif factory_args and multiple_factory_args is None:
+            self.recursiveImportOneObject(object_name, childs, line, stack, factory_args)
+        else:
+            raise FactoryArgumentsError
+
+    def recursiveImportOneObject(self, object_name, childs, line, stack, factory_args):
+
+        factory = self.factories[object_name]
+        container = stack and stack[-1] or factory.getCreationPlace(**factory_args)
+
+        if not self.isAllowedType(object_name, container):
             return
 
-        factory_args = self.getFactoryArguments(line, object_name)
-        factory = self.factories[object_name]
-        urban_objects = factory.create(place=container, line=line, **factory_args)
+        old_object = self.objectAlreadyExists(factory_args, container)
+        if old_object:
+            if self.mode == PRESERVE:
+                urban_object = old_object
+
+            elif self.mode == OVERRIDE:
+                api.content.delete(old_object)
+                urban_object = factory.create(container=container, line=line, **factory_args)
+
+            elif self.mode == UPDATE:
+                for field_name, field_value in factory_args.iteritems():
+                    """Should update old object's fields. Not implemented yet... """
+        else:
+            urban_object = factory.create(container=container, line=line, **factory_args)
 
         # if for some reasons the object creation went wrong, we skip this data line
-        if urban_objects is None:
+        if urban_object is None:
             return
 
-        for obj in urban_objects:
-            # update some fields after creation but before child objects creation
-            self.updateObjectFields(line, object_name, obj, 'post')
+        # update some fields after creation but before child objects creation
+        if self.mode != PRESERVE:
+            self.updateObjectFields(line, object_name, urban_object, 'post')
 
-            stack.append(obj)
+        stack.append(urban_object)
+        # recursive call
+        for name, subobjects in childs:
+            self.recursiveImportObjects(name, subobjects, line, stack)
+        stack.pop()
 
-            # recursive call
-            for name, subobjects in childs:
-                self.recursiveCreateObjects(name, subobjects, line, stack)
+        # update some fields after every child object has been created
+        if self.mode != PRESERVE:
+            self.updateObjectFields(line, object_name, urban_object, 'final')
 
-            stack.pop()
+        urban_object.processForm()
 
-            # update some fields after every child object has been created
-            self.updateObjectFields(line, object_name, obj, 'final')
-            obj.processForm()
-
-    def canBecreated(self, object_name, container):
+    def isAllowedType(self, object_name, container):
         if not container:
             return True
 
@@ -167,16 +199,33 @@ class UrbanDataImporter(object):
         unrestricted_container = object_name not in self.allowed_containers
         allowed_container = portal_type in self.allowed_containers.get(object_name, '')
 
-        canbecreated = unrestricted_container or allowed_container
+        allowed = unrestricted_container or allowed_container
 
-        return canbecreated
+        return allowed
+
+    def objectAlreadyExists(self, factory_args, container):
+        if 'id' not in factory_args.keys():
+            raise IdentifierError
+
+        old_object = getattr(container, factory_args.get('id'), None)
+
+        return old_object
 
     def getFactoryArguments(self, line, object_name):
         factory_args = {}
         for mapper in self.mappers[object_name]['pre']:
-            factory_args.update(mapper.map(line))
+            args = mapper.map(line)
+            if type(args) is not list:
+                factory_args.update(args)
 
         return factory_args
+
+    def getMultipleFactoryArguments(self, line, object_name):
+        for mapper in self.mappers[object_name]['pre']:
+            args = mapper.map(line)
+            if type(args) is list:
+                return args
+
 
     def updateObjectFields(self, line, object_name, urban_object, mapper_type):
         for mapper in self.mappers[object_name][mapper_type]:

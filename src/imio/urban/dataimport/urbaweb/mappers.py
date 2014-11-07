@@ -295,7 +295,7 @@ class ParcelFactory(MultiObjectsFactory):
 
 class ParcelDataMapper(Mapper):
     def map(self, line, **kwargs):
-        objects_args = {}
+        objects_args = []
 
         section = self.getSection(line)
         division = self.getDivision(line)
