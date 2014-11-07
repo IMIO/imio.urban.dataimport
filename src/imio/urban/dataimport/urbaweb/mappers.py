@@ -295,27 +295,21 @@ class ParcelFactory(MultiObjectsFactory):
 
 class ParcelDataMapper(Mapper):
     def map(self, line, **kwargs):
-        objects_args = []
+        parcel_args = []
 
         section = self.getSection(line)
         division = self.getDivision(line)
+        import ipdb; ipdb.set_trace()
 
-        return objects_args
+        return parcel_args
 
     def getSection(self, line):
         return self.getData('Section', line=line).upper()
 
     def getDivision(self, line):
         divisions = {
-            '1': '56078',
-            '2': '56030',
-            '3': '56352',
-            '4': '56010',
-            '5': '56077',
-            '6': '56019',
-            '7': '56060',
-            '8': '56039',
-            '9': '56009',
+            '1': '63020',
+            '2': '63002',
         }
         raw_div = self.getData('Division', line=line)
         return divisions[raw_div]
