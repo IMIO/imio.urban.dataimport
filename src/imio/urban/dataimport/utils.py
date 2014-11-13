@@ -27,7 +27,8 @@ def identify_parcel_abbreviation(string):
     raw_parcels = re.sub(regex, ',', string)
 
     abbreviations = raw_parcels.split(',')
-    abbreviations = [re.findall('pie|\d+|[a-zA-Z]+', abbr) for abbr in abbreviations]
+    cadastral_regex = '\W*(?P<radical>\d+)?\W*/?\s*(?P<bis>\d+)?\W*(?P<exposant>[a-zA-Z])?\W*(?P<puissance>\d+)?\W*(?P<partie>pie)?.*'
+    abbreviations = [re.match(cadastral_regex, abbr).groups() for abbr in abbreviations]
 
     return abbreviations
 
@@ -55,4 +56,26 @@ class CadastralReference(object):
         self.bis = bis
         self.exposant = exposant
         self.power = power
-        self.partie = partie
+        self.partie = bool(partie)
+
+    def __str__(self):
+        ref_parts = [
+            self.division, self.section, self.radical, self.bis and '/%s' % self.bis,
+            self.exposant, self.power, self.partie and 'pie'
+        ]
+        ref_parts = [part for part in ref_parts if part]
+
+        return ' '.join(ref_parts)
+
+    def __repr__(self):
+        ref = self.__str__()
+        detail = "div: %s, sec: %s, rad: %s, bis: %s, exp: %s, pow: %s, pie: %s" % (
+            self.division,
+            self.section,
+            self.radical,
+            self.bis,
+            self.exposant,
+            self.power,
+            self.partie,
+        )
+        return ref + '( ' + detail + ' ) '
