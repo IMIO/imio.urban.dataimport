@@ -21,22 +21,38 @@ def identify_parcel_abbreviation(string):
     """
     """
 
-    separators = (',', 'et')
+    separators = (',', 'et', ';')
 
-    regex = '(.+?(?:{separators})|.+)'.format(separators='|'.join(separators))
+    regex = '{separators}'.format(separators='|'.join(separators))
+    raw_parcels = re.sub(regex, ',', string)
 
-    abbreviations = re.findall(regex, string)
+    abbreviations = raw_parcels.split(',')
+    abbreviations = [re.findall('pie|\d+|[a-zA-Z]+', abbr) for abbr in abbreviations]
 
-    split_regex = '(\d+|[a-zA-Z]+|/\s*\d)'
-    abbreviations = [re.findall(split_regex, abbr) for abbr in abbreviations]
-
-    return parcels
+    return abbreviations
 
 
-def create_cadastral_ref(base_reference, abbreviation):
+def guess_cadastral_ref(base_reference, abbreviation):
     """
     """
     cadastral_ref = {
-        'division': base_reference.get('division')
+        'division': base_reference.get('division'),
         'section': base_reference.get('section')
     }
+    return cadastral_ref
+
+
+class CadastralReference(object):
+    """
+    """
+
+    def __init__(self, division='', section='', radical='', bis='', exposant='', power='', partie=''):
+        """
+        """
+        self.division = division
+        self.section = section
+        self.radical = radical
+        self.bis = bis
+        self.exposant = exposant
+        self.power = power
+        self.partie = partie

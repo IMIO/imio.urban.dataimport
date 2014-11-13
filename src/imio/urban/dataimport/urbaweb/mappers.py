@@ -5,7 +5,10 @@ from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as Post
 from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 
 from imio.urban.dataimport.factory import BaseFactory, MultiObjectsFactory
+from imio.urban.dataimport.utils import CadastralReference
 from imio.urban.dataimport.utils import cleanAndSplitWord
+from imio.urban.dataimport.utils import identify_parcel_abbreviation
+
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
 from Products.CMFCore.utils import getToolByName
@@ -299,7 +302,16 @@ class ParcelDataMapper(Mapper):
 
         section = self.getSection(line)
         division = self.getDivision(line)
+
+        remaining_reference = self.getData('Cadastre', line)
+        remaining_reference_2 = self.getData('Cadastre_2', line)
+        if remaining_reference_2:
+            remaining_reference = remaining_reference + ',' + remaining_reference_2
+
+        abbreviations = identify_parcel_abbreviation(remaining_reference)
+
         import ipdb; ipdb.set_trace()
+        base_reference = CadastralReference(division, section, *abbreviations[0])
 
         return parcel_args
 
