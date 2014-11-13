@@ -298,7 +298,6 @@ class ParcelFactory(MultiObjectsFactory):
 
 class ParcelDataMapper(Mapper):
     def map(self, line, **kwargs):
-        parcel_args = []
 
         section = self.getSection(line)
         division = self.getDivision(line)
@@ -310,10 +309,13 @@ class ParcelDataMapper(Mapper):
 
         abbreviations = identify_parcel_abbreviation(remaining_reference)
 
-        import ipdb; ipdb.set_trace()
         base_reference = CadastralReference(division, section, *abbreviations[0])
 
-        return parcel_args
+        parcels = [base_reference]
+        for abbreviation in abbreviations[1:]:
+            base_reference.guess_cadastral_reference(abbreviation)
+
+        return parcels
 
     def getSection(self, line):
         return self.getData('Section', line=line).upper()

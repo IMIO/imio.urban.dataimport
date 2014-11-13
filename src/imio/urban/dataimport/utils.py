@@ -33,16 +33,6 @@ def identify_parcel_abbreviation(string):
     return abbreviations
 
 
-def guess_cadastral_ref(base_reference, abbreviation):
-    """
-    """
-    cadastral_ref = {
-        'division': base_reference.get('division'),
-        'section': base_reference.get('section')
-    }
-    return cadastral_ref
-
-
 class CadastralReference(object):
     """
     """
@@ -79,3 +69,7 @@ class CadastralReference(object):
             self.partie,
         )
         return ref + '( ' + detail + ' ) '
+
+    def guess_cadastral_reference(self, abbreviation):
+        """
+        """
