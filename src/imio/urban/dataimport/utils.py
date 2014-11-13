@@ -17,7 +17,7 @@ def cleanAndSplitWord(word):
     return clean_word
 
 
-def identify_parcel_abbreviation(string):
+def identify_parcel_abbreviations(string):
     """
     """
 
@@ -27,10 +27,23 @@ def identify_parcel_abbreviation(string):
     raw_parcels = re.sub(regex, ',', string)
 
     abbreviations = raw_parcels.split(',')
-    cadastral_regex = '\W*(?P<radical>\d+)?\W*/?\s*(?P<bis>\d+)?\W*(?P<exposant>[a-zA-Z])?\W*(?P<puissance>\d+)?\W*(?P<partie>pie)?.*'
-    abbreviations = [re.match(cadastral_regex, abbr).groups() for abbr in abbreviations]
 
     return abbreviations
+
+
+def parse_cadastral_reference(string):
+    cadastral_regex = '\W*(?P<division>\d+)?\W*(?P<section>[A-Z])?'\
+                      '\W*(?P<radical>\d+)?\W*/?\s*i(?P<bis>\d+)?'\
+                      '\W*(?P<exposant>[a-zA-Z])?\W*(?P<puissance>\d+)?\W*(?P<partie>pie)?.*'
+
+    abbreviations = re.match(cadastral_regex, string).groups()
+
+    return abbreviations
+
+
+def guess_cadastral_reference(base_reference, abbr):
+    """
+    """
 
 
 class CadastralReference(object):
