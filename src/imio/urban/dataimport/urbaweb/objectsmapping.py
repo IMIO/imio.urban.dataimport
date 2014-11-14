@@ -143,7 +143,7 @@ FIELDS_MAPPINGS = {
 
         'mappers': {
             ParcelDataMapper: {
-                'from': ('Cadastre', 'Cadastre2', 'Section', 'Division'),
+                'from': ('Cadastre', 'Cadastre_2', 'Section', 'Division'),
                 'to': (),
             },
         },

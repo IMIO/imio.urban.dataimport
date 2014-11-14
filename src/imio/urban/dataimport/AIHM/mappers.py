@@ -354,10 +354,10 @@ class ParcelFactory(MultiObjectsFactory):
         parcels = {}
         searchview = self.site.restrictedTraverse('searchparcels')
         for index, args in kwargs.iteritems():
-            #need to trick the search browser view about the args in its request
+            # need to trick the search browser view about the args in its request
             for k, v in args.iteritems():
                 searchview.context.REQUEST[k] = v
-            #check if we can find a parcel in the db cadastre with these infos
+            # check if we can find a parcel in the db cadastre with these infos
             found = searchview.findParcel(**args)
             if not found:
                 found = searchview.findParcel(browseoldparcels=True, **args)

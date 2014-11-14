@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.config import PRESERVE, OVERRIDE, UPDATE
+from imio.urban.dataimport.config import PRESERVE, OVERRIDE
 from imio.urban.dataimport.errors import IdentifierError
 from imio.urban.dataimport.errors import FactoryArgumentsError
-from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping, \
-        IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage, \
-        IFinalMapper
+from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping,\
+    IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage, \
+    IFinalMapper
 
 from plone import api
 
@@ -150,25 +150,23 @@ class UrbanDataImporter(object):
     def recursiveImportOneObject(self, object_name, childs, line, stack, factory_args):
 
         factory = self.factories[object_name]
-        container = stack and stack[-1] or factory.getCreationPlace(**factory_args)
+        container = stack and stack[-1] or factory.getCreationPlace(factory_args)
 
         if not self.isAllowedType(object_name, container):
             return
 
-        old_object = self.objectAlreadyExists(factory_args, container)
+        old_object = factory.objectAlreadyExists(factory_args, container)
+
         if old_object:
-            if self.mode == PRESERVE:
+            if self.importer.mode == PRESERVE:
                 urban_object = old_object
 
-            elif self.mode == OVERRIDE:
+            elif self.importer.mode == OVERRIDE:
                 api.content.delete(old_object)
-                urban_object = factory.create(container=container, line=line, **factory_args)
+                urban_object = factory.create(factory_args, container=container, line=line)
 
-            elif self.mode == UPDATE:
-                for field_name, field_value in factory_args.iteritems():
-                    """Should update old object's fields. Not implemented yet... """
         else:
-            urban_object = factory.create(container=container, line=line, **factory_args)
+            urban_object = factory.create(factory_args, container=container, line=line)
 
         # if for some reasons the object creation went wrong, we skip this data line
         if urban_object is None:
@@ -203,14 +201,6 @@ class UrbanDataImporter(object):
 
         return allowed
 
-    def objectAlreadyExists(self, factory_args, container):
-        if 'id' not in factory_args.keys():
-            raise IdentifierError
-
-        old_object = getattr(container, factory_args.get('id'), None)
-
-        return old_object
-
     def getFactoryArguments(self, line, object_name):
         factory_args = {}
         for mapper in self.mappers[object_name]['pre']:
@@ -225,7 +215,6 @@ class UrbanDataImporter(object):
             args = mapper.map(line)
             if type(args) is list:
                 return args
-
 
     def updateObjectFields(self, line, object_name, urban_object, mapper_type):
         for mapper in self.mappers[object_name][mapper_type]:

@@ -4,10 +4,12 @@ from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
 from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as PostCreationMapper
 from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 
-from imio.urban.dataimport.factory import BaseFactory, MultiObjectsFactory
+from imio.urban.dataimport.factory import BaseFactory
 from imio.urban.dataimport.utils import CadastralReference
 from imio.urban.dataimport.utils import cleanAndSplitWord
-from imio.urban.dataimport.utils import identify_parcel_abbreviation
+from imio.urban.dataimport.utils import guess_cadastral_reference
+from imio.urban.dataimport.utils import identify_parcel_abbreviations
+from imio.urban.dataimport.utils import parse_cadastral_reference
 
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
@@ -22,8 +24,8 @@ import re
 
 
 class LicenceFactory(BaseFactory):
-    def getCreationPlace(self, **kwargs):
-        path = '%s/urban/%ss' % (self.site.absolute_url_path(), kwargs['portal_type'].lower())
+    def getCreationPlace(self, factory_args):
+        path = '%s/urban/%ss' % (self.site.absolute_url_path(), factory_args['portal_type'].lower())
         return self.site.restrictedTraverse(path)
 
 # mappers
@@ -194,8 +196,8 @@ class ErrorsMapper(FinalMapper):
 
 
 class ContactFactory(BaseFactory):
-    def getPortalType(self, place, **kwargs):
-        if place.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo', 'NotaryLetter']:
+    def getPortalType(self, container, **kwargs):
+        if container.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo', 'NotaryLetter']:
             return 'Proprietary'
         return 'Applicant'
 
@@ -272,26 +274,34 @@ class ContactPhoneMapper(Mapper):
 #factory
 
 
-class ParcelFactory(MultiObjectsFactory):
-    def create(self, place=None, line=None, **kwargs):
-        parcels = {}
+class ParcelFactory(BaseFactory):
+    def create(self, parcel, container=None, line=None):
         searchview = self.site.restrictedTraverse('searchparcels')
-        for index, args in kwargs.iteritems():
-            #need to trick the search browser view about the args in its request
-            for k, v in args.iteritems():
-                searchview.context.REQUEST[k] = v
-            #check if we can find a parcel in the db cadastre with these infos
-            found = searchview.findParcel(**args)
-            if not found:
-                found = searchview.findParcel(browseoldparcels=True, **args)
-            if len(found) == 1:
-                args['divisionCode'] = args['division']
-                args['division'] = args['division']
-                parcels[index] = args
-            else:
-                parcels[index] = args
-                self.logError(self, line, 'Too much parcels found or not enough parcels found', {'args': args, 'search result': len(found)})
-        return super(ParcelFactory, self).create(place=place, **parcels)
+        #need to trick the search browser view about the args in its request
+        parcel_args = parcel.to_dict()
+        parcel_args.pop('partie')
+
+        for k, v in parcel_args.iteritems():
+            searchview.context.REQUEST[k] = v
+        #check if we can find a parcel in the db cadastre with these infos
+        found = searchview.findParcel(**parcel_args)
+        if not found:
+            found = searchview.findParcel(browseoldparcels=True, **parcel_args)
+
+        if len(found) == 1 and parcel.has_same_attribute_values(found[0]):
+            parcel_args['divisionCode'] = parcel_args['division']
+            parcel_args['isOfficialParcel'] = True
+        else:
+            self.logError(self, line, 'Too much parcels found or not enough parcels found', {'args': parcel_args, 'search result': len(found)})
+            parcel_args['isOfficialParcel'] = False
+        parcel_args['id'] = parcel.id
+        parcel_args['partie'] = parcel.partie
+
+        return super(ParcelFactory, self).create(parcel_args, container=container)
+
+    def objectAlreadyExists(self, parcel, container):
+        existing_object = getattr(container, parcel.id, None)
+        return existing_object
 
 # mappers
 
@@ -307,13 +317,15 @@ class ParcelDataMapper(Mapper):
         if remaining_reference_2:
             remaining_reference = remaining_reference + ',' + remaining_reference_2
 
-        abbreviations = identify_parcel_abbreviation(remaining_reference)
+        abbreviations = identify_parcel_abbreviations(remaining_reference)
+        base_reference = parse_cadastral_reference(division + section + abbreviations[0])
 
-        base_reference = CadastralReference(division, section, *abbreviations[0])
+        base_reference = CadastralReference(*base_reference)
 
         parcels = [base_reference]
         for abbreviation in abbreviations[1:]:
-            base_reference.guess_cadastral_reference(abbreviation)
+            new_parcel = guess_cadastral_reference(base_reference, abbreviation)
+            parcels.append(new_parcel)
 
         return parcels
 
@@ -338,12 +350,12 @@ class UrbanEventFactory(BaseFactory):
     def getPortalType(self, **kwargs):
         return 'UrbanEvent'
 
-    def create(self, place, **kwargs):
+    def create(self, kwargs, container):
         if not kwargs['eventtype']:
             return []
-        urban_tool = getToolByName(place, 'portal_urban')
-        edit_url = urban_tool.createUrbanEvent(place.UID(), kwargs['eventtype'])
-        return [getattr(place, edit_url.split('/')[-2])]
+        urban_tool = getToolByName(container, 'portal_urban')
+        edit_url = urban_tool.createUrbanEvent(container.UID(), kwargs['eventtype'])
+        return [getattr(container, edit_url.split('/')[-2])]
 
 #mappers
 

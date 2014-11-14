@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import copy
+
 import re
 
 
@@ -32,39 +34,60 @@ def identify_parcel_abbreviations(string):
 
 
 def parse_cadastral_reference(string):
-    cadastral_regex = '\W*(?P<division>\d+)?\W*(?P<section>[A-Z])?'\
-                      '\W*(?P<radical>\d+)?\W*/?\s*i(?P<bis>\d+)?'\
-                      '\W*(?P<exposant>[a-zA-Z])?\W*(?P<puissance>\d+)?\W*(?P<partie>pie)?.*'
+    cadastral_regex = '\W*(?P<division>\d+)?\W*(?P<section>[A-Z])?\W*(?P<radical>\d+)?\W*/?\s*(?P<bis>\d+)?\W*(?P<exposant>[a-zA-Z])?\W*(?P<puissance>\d+)?\W*(?P<partie>pie)?.*'
 
-    abbreviations = re.match(cadastral_regex, string).groups()
+    abbreviations = re.match(cadastral_regex, string)
 
-    return abbreviations
+    if abbreviations:
+        return abbreviations.groups()
 
 
-def guess_cadastral_reference(base_reference, abbr):
+def guess_cadastral_reference(base_reference, abbreviation):
     """
     """
+    regex = '\W*(?P<radical>\d+)?\s*(?P<bis>/\s*\d+)?\W*(?P<exposant>[a-zA-Z](?![a-zA-Z]))?\W*(?P<puissance>\d+)?\W*(?P<partie>pie)?\W*'
+
+    parsed_abbr = re.match(regex, abbreviation).groups()
+
+    cadastral_ref = copy.deepcopy(base_reference)
+
+    update = False
+
+    for i, attribute in enumerate(['radical', 'bis', 'exposant', 'puissance', 'partie']):
+        value = parsed_abbr[i]
+
+        if value:
+            update = True
+            if i == 1:  # for the 'bis', only keep the number
+                value = value[-1]
+            elif i == 4:  # 'partie' should be boolean
+                value = bool(value[4])
+
+        if update:
+            setattr(cadastral_ref, attribute, value)
+
+    return cadastral_ref
 
 
 class CadastralReference(object):
     """
     """
 
-    def __init__(self, division='', section='', radical='', bis='', exposant='', power='', partie=''):
+    def __init__(self, division='', section='', radical='', bis='', exposant='', puissance='', partie=''):
         """
         """
-        self.division = division
-        self.section = section
-        self.radical = radical
-        self.bis = bis
-        self.exposant = exposant
-        self.power = power
+        self.division = division or ''
+        self.section = section and section.upper() or ''
+        self.radical = radical or ''
+        self.bis = bis or ''
+        self.exposant = exposant and exposant.upper() or ''
+        self.puissance = puissance and puissance.upper() or ''
         self.partie = bool(partie)
 
     def __str__(self):
         ref_parts = [
             self.division, self.section, self.radical, self.bis and '/%s' % self.bis,
-            self.exposant, self.power, self.partie and 'pie'
+            self.exposant, self.puissance, self.partie and 'pie'
         ]
         ref_parts = [part for part in ref_parts if part]
 
@@ -78,11 +101,23 @@ class CadastralReference(object):
             self.radical,
             self.bis,
             self.exposant,
-            self.power,
+            self.puissance,
             self.partie,
         )
         return ref + '( ' + detail + ' ) '
 
-    def guess_cadastral_reference(self, abbreviation):
-        """
-        """
+    def to_dict(self):
+        return self.__dict__.copy()
+
+    @property
+    def id(self):
+        return str(self).replace(' ', '').lower()
+
+    def has_same_attribute_values(self, ref_dict):
+        common_keys = set(ref_dict.keys()).intersection(set(self.__dict__.keys()))
+
+        for key in common_keys:
+            if ref_dict[key] != self.__dict__[key]:
+                return False
+
+        return True
