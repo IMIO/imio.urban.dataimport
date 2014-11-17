@@ -93,6 +93,11 @@ class InquiryEndDateMapper(Mapper):
         return date
 
 
+class InquiryReclamationNumbersMapper(Mapper):
+    def mapInvestigationwritereclamationnumber(self, line):
+        reclamation = self.getData('NBRec')
+        return reclamation
+
 class ObservationsMapper(Mapper):
     def mapDescription(self, line):
         obs_urban = '<p>%s</p>' % self.getData('Memo_Urba')
