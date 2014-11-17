@@ -177,8 +177,7 @@ class UrbanDataImporter(object):
             return
 
         # update some fields after creation but before child objects creation
-        if self.mode != PRESERVE:
-            self.updateObjectFields(line, object_name, urban_object, 'post')
+        self.updateObjectFields(line, object_name, urban_object, 'post')
 
         stack.append(urban_object)
         # recursive call
@@ -187,8 +186,7 @@ class UrbanDataImporter(object):
         stack.pop()
 
         # update some fields after every child object has been created
-        if self.mode != PRESERVE:
-            self.updateObjectFields(line, object_name, urban_object, 'final')
+        self.updateObjectFields(line, object_name, urban_object, 'final')
 
         urban_object.processForm()
 

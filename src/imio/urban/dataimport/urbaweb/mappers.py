@@ -99,10 +99,33 @@ class InquiryReclamationNumbersMapper(Mapper):
         return reclamation
 
 
-class InquiryArticlesMapper(Mapper):
-    def mapInvestigationarticles(self, line):
-        investigationArticles = self.getData('Enquete')
-        return investigationArticles
+class InquiryArticlesMapper(PostCreationMapper):
+    def mapInvestigationarticles(self, line, plone_object):
+        raw_articles = self.getData('Enquete')
+
+        articles = []
+
+        if raw_articles:
+            article_regex = '(\d+ ?, ?\d+)°'
+            found_articles = re.findall(article_regex, raw_articles)
+
+            if not found_articles:
+                self.logError(self, line, 'No investigation article found.', {'articles': raw_articles})
+
+            for art in found_articles:
+                article_id = re.sub(' ?, ?', '-', art)
+                if not self.article_exists(article_id, licence=plone_object):
+                    self.logError(
+                        self, line, 'Article %s does not exist in the config',
+                        {'article id': article_id, 'articles': raw_articles}
+                    )
+                else:
+                    articles.append(article_id)
+
+        return articles
+
+    def article_exists(self, article_id, licence):
+        return article_id in licence.getLicenceConfig().investigationarticles.objectIds()
 
 
 class ObservationsMapper(Mapper):
@@ -213,6 +236,8 @@ class ErrorsMapper(FinalMapper):
                     error_trace.append('<p>géomètre : %s</p>' % data['raw_name'])
                 elif 'parcelling' in error.message:
                     error_trace.append('<p>lotissement : %s %s, autorisé le %s</p>' % (data['approval date'], data['city'], data['auth_date']))
+                elif 'article' in error.message.lower():
+                    error_trace.append('<p>Articles de l\'enquête : %s</p>' % (data['articles']))
         error_trace = ''.join(error_trace)
 
         return '%s%s' % (error_trace, description)
