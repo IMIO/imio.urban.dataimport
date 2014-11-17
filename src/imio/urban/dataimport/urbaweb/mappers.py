@@ -98,6 +98,13 @@ class InquiryReclamationNumbersMapper(Mapper):
         reclamation = self.getData('NBRec')
         return reclamation
 
+
+class InquiryArticlesMapper(Mapper):
+    def mapInvestigationarticles(self, line):
+        investigationArticles = self.getData('Enquete')
+        return investigationArticles
+
+
 class ObservationsMapper(Mapper):
     def mapDescription(self, line):
         obs_urban = '<p>%s</p>' % self.getData('Memo_Urba')

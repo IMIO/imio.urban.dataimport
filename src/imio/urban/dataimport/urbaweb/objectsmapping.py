@@ -8,7 +8,7 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     CompleteFolderEventTypeMapper, CompleteFolderDateMapper, DepositDate_1_Mapper, DepositDate_2_Mapper, \
     DecisionEventTypeMapper, DecisionDateMapper, NotificationDateMapper, DecisionMapper, \
     ErrorsMapper, DepositEvent_1_IdMapper, DepositEvent_2_IdMapper, InquiryStartDateMapper, \
-    InquiryEndDateMapper, InquiryReclamationNumbersMapper
+    InquiryEndDateMapper, InquiryReclamationNumbersMapper, InquiryArticlesMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -74,6 +74,12 @@ FIELDS_MAPPINGS = {
                 'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
                 'from': 'NBRec',
                 'to': 'investigationWriteReclamationNumber',
+            },
+
+            InquiryArticlesMapper: {
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+                'from': 'Enquete',
+                'to': 'investigationArticles',
             },
 
             ObservationsMapper: {
