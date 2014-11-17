@@ -7,7 +7,7 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     ContactIdMapper, ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
     CompleteFolderEventTypeMapper, CompleteFolderDateMapper, DepositDate_1_Mapper, DepositDate_2_Mapper, \
     DecisionEventTypeMapper, DecisionDateMapper, NotificationDateMapper, DecisionMapper, \
-    ErrorsMapper, DepositEvent_1_IdMapper, DepositEvent_2_IdMapper
+    ErrorsMapper, DepositEvent_1_IdMapper, DepositEvent_2_IdMapper, InquiryStartDateMapper, InquiryEndDateMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -55,6 +55,18 @@ FIELDS_MAPPINGS = {
             WorklocationMapper: {
                 'from': ('C_Adres', 'C_Num', 'C_Code', 'C_Loc'),
                 'to': ('workLocations',)
+            },
+
+            InquiryStartDateMapper: {
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+                'from': 'E_Datdeb',
+                'to': 'investigationStart',
+            },
+
+            InquiryEndDateMapper: {
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+                'from': 'E_Datfin',
+                'to': 'investigationEnd',
             },
 
             ObservationsMapper: {

@@ -79,6 +79,20 @@ class WorklocationMapper(Mapper):
         return {}
 
 
+class InquiryStartDateMapper(Mapper):
+    def mapInvestigationstart(self, line):
+        date = self.getData('E_Datdeb')
+        date = date and DateTime(date) or None
+        return date
+
+
+class InquiryEndDateMapper(Mapper):
+    def mapInvestigationend(self, line):
+        date = self.getData('E_Datfin')
+        date = date and DateTime(date) or None
+        return date
+
+
 class ObservationsMapper(Mapper):
     def mapDescription(self, line):
         obs_urban = '<p>%s</p>' % self.getData('Memo_Urba')
