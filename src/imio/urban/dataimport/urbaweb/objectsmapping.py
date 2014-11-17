@@ -4,10 +4,10 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     PortalTypeMapper, IdMapper, ReferenceMapper, WorklocationMapper, ObservationsMapper, \
     ArchitectMapper, GeometricianMapper, CompletionStateMapper, ContactFactory, ContactNameMapper, \
     ContactTitleMapper, ContactSreetMapper, ContactNumberMapper, ContactPhoneMapper, \
-    ContactIdMapper, ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventTypeMapper, \
-    DepositDateMapper, CompleteFolderEventTypeMapper, CompleteFolderDateMapper, \
+    ContactIdMapper, ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
+    CompleteFolderEventTypeMapper, CompleteFolderDateMapper, DepositDate_1_Mapper, DepositDate_2_Mapper, \
     DecisionEventTypeMapper, DecisionDateMapper, NotificationDateMapper, DecisionMapper, \
-    ErrorsMapper
+    ErrorsMapper, DepositEvent_1_IdMapper, DepositEvent_2_IdMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -16,7 +16,8 @@ OBJECTS_NESTING = [
         'LICENCE', [
             ('CONTACT', []),
             ('PARCEL', []),
-#            ('DEPOSIT EVENT', []),
+            ('DEPOSIT EVENT 1', []),
+            ('DEPOSIT EVENT 2', []),
 #            ('COMPLETE FOLDER EVENT', []),
 #            ('DECISION EVENT', []),
         ],
@@ -149,19 +150,46 @@ FIELDS_MAPPINGS = {
         },
     },
 
-    'DEPOSIT EVENT':
+    'DEPOSIT EVENT 1':
     {
         'factory': [UrbanEventFactory],
 
         'mappers': {
-            DepositEventTypeMapper: {
+            DepositEventMapper: {
                 'from': (),
                 'to': 'eventtype',
             },
 
-            DepositDateMapper: {
-                'from': 'DateRecDem',
+            DepositDate_1_Mapper: {
+                'from': 'Recepisse',
                 'to': 'eventDate',
+            },
+
+            DepositEvent_1_IdMapper: {
+                'from': (),
+                'to': 'id',
+            }
+        },
+    },
+
+    'DEPOSIT EVENT 2':
+    {
+        'factory': [UrbanEventFactory],
+
+        'mappers': {
+            DepositEventMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            DepositDate_2_Mapper: {
+                'from': 'Recepisse2',
+                'to': 'eventDate',
+            },
+
+            DepositEvent_2_IdMapper: {
+                'from': (),
+                'to': 'id',
             }
         },
     },

@@ -26,9 +26,10 @@ def identify_parcel_abbreviations(string):
     separators = (',', 'et', ';')
 
     regex = '{separators}'.format(separators='|'.join(separators))
-    raw_parcels = re.sub(regex, ',', string)
+    raw_parcels = re.sub(regex, ',', string.upper())
 
     abbreviations = raw_parcels.split(',')
+    abbreviations = [abbr.strip() for abbr in abbreviations if abbr.strip()]
 
     return abbreviations
 
@@ -60,8 +61,10 @@ def guess_cadastral_reference(base_reference, abbreviation):
             update = True
             if i == 1:  # for the 'bis', only keep the number
                 value = value[-1]
-            elif i == 4:  # 'partie' should be boolean
-                value = bool(value[4])
+        elif i == 4:  # 'partie' should be boolean
+            value = bool(value)
+        else:
+            value = ''
 
         if update:
             setattr(cadastral_ref, attribute, value)
@@ -77,11 +80,11 @@ class CadastralReference(object):
         """
         """
         self.division = division or ''
-        self.section = section and section.upper() or ''
+        self.section = section or ''
         self.radical = radical or ''
         self.bis = bis or ''
-        self.exposant = exposant and exposant.upper() or ''
-        self.puissance = puissance and puissance.upper() or ''
+        self.exposant = exposant or ''
+        self.puissance = puissance or ''
         self.partie = bool(partie)
 
     def __str__(self):
@@ -111,7 +114,7 @@ class CadastralReference(object):
 
     @property
     def id(self):
-        return str(self).replace(' ', '').lower()
+        return str(self).replace(' ', '').replace('/', '').lower()
 
     def has_same_attribute_values(self, ref_dict):
         common_keys = set(ref_dict.keys()).intersection(set(self.__dict__.keys()))

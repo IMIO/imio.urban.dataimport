@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.config import PRESERVE, OVERRIDE
-from imio.urban.dataimport.errors import IdentifierError
 from imio.urban.dataimport.errors import FactoryArgumentsError
+from imio.urban.dataimport.exceptions import NoObjectToCreateException
 from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping,\
     IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage, \
     IFinalMapper
@@ -136,7 +136,11 @@ class UrbanDataImporter(object):
 
         self.current_containers_stack = stack
 
-        factory_args = self.getFactoryArguments(line, object_name)
+        try:
+            factory_args = self.getFactoryArguments(line, object_name)
+        except NoObjectToCreateException:
+            return
+
         multiple_factory_args = self.getMultipleFactoryArguments(line, object_name)
 
         if multiple_factory_args is not None and not factory_args:
@@ -158,7 +162,7 @@ class UrbanDataImporter(object):
         old_object = factory.objectAlreadyExists(factory_args, container)
 
         if old_object:
-            if self.importer.mode == PRESERVE:
+            if self.mode == PRESERVE:
                 urban_object = old_object
 
             elif self.importer.mode == OVERRIDE:

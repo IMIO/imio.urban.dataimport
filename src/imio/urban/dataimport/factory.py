@@ -47,7 +47,7 @@ class BaseFactory(object):
     def getCreationPlace(self, factory_args):
         return None
 
-    def getPortalType(self, place=None, **kwargs):
+    def getPortalType(self, container=None, **kwargs):
         return self.portal_type
 
     def objectAlreadyExists(self, object_args, container):

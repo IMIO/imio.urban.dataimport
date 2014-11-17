@@ -4,6 +4,8 @@ from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
 from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as PostCreationMapper
 from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 
+from imio.urban.dataimport.exceptions import NoObjectToCreateException
+
 from imio.urban.dataimport.factory import BaseFactory
 from imio.urban.dataimport.utils import CadastralReference
 from imio.urban.dataimport.utils import cleanAndSplitWord
@@ -14,6 +16,7 @@ from imio.urban.dataimport.utils import parse_cadastral_reference
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
 from Products.CMFCore.utils import getToolByName
+
 import re
 
 #
@@ -38,14 +41,14 @@ class IdMapper(Mapper):
 
 class PortalTypeMapper(Mapper):
     def mapPortal_type(self, line):
-        type_value = self.getData('TypeNat')
+        type_value = self.getData('TypeNat').upper()
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
         return portal_type
 
     def mapFoldercategory(self, line):
-        type_value = self.getData('TypeNat')
+        type_value = self.getData('TypeNat').upper()
         foldercategory = self.getValueMapping('type_map')[type_value]['foldercategory']
         return foldercategory
 
@@ -294,6 +297,7 @@ class ParcelFactory(BaseFactory):
         else:
             self.logError(self, line, 'Too much parcels found or not enough parcels found', {'args': parcel_args, 'search result': len(found)})
             parcel_args['isOfficialParcel'] = False
+
         parcel_args['id'] = parcel.id
         parcel_args['partie'] = parcel.partie
 
@@ -350,17 +354,18 @@ class UrbanEventFactory(BaseFactory):
     def getPortalType(self, **kwargs):
         return 'UrbanEvent'
 
-    def create(self, kwargs, container):
+    def create(self, kwargs, container, line):
         if not kwargs['eventtype']:
             return []
-        urban_tool = getToolByName(container, 'portal_urban')
-        edit_url = urban_tool.createUrbanEvent(container.UID(), kwargs['eventtype'])
-        return [getattr(container, edit_url.split('/')[-2])]
+        eventtype_uid = kwargs.pop('eventtype')
+        urban_event = container.createUrbanEvent(eventtype_uid, **kwargs)
+        return urban_event
 
 #mappers
 
 
-class DepositEventTypeMapper(Mapper):
+class DepositEventMapper(Mapper):
+
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = getToolByName(licence, 'portal_urban')
@@ -369,13 +374,36 @@ class DepositEventTypeMapper(Mapper):
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
-class DepositDateMapper(PostCreationMapper):
-    def mapEventdate(self, line, plone_object):
-        date = self.getData('DateRecDem')
-        date = date and DateTime(date) or None
+class DepositDate_1_Mapper(Mapper):
+
+    def mapEventdate(self, line):
+        date = self.getData('Recepisse')
         if not date:
-            self.logError(self, line, 'No deposit date found')
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
         return date
+
+
+class DepositEvent_1_IdMapper(Mapper):
+
+    def mapId(self, line):
+        return 'deposit-1'
+
+
+class DepositDate_2_Mapper(Mapper):
+
+    def mapEventdate(self, line):
+        date = self.getData('Recepisse2')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+
+class DepositEvent_2_IdMapper(Mapper):
+
+    def mapId(self, line):
+        return 'deposit-2'
 
 #
 # UrbanEvent complete folder
