@@ -6,9 +6,9 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     ContactTitleMapper, ContactSreetMapper, ContactNumberMapper, ContactPhoneMapper, \
     ContactIdMapper, ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
     CompleteFolderEventTypeMapper, CompleteFolderDateMapper, DepositDate_1_Mapper, DepositDate_2_Mapper, \
-    DecisionEventTypeMapper, DecisionDateMapper, NotificationDateMapper, DecisionMapper, \
-    ErrorsMapper, DepositEvent_1_IdMapper, DepositEvent_2_IdMapper, InquiryStartDateMapper, \
-    InquiryEndDateMapper, InquiryReclamationNumbersMapper, InquiryArticlesMapper
+    DecisionEventTypeMapper, ErrorsMapper, DepositEvent_1_IdMapper, DepositEvent_2_IdMapper, InquiryStartDateMapper, \
+    InquiryEndDateMapper, InquiryReclamationNumbersMapper, InquiryArticlesMapper, DecisionEventIdMapper, \
+    DecisionEventDateMapper, DecisionEventDecisionMapper, DecisionEventTitleMapper, DecisionEventNotificationDateMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -20,7 +20,7 @@ OBJECTS_NESTING = [
             ('DEPOSIT EVENT 1', []),
             ('DEPOSIT EVENT 2', []),
 #            ('COMPLETE FOLDER EVENT', []),
-#            ('DECISION EVENT', []),
+            ('DECISION EVENT', []),
         ],
     ),
 ]
@@ -244,24 +244,34 @@ FIELDS_MAPPINGS = {
 
         'mappers': {
             DecisionEventTypeMapper: {
-                'from': 'Refus',
+                'from': (),
                 'to': 'eventtype',
             },
 
-            DecisionDateMapper: {
-                'from': 'DateDecisionCollege',
+            DecisionEventIdMapper: {
+                'from': (),
+                'to': 'id',
+            },
+
+            DecisionEventDateMapper: {
+                'from': ('Autorisa', 'Refus', 'TutAutorisa', 'TutRefus'),
                 'to': 'decisionDate',
             },
 
-            NotificationDateMapper: {
-                'from': 'DateNotif',
-                'to': 'eventDate',
-            },
-
-            DecisionMapper: {
-                'from': 'Refus',
+            DecisionEventDecisionMapper: {
+                'from': ('Autorisa', 'Refus', 'TutAutorisa', 'TutRefus'),
                 'to': 'decision',
             },
+
+            DecisionEventTitleMapper: {
+                'from': ('TutAutorisa', 'TutRefus'),
+                'to': 'Title',
+            },
+
+            DecisionEventNotificationDateMapper: {
+                'from': 'Notifica',
+                'to': 'eventDate',
+            }
         },
     },
 }

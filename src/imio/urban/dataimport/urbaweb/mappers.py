@@ -496,30 +496,48 @@ class DecisionEventTypeMapper(Mapper):
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
-class DecisionDateMapper(PostCreationMapper):
-    def mapDecisiondate(self, line, plone_object):
-        date = self.getData('DateDecisionCollege')
-        date = date and DateTime(date) or None
+class DecisionEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'decision-event'
+
+
+class DecisionEventDateMapper(Mapper):
+    def mapDecisiondate(self, line):
+        autorisa = self.getData('Autorisa')
+        refus = self.getData('Refus')
+        tutAutorisa = self.getData('TutAutorisa')
+        tutRefus = self.getData('TutRefus')
+        date = autorisa or refus or tutAutorisa or tutRefus
         if not date:
             self.logError(self, line, 'No decision date found')
         return date
 
 
-class NotificationDateMapper(PostCreationMapper):
-    def mapEventdate(self, line, plone_object):
-        date = self.getData('DateNotif')
-        date = date and DateTime(date) or None
-        if not date:
-            self.logError(self, line, 'No notification date found')
-        return date
-
-
-class DecisionMapper(PostCreationMapper):
-    def mapDecision(self, line, plone_object):
-        decision = self.getData('Refus')
-        if decision == 'O':
+class DecisionEventDecisionMapper(Mapper):
+    def mapDecision(self, line):
+        autorisa = self.getData('Autorisa')
+        refus = self.getData('Refus')
+        tutAutorisa = self.getData('TutAutorisa')
+        tutRefus = self.getData('TutRefus')
+        if autorisa or tutAutorisa:
             return 'favorable'
-        elif decision == 'N':
+        elif refus or tutRefus:
             return 'defavorable'
         #error
         return []
+
+
+class DecisionEventTitleMapper(Mapper):
+    def mapTitle(self, line):
+        tutAutorisa = self.getData('TutAutorisa')
+        tutRefus = self.getData('TutRefus')
+
+        if tutAutorisa or tutRefus:
+            return u'Délivrance du permis par la tutelle (octroi ou refus)'
+        return u'Délivrance du permis (octroi ou refus)'
+
+
+class DecisionEventNotificationDateMapper(Mapper):
+    def mapEventdate(self, line):
+        eventDate = self.getData('Notifica')
+        return eventDate
