@@ -44,7 +44,7 @@ FIELDS_MAPPINGS = {
             },
 
             PortalTypeMapper: {
-                'from': ('TypeNat',),
+                'from': ('TypeNat', 'Art127'),
                 'to': ('portal_type', 'folderCategory',)
             },
 

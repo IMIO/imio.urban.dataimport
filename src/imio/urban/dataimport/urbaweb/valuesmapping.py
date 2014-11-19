@@ -15,7 +15,8 @@ VALUES_MAPS = {
 'TC'    : ['BuildLicence',        'pu',             'PU'],
 'TH'    : ['BuildLicence',        'pu',             'PU'],
 'DU'    : ['Declaration',         'dup',            'Decl'],
-'DE'    : ['BuildLicence',        'uap',            'DE'],
+'DE'    : ['BuildLicence',        'uap',            'PU'],
+'AB'    : ['BuildLicence',        'uap',            'PU'],
 }),
 
 

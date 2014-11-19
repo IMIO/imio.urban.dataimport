@@ -48,6 +48,9 @@ class PortalTypeMapper(Mapper):
         return portal_type
 
     def mapFoldercategory(self, line):
+        art127 = self.getData('Art127')
+        if bool(int(art127)):
+            return 'art127'
         type_value = self.getData('TypeNat').upper()
         foldercategory = self.getValueMapping('type_map')[type_value]['foldercategory']
         return foldercategory
