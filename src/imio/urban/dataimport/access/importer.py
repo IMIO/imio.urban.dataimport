@@ -90,8 +90,8 @@ class AccessDataImporter(UrbanDataImporter):
 
     implements(IAccessImporter)
 
-    def __init__(self, db_name, table_name, key_column):
-        super(AccessDataImporter, self).__init__()
+    def __init__(self, db_name, table_name, key_column, savepoint_length=0):
+        super(AccessDataImporter, self).__init__(savepoint_length)
         self.db_name = db_name
         self.db_path = '{}/{}'.format(IMPORT_FOLDER_PATH, self.db_name)
         self.table_name = table_name

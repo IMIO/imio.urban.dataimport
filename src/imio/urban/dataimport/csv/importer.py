@@ -77,8 +77,8 @@ class CSVDataImporter(UrbanDataImporter):
 
     implements(ICSVImporter)
 
-    def __init__(self, csv_filename, key_column):
-        super(CSVDataImporter, self).__init__()
+    def __init__(self, csv_filename, key_column, savepoint_length=0):
+        super(CSVDataImporter, self).__init__(savepoint_length)
         self.csv_filename = csv_filename
         self.key_column = key_column
 

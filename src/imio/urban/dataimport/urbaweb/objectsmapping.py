@@ -8,7 +8,9 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     CompleteFolderEventTypeMapper, CompleteFolderDateMapper, DepositDate_1_Mapper, DepositDate_2_Mapper, \
     DecisionEventTypeMapper, ErrorsMapper, DepositEvent_1_IdMapper, DepositEvent_2_IdMapper, InquiryStartDateMapper, \
     InquiryEndDateMapper, InquiryReclamationNumbersMapper, InquiryArticlesMapper, DecisionEventIdMapper, \
-    DecisionEventDateMapper, DecisionEventDecisionMapper, DecisionEventTitleMapper, DecisionEventNotificationDateMapper
+    DecisionEventDateMapper, DecisionEventDecisionMapper, DecisionEventTitleMapper, DecisionEventNotificationDateMapper, \
+    ImplantationEventTypeMapper, ImplantationEventIdMapper, ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
+    ImplantationEventDecisionMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -21,6 +23,7 @@ OBJECTS_NESTING = [
             ('DEPOSIT EVENT 2', []),
 #            ('COMPLETE FOLDER EVENT', []),
             ('DECISION EVENT', []),
+            ('IMPLANTATION EVENT', []),
         ],
     ),
 ]
@@ -272,6 +275,40 @@ FIELDS_MAPPINGS = {
                 'from': 'Notifica',
                 'to': 'eventDate',
             }
+        },
+    },
+
+    'IMPLANTATION EVENT':
+    {
+        'factory': [UrbanEventFactory],
+
+        'allowed_containers': ['BuildLicence'],
+
+        'mappers': {
+            ImplantationEventTypeMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            ImplantationEventIdMapper: {
+                'from': (),
+                'to': 'id',
+            },
+
+            ImplantationEventControlDateMapper: {
+                'from': 'Visite_DateDemande',
+                'to': 'eventDate',
+            },
+
+            ImplantationEventDecisionDateMapper: {
+                'from': 'Visite_DateCollege',
+                'to': 'eventDate',
+            },
+
+            ImplantationEventDecisionMapper: {
+                'from': 'Visite_Resultat',
+                'to': 'decisionText',
+            },
         },
     },
 }

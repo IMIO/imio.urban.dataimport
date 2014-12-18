@@ -19,7 +19,7 @@
 
     <adapter
         for="imio.urban.dataimport.interfaces.IImportSettingsForm"
-        factory=".settings.UrbawebImporterFromSettingsForm"
+        factory=".settings.UrbawebImporterFromImportSettings"
         provides="imio.urban.dataimport.urbaweb.interfaces.IUrbawebDataImporter"
         />
 

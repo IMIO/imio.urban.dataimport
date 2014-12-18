@@ -544,3 +544,45 @@ class DecisionEventNotificationDateMapper(Mapper):
     def mapEventdate(self, line):
         eventDate = self.getData('Notifica')
         return eventDate
+
+#
+# UrbanEvent implantation
+#
+
+#mappers
+
+
+class ImplantationEventTypeMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['implantation_event']
+        if not eventtype_id:
+            return
+
+        urban_tool = getToolByName(licence, 'portal_urban')
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class ImplantationEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'implantation-event'
+
+
+class ImplantationEventControlDateMapper(Mapper):
+    def mapEventdate(self, line):
+        date = self.getData('Visite_DateDemande')
+        if not date:
+            self.logError(self, line, 'No implantation date found')
+        return date
+
+
+class ImplantationEventDecisionDateMapper(Mapper):
+    def mapDecisiondate(self, line):
+        eventDate = self.getData('Visite_DateCollege')
+        return eventDate
+
+
+class ImplantationEventDecisionMapper(Mapper):
+    def mapDecisiontext(self, line):
+        return self.getData('Visite_Resultat')

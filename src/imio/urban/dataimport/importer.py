@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from DateTime import DateTime
+
 from imio.urban.dataimport.config import PRESERVE, OVERRIDE
 from imio.urban.dataimport.errors import FactoryArgumentsError
 from imio.urban.dataimport.exceptions import NoObjectToCreateException
@@ -9,13 +11,13 @@ from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping
 
 from plone import api
 
+from zope.annotation.interfaces import IAnnotations
 from zope.interface import implements
-
-import zope
-import transaction
 
 import os
 import pickle
+import transaction
+import zope
 
 
 class UrbanDataImporter(object):
@@ -24,15 +26,16 @@ class UrbanDataImporter(object):
 
     implements(IUrbanDataImporter)
 
-    def __init__(self):
+    def __init__(self, savepoint_length=0):
         """ """
 
         self.datasource = None
         self.objects_mappings = None
         self.values_mappings = None
         self.mode = PRESERVE
-        self.savepoint_length = 0
+        self.savepoint_length = savepoint_length
         self.error_log_name = 'urban_dataimport'
+        self.error_treshold = 0.05
 
         # attributes to be set up before running import
         self.factories = {}
@@ -46,28 +49,63 @@ class UrbanDataImporter(object):
         self.errors = {}
         self.sorted_errors = {}
 
-    def setSavePoint(self, length):
-        self.savepoint_length = length
-
     def importData(self, start=1, end=0):
-        """ import data from line 'start' to line 'end' """
+        """
+        Import data from line 'start' to line 'end' as long
+        the import error rate is kept under 'error_treshold' value.
+        """
 
-        self.setupImport()
         savepoint = self.savepoint_length
         processed_lines = 0
+        errors = 0
+        total = end - start
 
         for dataline in self.datasource.iterdata():
             if end and self.current_line > end:
                 break
             elif start <= self.current_line:
-                self.importDataLine(dataline)
+                try:
+                    self.importDataLine(dataline)
+                except:
+                    errors += 1
+                    error_rate = errors / total
+                    if error_rate > self.error_treshold:
+                        break
 
-                # save the import work every Nth line processed by commiting a transaction
+                # flush RAM every Nth line processed by setting a savepoint
                 processed_lines += 1
                 if savepoint and self.processed_lines % savepoint == 0:
-                    transaction.commit()
+                    transaction.savepoint(True)
 
             self.current_line += 1
+
+        self.register_import_transaction(start, self.current_line)
+
+    def register_import_transaction(self, start, end):
+        """
+        Store the import transaction on an annotation so we can undo it later
+        """
+        annotations = IAnnotations(api.portal.get())
+        import_transaction = transaction.get()
+        import_transaction.note(self.name)
+        date = DateTime()
+        import_transaction.note(
+            u'line {start} to {end}       date: {date} - {time}'.format(
+                start=start,
+                end=end,
+                date=date.strftime('%d/%m/%Y'),
+                time=date.Time(),
+            )
+        )
+
+        historic_id = 'imio.urban.dataimport.import_historic:%s' % self.name
+        import_value = import_transaction.description
+        import_key = date.micros()
+        transaction_historic = annotations.get(historic_id)
+        if transaction_historic is None:
+            annotations[historic_id] = {import_key: import_value}
+        else:
+            transaction_historic[import_key] = import_value
 
     def importDataLine(self, dataline):
         print "PROCESSING LINE %i" % self.current_line
@@ -221,6 +259,10 @@ class UrbanDataImporter(object):
     def updateObjectFields(self, line, object_name, urban_object, mapper_type):
         for mapper in self.mappers[object_name][mapper_type]:
             mapper.map(line, plone_object=urban_object)
+
+    @property
+    def name(self):
+        return self.__class__.__name__
 
     def logError(self, error_location, line, message, data):
 

@@ -1,0 +1,10 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five">
+
+    <utility component=".undo_panel.import_historic_vocabulary"
+        name="imio.urban.dataimport.ListImportHistoric"
+        provides="zope.schema.interfaces.IVocabularyFactory"
+    />
+
+</configure>
