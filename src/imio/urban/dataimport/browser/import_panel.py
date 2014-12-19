@@ -3,20 +3,17 @@
 from Products.statusmessages.interfaces import IStatusMessage
 
 from imio.urban.dataimport import _
-from imio.urban.dataimport.importer import UrbanDataImporter
+from imio.urban.dataimport.browser.adapter import ControlPanelSubForm
 from imio.urban.dataimport.interfaces import IImportSettingsForm
-from imio.urban.dataimport.interfaces import IUrbanDataImporter
 
 from plone.app.registry.browser.controlpanel import ControlPanelFormWrapper
 from plone.app.registry.browser.controlpanel import RegistryEditForm
 
 from z3c.form import button
 
-from zope.component import getAdapter
+from zope import schema
 from zope.interface import Interface
 from zope.interface import implements
-
-from zope import schema
 
 
 class IImporterSettingsSchema(Interface):
@@ -39,7 +36,7 @@ class IImporterSettingsSchema(Interface):
     )
 
 
-class ImporterSettingsForm(RegistryEditForm):
+class ImporterSettingsForm(RegistryEditForm, ControlPanelSubForm):
     """
     """
 
@@ -72,39 +69,13 @@ class ImporterSettingsForm(RegistryEditForm):
         if errors:
             self.status = self.formErrorsMessage
 
-        importer = getAdapter(self, IUrbanDataImporter)
+        start = data.get('start')
+        end = data.get('end')
+        importer = self.new_importer()
         importer.setupImport()
-        importer.importData()
+        importer.importData(start, end)
         importer.picklesErrorLog()
 
 
 class ImporterSettings(ControlPanelFormWrapper):
     form = ImporterSettingsForm
-
-
-class ImporterFromSettingsForm(object):
-
-    implements(IUrbanDataImporter)
-
-    def __init__(self, settings_form, importer_factory=UrbanDataImporter):
-        self.form_datas, errors = settings_form.extractData()
-        importer_settings = self.get_importer_settings()
-        self.importer = importer_factory(**importer_settings)
-
-    def importData(self):
-        start = self.form_datas.get('start')
-        end = self.form_datas.get('end')
-        self.importer.setupImport()
-        self.importer.importData(start, end)
-
-    def get_importer_settings(self):
-        settings = {
-            'savepoint_length': self.form_datas.get('savepoint_length'),
-        }
-        return settings
-
-    def __getattr__(self, attr_name):
-        """
-        Delegate attribute/method call to the wrapped importer.
-        """
-        return getattr(self.importer, attr_name)

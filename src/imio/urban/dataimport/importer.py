@@ -29,6 +29,7 @@ class UrbanDataImporter(object):
     def __init__(self, savepoint_length=0):
         """ """
 
+        self.name = self.__class__.__name__
         self.datasource = None
         self.objects_mappings = None
         self.values_mappings = None
@@ -79,7 +80,7 @@ class UrbanDataImporter(object):
 
             self.current_line += 1
 
-        self.register_import_transaction(start, self.current_line)
+        self.register_import_transaction(start, self.current_line - 1)
 
     def register_import_transaction(self, start, end):
         """
@@ -259,10 +260,6 @@ class UrbanDataImporter(object):
     def updateObjectFields(self, line, object_name, urban_object, mapper_type):
         for mapper in self.mappers[object_name][mapper_type]:
             mapper.map(line, plone_object=urban_object)
-
-    @property
-    def name(self):
-        return self.__class__.__name__
 
     def logError(self, error_location, line, message, data):
 
