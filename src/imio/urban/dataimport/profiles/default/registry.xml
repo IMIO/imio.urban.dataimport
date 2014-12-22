@@ -2,6 +2,4 @@
 <registry>
     <records interface="imio.urban.dataimport.browser.import_panel.IImporterSettingsSchema">
     </records>
-    <records interface="imio.urban.dataimport.browser.undo_panel.IUndoImportSchema">
-    </records>
  </registry>

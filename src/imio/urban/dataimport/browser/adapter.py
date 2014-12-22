@@ -22,9 +22,9 @@ class ImporterFromSettingsForm(object):
         return settings
 
     def __call__(self):
-        datas, errors = self.form.extractData()
+        self.form_datas, errors = self.form.extractData()
         importer_settings = self.get_importer_settings()
-        importer = self.importer_factory(**importer_settings)
+        importer = self.importer_class(**importer_settings)
         return importer
 
 

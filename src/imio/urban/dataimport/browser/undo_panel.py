@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from DateTime import DateTime
+
 from imio.urban.dataimport import _
 from imio.urban.dataimport.browser.adapter import ControlPanelSubForm
 from imio.urban.dataimport.interfaces import IImportSettingsForm
@@ -31,12 +33,18 @@ class BaseUndoImportForm(form.Form, ControlPanelSubForm):
 
     def get_import_historic(self):
         historic_id = 'imio.urban.dataimport.import_historic:%s' % self.importer_name
-        import_historic = IAnnotations(self.portal)[historic_id]
+        annotations = IAnnotations(self.portal)
+        if historic_id not in annotations.keys():
+            annotations[historic_id] = {}
+        import_historic = annotations[historic_id]
         return import_historic
 
     def get_undo_historic(self):
         historic_id = 'imio.urban.dataimport.undo_historic:%s' % self.importer_name
-        undo_historic = IAnnotations(self.portal)[historic_id]
+        annotations = IAnnotations(self.portal)
+        if historic_id not in annotations.keys():
+            annotations[historic_id] = {}
+        undo_historic = annotations[historic_id]
         return undo_historic
 
 
@@ -92,9 +100,20 @@ class UndoImportForm(BaseUndoImportForm):
         """
         """
         import_historic = self.get_import_historic()
-        for import_time in import_historic.keys():
+        undone_imports = []
+        for import_time in sorted(import_historic.keys()):
             if import_time_to_undo <= import_time:
-                import_historic.pop(import_time)
+                undone_imports.append(
+                    (import_time, import_historic.pop(import_time))
+                )
+
+        undo_historic = self.get_undo_historic()
+        date = DateTime()
+        undo_date = u'{date} - {time}'.format(
+            date=date.strftime('%d/%m/%Y'),
+            time=date.Time(),
+        )
+        undo_historic[date.micros()] = {'date': undo_date, 'undone': undone_imports}
 
 
 class UndoImportPanel(layout.FormWrapper):
@@ -124,9 +143,9 @@ class IRedoImportSchema(Interface):
     """
     """
 
-    undo_import = schema.Choice(
+    redo_import = schema.Choice(
         title=_(u'Redo import'),
-        vocabulary='imio.urban.dataimport.ListImportUndoHistoric',
+        vocabulary='imio.urban.dataimport.ListUndoHistoric',
     )
 
 
@@ -149,37 +168,39 @@ class RedoImportForm(BaseUndoImportForm):
         portal = api.portal.get()
 
         import_time = data['redo_import']
-        portal.manage_redo_transactions(
-            self._get_transactions_to_redo(import_time)
+        portal.manage_undo_transactions(
+            self._get_transactions_to_undo(import_time)
         )
         self._update_import_historic_records(import_time)
         self.request.response.redirect("%s/@@dataimport-controlpanel" % (self.context.absolute_url()))
 
-    def _get_transactions_to_redo(self, import_time):
+    def _get_transactions_to_undo(self, undo_time):
         """
         """
         portal = api.portal.get()
         transactions_to_redo = []
 
-        for transaction in portal.redoable_transactions():
+        for transaction in portal.undoable_transactions():
             transaction_time = transaction['time'].micros()
-            if import_time < transaction_time:
+            if undo_time < transaction_time:
                 transactions_to_redo.append(transaction['id'])
             else:
                 break
 
         return transactions_to_redo
 
-    def _update_import_historic_records(self, import_time_to_redo):
+    def _update_import_historic_records(self, undo_time_to_redo):
         """
         """
-        portal = api.portal.get()
-        importer = self.new_importer()
-        historic_id = 'imio.urban.dataimport.import_historic:%s' % importer.name
-        import_historic = IAnnotations(portal)[historic_id]
-        for import_time in import_historic.keys():
-            if import_time_to_redo <= import_time:
-                import_historic.pop(import_time)
+        undo_historic = self.get_undo_historic()
+        redone_imports = []
+        for undo_time in undo_historic.keys():
+            if undo_time_to_redo <= undo_time:
+                redone_imports.append(undo_historic.pop(undo_time)['undone'])
+
+        import_historic = self.get_import_historic()
+        for imports in redone_imports:
+            import_historic.update(dict(imports))
 
 
 class RedoImportPanel(layout.FormWrapper):
@@ -197,9 +218,11 @@ class ListUndoHistoric(object):
 
         vocabulary_terms = []
         for undo_time in sorted(undo_historic.keys(), reverse=True):
-            value = undo_historic[undo_time].split('\n')[-1]
-            vocabulary_terms.append(SimpleTerm(undo_time, undo_time, _(value)))
+            undo_datas = undo_historic[undo_time]
+            date = undo_datas['date']
+            value = ', '.join([undo[1].split('\n')[-1].split('       ')[0] for undo in undo_datas['undone']])
+            vocabulary_terms.append(SimpleTerm(undo_time, undo_time, _('%s -  %s' % (value, date))))
 
         return SimpleVocabulary(vocabulary_terms)
 
-undo_historic_vocabulary = ListImportHistoric()
+undo_historic_vocabulary = ListUndoHistoric()

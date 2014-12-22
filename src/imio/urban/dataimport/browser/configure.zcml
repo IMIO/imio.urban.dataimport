@@ -7,4 +7,9 @@
         provides="zope.schema.interfaces.IVocabularyFactory"
     />
 
+    <utility component=".undo_panel.undo_historic_vocabulary"
+        name="imio.urban.dataimport.ListUndoHistoric"
+        provides="zope.schema.interfaces.IVocabularyFactory"
+    />
+
 </configure>

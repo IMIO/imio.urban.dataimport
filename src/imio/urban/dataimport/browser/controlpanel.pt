@@ -34,6 +34,7 @@
                 <dt id="fieldsetlegend-undo" i18n:translate="">Undo imports</dt>
                 <dd id="fieldset-undo">
                     <span tal:replace="structure view/undo_form_instance/contents" />
+                    <span tal:replace="structure view/redo_form_instance/contents" />
                 </dd>
             </dl>
 
