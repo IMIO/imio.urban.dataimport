@@ -57,6 +57,11 @@ class BaseUndoImportForm(form.Form, ControlPanelSubForm):
         historic_id = 'imio.urban.dataimport.undo_historic:%s' % self.importer_name
         self.historic[historic_id] = dict(historic)
 
+    def redirect(self):
+        self.request.response.redirect(
+            "%s/@@dataimport-controlpanel/#fieldsetlegend-undo" % (self.context.absolute_url())
+        )
+
 
 class IUndoImportSchema(Interface):
     """
@@ -96,10 +101,20 @@ class UndoImportForm(BaseUndoImportForm):
 
         self.set_import_historic(new_import_historic)
         self.set_undo_historic(new_undo_historic)
+        self.redirect()
 
-        self.request.response.redirect(
-            "%s/@@dataimport-controlpanel/#fieldsetlegend-undo" % (self.context.absolute_url())
-        )
+    @button.buttonAndHandler(_('Forget undo'), name=None)
+    def handle_remove_undo(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+
+        import_time = data['undo_import']
+
+        import_historic = self.get_import_historic()
+        import_historic.pop(import_time)
+        self.set_import_historic(import_historic)
+        self.redirect()
 
     def _get_transactions_to_undo(self, import_time):
         """
@@ -201,10 +216,20 @@ class RedoImportForm(BaseUndoImportForm):
 
         self.set_undo_historic(new_undo_historic)
         self.set_import_historic(new_import_historic)
+        self.redirect()
 
-        self.request.response.redirect(
-            "%s/@@dataimport-controlpanel/#fieldsetlegend-undo" % (self.context.absolute_url())
-        )
+    @button.buttonAndHandler(_('Forget redo'), name=None)
+    def handle_remove_redo(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+
+        undo_time = data['redo_import']
+
+        undo_historic = self.get_undo_historic()
+        undo_historic.pop(undo_time)
+        self.set_undo_historic(undo_historic)
+        self.redirect()
 
     def _get_transactions_to_undo(self, undo_time):
         """
