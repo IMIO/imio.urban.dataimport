@@ -11,7 +11,6 @@ from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping
 
 from plone import api
 
-from zope.annotation.interfaces import IAnnotations
 from zope.interface import implements
 
 import os
@@ -86,7 +85,7 @@ class UrbanDataImporter(object):
         """
         Store the import transaction on an annotation so we can undo it later
         """
-        annotations = IAnnotations(api.portal.get())
+        historic = api.portal.get().__urbandataimport__
         import_transaction = transaction.get()
         import_transaction.note(self.name)
         date = DateTime()
@@ -102,11 +101,11 @@ class UrbanDataImporter(object):
         historic_id = 'imio.urban.dataimport.import_historic:%s' % self.name
         import_value = import_transaction.description
         import_key = date.micros()
-        transaction_historic = annotations.get(historic_id)
-        if transaction_historic is None:
-            annotations[historic_id] = {import_key: import_value}
+        if historic_id not in historic:
+            import_historic = historic[historic_id] = {}
         else:
-            transaction_historic[import_key] = import_value
+            import_historic = historic[historic_id]
+        import_historic[import_key] = import_value
 
     def importDataLine(self, dataline):
         print "PROCESSING LINE %i" % self.current_line
