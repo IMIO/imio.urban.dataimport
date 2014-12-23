@@ -13,6 +13,8 @@ from imio.urban.dataimport.utils import guess_cadastral_reference
 from imio.urban.dataimport.utils import identify_parcel_abbreviations
 from imio.urban.dataimport.utils import parse_cadastral_reference
 
+from plone import api
+
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
 from Products.CMFCore.utils import getToolByName
@@ -196,17 +198,12 @@ class GeometricianMapper(PostCreationMapper):
 
 class CompletionStateMapper(PostCreationMapper):
     def map(self, line, plone_object):
-        return
         self.line = line
         state = ''
-        if bool(int(self.getData('DossierIncomplet'))):
-            state = 'incomplete'
-        elif self.getData('Refus') == 'O':
+        if self.getData('Autorisa') or self.getData('TutAutorisa'):
             state = 'accepted'
-        elif self.getData('Refus') == 'N':
+        elif self.getData('Refus') or self.getData('TutRefus'):
             state = 'refused'
-        elif plone_object.portal_type in ['MiscDemand']:
-            state = 'accepted'
         else:
             return
         workflow_tool = getToolByName(plone_object, 'portal_workflow')
