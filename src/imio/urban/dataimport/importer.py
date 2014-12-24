@@ -58,7 +58,7 @@ class UrbanDataImporter(object):
         savepoint = self.savepoint_length
         processed_lines = 0
         errors = 0
-        total = end - start
+        total = end - start + 1
 
         for dataline in self.datasource.iterdata():
             if end and self.current_line > end:
