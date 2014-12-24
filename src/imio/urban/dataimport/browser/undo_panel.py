@@ -45,20 +45,19 @@ class BaseUndoImportForm(form.Form, ControlPanelSubForm):
     def undo_historic_id(self):
         return 'imio.urban.dataimport.undo_historic:%s' % self.importer_name
 
-    def get_import_historic(self):
-        historic_id = self.import_historic_id
+    def get_historic(self, historic_id):
         if historic_id not in self.historic:
             self.historic[historic_id] = {}
         return self.historic[historic_id]
+
+    def get_import_historic(self):
+        return self.get_historic(self.import_historic_id)
 
     def set_import_historic(self, historic):
         self.historic[self.import_historic_id] = dict(historic)
 
     def get_undo_historic(self):
-        historic_id = self.undo_historic_id
-        if historic_id not in self.historic:
-            self.historic[historic_id] = {}
-        return self.historic[historic_id]
+        return self.get_historic(self.import_historic_id)
 
     def set_undo_historic(self, historic):
         self.historic[self.undo_historic_id] = dict(historic)
@@ -142,11 +141,13 @@ class UndoImportForm(BaseUndoImportForm):
         """
         import_historic = self.get_import_historic()
         undone_imports = []
+
         for import_time in sorted(import_historic.keys()):
             if import_time_to_undo <= import_time:
                 undone_imports.append(
                     (import_time, import_historic.pop(import_time))
                 )
+
         return import_historic, undone_imports
 
     def _get_new_undo_historic(self, undone_imports):
@@ -159,6 +160,7 @@ class UndoImportForm(BaseUndoImportForm):
             time=date.Time(),
         )
         undo_historic[date.micros()] = {'date': undo_date, 'undone': undone_imports}
+
         return undo_historic
 
 
@@ -252,22 +254,26 @@ class RedoImportForm(BaseUndoImportForm):
 
         return transactions_to_redo
 
-    def _get_new_undo_historic(self, undo_time_to_redo):
+    def _get_new_undo_historic(self, undo_historic, undo_time_to_redo):
         """
         """
         undo_historic = self.get_undo_historic()
         redone_imports = []
+
         for undo_time in undo_historic.keys():
             if undo_time_to_redo <= undo_time:
                 redone_imports.append(undo_historic.pop(undo_time)['undone'])
+
         return undo_historic, redone_imports
 
     def _get_new_import_historic(self, redone_imports):
         """
         """
         import_historic = self.get_import_historic()
+
         for imports in redone_imports:
             import_historic.update(dict(imports))
+
         return import_historic
 
 
