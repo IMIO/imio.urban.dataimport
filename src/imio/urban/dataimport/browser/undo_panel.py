@@ -57,7 +57,7 @@ class BaseUndoImportForm(form.Form, ControlPanelSubForm):
         self.historic[self.import_historic_id] = dict(historic)
 
     def get_undo_historic(self):
-        return self.get_historic(self.import_historic_id)
+        return self.get_historic(self.undo_historic_id)
 
     def set_undo_historic(self, historic):
         self.historic[self.undo_historic_id] = dict(historic)
@@ -96,8 +96,8 @@ class UndoImportForm(BaseUndoImportForm):
 
         import_time = data['undo_import']
 
-        new_import_historic, undone_imports = self._get_new_import_historic(import_time)
-        new_undo_historic = self._get_new_undo_historic(undone_imports)
+        new_import_historic, undone_imports = self._update_import_historic(import_time)
+        new_undo_historic = self._update_undo_historic(undone_imports)
 
         self.portal.manage_undo_transactions(
             self._get_transactions_to_undo(import_time)
@@ -136,7 +136,7 @@ class UndoImportForm(BaseUndoImportForm):
 
         return transactions_to_undo
 
-    def _get_new_import_historic(self, import_time_to_undo):
+    def _update_import_historic(self, import_time_to_undo):
         """
         """
         import_historic = self.get_import_historic()
@@ -150,7 +150,7 @@ class UndoImportForm(BaseUndoImportForm):
 
         return import_historic, undone_imports
 
-    def _get_new_undo_historic(self, undone_imports):
+    def _update_undo_historic(self, undone_imports):
         """
         """
         undo_historic = self.get_undo_historic()
@@ -214,8 +214,8 @@ class RedoImportForm(BaseUndoImportForm):
             self.status = self.formErrorsMessage
 
         undo_time = data['redo_import']
-        new_undo_historic, redone_imports = self._get_new_undo_historic(undo_time)
-        new_import_historic = self._get_new_import_historic(redone_imports)
+        new_undo_historic, redone_imports = self._update_undo_historic(undo_time)
+        new_import_historic = self._update_import_historic(redone_imports)
 
         self.portal.manage_undo_transactions(
             self._get_transactions_to_undo(undo_time)
@@ -254,7 +254,7 @@ class RedoImportForm(BaseUndoImportForm):
 
         return transactions_to_redo
 
-    def _get_new_undo_historic(self, undo_historic, undo_time_to_redo):
+    def _update_undo_historic(self, undo_time_to_redo):
         """
         """
         undo_historic = self.get_undo_historic()
@@ -266,7 +266,7 @@ class RedoImportForm(BaseUndoImportForm):
 
         return undo_historic, redone_imports
 
-    def _get_new_import_historic(self, redone_imports):
+    def _update_import_historic(self, redone_imports):
         """
         """
         import_historic = self.get_import_historic()
