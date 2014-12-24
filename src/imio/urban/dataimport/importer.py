@@ -106,6 +106,7 @@ class UrbanDataImporter(object):
         else:
             import_historic = historic[historic_id]
         import_historic[import_key] = import_value
+        historic[historic_id] = dict(import_historic)
 
     def importDataLine(self, dataline):
         print "PROCESSING LINE %i" % self.current_line

@@ -37,25 +37,31 @@ class BaseUndoImportForm(form.Form, ControlPanelSubForm):
     def historic(self):
         return self.portal.__urbandataimport__
 
+    @property
+    def import_historic_id(self):
+        return 'imio.urban.dataimport.import_historic:%s' % self.importer_name
+
+    @property
+    def undo_historic_id(self):
+        return 'imio.urban.dataimport.undo_historic:%s' % self.importer_name
+
     def get_import_historic(self):
-        historic_id = 'imio.urban.dataimport.import_historic:%s' % self.importer_name
+        historic_id = self.import_historic_id
         if historic_id not in self.historic:
             self.historic[historic_id] = {}
         return self.historic[historic_id]
 
     def set_import_historic(self, historic):
-        historic_id = 'imio.urban.dataimport.import_historic:%s' % self.importer_name
-        self.historic[historic_id] = dict(historic)
+        self.historic[self.import_historic_id] = dict(historic)
 
     def get_undo_historic(self):
-        historic_id = 'imio.urban.dataimport.undo_historic:%s' % self.importer_name
+        historic_id = self.undo_historic_id
         if historic_id not in self.historic:
             self.historic[historic_id] = {}
         return self.historic[historic_id]
 
     def set_undo_historic(self, historic):
-        historic_id = 'imio.urban.dataimport.undo_historic:%s' % self.importer_name
-        self.historic[historic_id] = dict(historic)
+        self.historic[self.undo_historic_id] = dict(historic)
 
     def redirect(self):
         self.request.response.redirect(
