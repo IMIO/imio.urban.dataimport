@@ -13,8 +13,6 @@ from imio.urban.dataimport.utils import guess_cadastral_reference
 from imio.urban.dataimport.utils import identify_parcel_abbreviations
 from imio.urban.dataimport.utils import parse_cadastral_reference
 
-from plone import api
-
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
 from Products.CMFCore.utils import getToolByName
@@ -534,7 +532,13 @@ class DecisionEventTitleMapper(Mapper):
 
         if tutAutorisa or tutRefus:
             return u'Délivrance du permis par la tutelle (octroi ou refus)'
-        return u'Délivrance du permis (octroi ou refus)'
+
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = getToolByName(licence, 'portal_urban')
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['decision_event']
+        config = urban_tool.getUrbanConfig(licence)
+        event_type = getattr(config.urbaneventtypes, eventtype_id)
+        return event_type.Title()
 
 
 class DecisionEventNotificationDateMapper(Mapper):
