@@ -62,7 +62,7 @@ class IDataExtractor(Interface):
 
 class IMapper(Interface):
     """
-     Object in charge extract and transform a subset of data from a data line into
+     Extract and transform a subset of data from a data line into
      values that will be used to create an Urban Object.
     """
 
@@ -75,7 +75,7 @@ class IMapper(Interface):
 
 class IPostCreationMapper(Interface):
     """
-     Object in charge extract and transform a subset of data from a data line into
+     Extract and transform a subset of data from a data line into
      values that will be used to update field(s) of an Urban Object.
     """
 
@@ -89,7 +89,7 @@ class IPostCreationMapper(Interface):
 
 class IFinalMapper(Interface):
     """
-     Object in charge extract and transform a subset of data from a data line into
+     Extract and transform a subset of data from a data line into
      values that will be used to update field(s) of an Urban Object.
     """
 
@@ -102,7 +102,7 @@ class IFinalMapper(Interface):
 
 
 class IObjectsMapping(Interface):
-    """ Object representing an import mapping between data source and destinations objects """
+    """ Represents an import mapping between data source and destinations objects """
 
     def getObjectsNesting(self):
         """ return nested lists representing how destination objects contain each others """
@@ -112,7 +112,7 @@ class IObjectsMapping(Interface):
 
 
 class IValuesMapping(Interface):
-    """ Object representing a mapping between static values (eg: BE -- map to --> Belgium) """
+    """ Represents a mapping between static values (eg: BE -- map to --> Belgium) """
 
     def getValueMapping(self, mapping_name):
         """ return a static values mapping named 'mapping_name' """

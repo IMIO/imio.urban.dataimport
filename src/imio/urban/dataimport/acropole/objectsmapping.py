@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
+from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     PortalTypeMapper, IdMapper, ReferenceMapper, WorklocationMapper, ObservationsMapper, \
-    CompletionStateMapper, ContactFactory, ContactNameMapper, \
+    ArchitectMapper, GeometricianMapper, CompletionStateMapper, ContactFactory, ContactNameMapper, \
     ContactTitleMapper, ContactSreetMapper, ContactNumberMapper, ContactPhoneMapper, \
     ContactIdMapper, ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
     CompleteFolderEventTypeMapper, CompleteFolderDateMapper, DepositDate_1_Mapper, DepositDate_2_Mapper, \
@@ -12,7 +12,7 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     ImplantationEventTypeMapper, ImplantationEventIdMapper, ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
     ImplantationEventDecisionMapper
 
-from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
+from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 
 OBJECTS_NESTING = [
     (

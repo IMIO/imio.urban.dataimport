@@ -1,0 +1,30 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="imio.urban.dataimport">
+
+  <adapter
+     for="imio.urban.dataimport.MySQL.interfaces.IMySQLImporter"
+     factory=".importer.MySQLImportSource"
+     provides="imio.urban.dataimport.interfaces.IUrbanImportSource"
+     name="data source"
+  />
+
+  <adapter
+     for="imio.urban.dataimport.MySQL.interfaces.IMySQLImportSource
+          imio.urban.dataimport.MySQL.interfaces.IMySQLMapper"
+     factory=".importer.MySQLDataExtractor"
+     provides="imio.urban.dataimport.interfaces.IDataExtractor"
+     />
+
+  <adapter
+     for="imio.urban.dataimport.MySQL.interfaces.IMySQLImporter
+          imio.urban.dataimport.interfaces.IImportSection
+          zope.interface.Interface
+          zope.interface.Interface
+          zope.interface.Interface"
+     factory="imio.urban.dataimport.MySQL.importer.MySQLErrorMessage"
+     provides="imio.urban.dataimport.interfaces.IImportErrorMessage"
+  />
+
+</configure>
