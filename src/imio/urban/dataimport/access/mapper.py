@@ -16,7 +16,7 @@ class AccessBaseMapper(BaseMapper):
 
     def __init__(self, access_importer, args, table_name=None):
         super(AccessBaseMapper, self).__init__(access_importer, args)
-        self.db_name = self.importer.db_name
+        self.db_path = self.importer.db_path
         self.table_name = table_name or self.importer.table_name
 
 
@@ -36,7 +36,19 @@ class AccessFinalMapper(AccessMapper, FinalMapper):
     """" """
 
 
-class SecondaryTableMapper(AccessMapper):
+class SubQueryMapper(AccessMapper):
+
+    def _query(self, query, withheader=False):
+        table = subprocess.Popen(['mdb-sql', self.db_path, '-p', '-d', ';'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        temp = open('temp', 'w')
+        pos = withheader and 1 or 2
+        temp.write('\n'.join(table.communicate(query)[0].split('\n')[pos:-2]))
+        temp = open('temp', 'r')
+        result = csv.reader(temp, delimiter=';')
+        return result
+
+
+class SecondaryTableMapper(SubQueryMapper):
 
     def __init__(self, access_importer, args):
         args['from'] = args.get('from', [args['KEY']])
@@ -68,12 +80,3 @@ class SecondaryTableMapper(AccessMapper):
             objects_args[str(i)] = args
             i = i + 1
         return objects_args
-
-    def _query(self, query, withheader=False):
-        table = subprocess.Popen(['mdb-sql', self.db_name, '-p', '-d', ';'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        temp = open('temp', 'w')
-        pos = withheader and 1 or 2
-        temp.write('\n'.join(table.communicate(query)[0].split('\n')[pos:-2]))
-        temp = open('temp', 'r')
-        result = csv.reader(temp, delimiter=';')
-        return result

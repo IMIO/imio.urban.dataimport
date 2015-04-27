@@ -15,7 +15,8 @@ def normalizeDate(date):
 
 def cleanAndSplitWord(word):
     clean_word = word.replace('\'', ' ').replace(',', ' ').replace('-', ' ').replace('.', ' ')\
-        .replace(';', ' ').replace('(', ' ').replace(')', ' ').replace(':', ' ').lower().split()
+        .replace(';', ' ').replace('(', ' ').replace(')', ' ').replace(':', ' ').replace('"', ' ')\
+        .lower().split()
     return clean_word
 
 

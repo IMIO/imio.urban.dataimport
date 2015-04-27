@@ -64,6 +64,8 @@ class UrbanDataImporter(object):
             if end and self.current_line > end:
                 break
             elif start <= self.current_line:
+                self.importDataLine(dataline)
+                """
                 try:
                     self.importDataLine(dataline)
                 except:
@@ -71,6 +73,7 @@ class UrbanDataImporter(object):
                     error_rate = errors / total
                     if error_rate > self.error_treshold:
                         break
+                """
 
                 # flush RAM every Nth line processed by setting a savepoint
                 processed_lines += 1
@@ -303,7 +306,7 @@ class UrbanDataImporter(object):
             'by_line': errors,
             'by_type': sorted_errors,
         }
-        pickle.dump(all_errors, errors_export)
+        # pickle.dump(all_errors, errors_export)
 
         print 'error log "%s" pickled in : %s' % (new_filename, os.getcwd())
 

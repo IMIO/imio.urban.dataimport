@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
 from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as PostCreationMapper
-from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
+from imio.urban.dataimport.access.mapper import SubQueryMapper
 
 from imio.urban.dataimport.exceptions import NoObjectToCreateException
 
@@ -359,7 +360,7 @@ class ParcelFactory(BaseFactory):
 # mappers
 
 
-class ParcelDataMapper(Mapper):
+class ParcelDataMapper(SubQueryMapper):
     def map(self, line, **kwargs):
 
         section = self.getSection(line)
@@ -386,12 +387,10 @@ class ParcelDataMapper(Mapper):
         return self.getData('Section', line=line).upper()
 
     def getDivision(self, line):
-        divisions = {
-            '1': '63020',
-            '2': '63002',
-        }
-        raw_div = self.getData('Division', line=line)
-        return divisions[raw_div]
+        key_value = self.getData('Division', line)
+        db_query = "Select Num_D from DIVISIONS Where CLEF = '%s'" % key_value
+        division = self._query(db_query).next()[0]
+        return division
 
 
 #
