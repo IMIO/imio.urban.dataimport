@@ -370,6 +370,8 @@ class ParcelDataMapper(SubQueryMapper):
         remaining_reference_2 = self.getData('Cadastre_2', line)
         if remaining_reference_2:
             remaining_reference = remaining_reference + ',' + remaining_reference_2
+        if not remaining_reference:
+            return []
 
         abbreviations = identify_parcel_abbreviations(remaining_reference)
         base_reference = parse_cadastral_reference(division + section + abbreviations[0])
