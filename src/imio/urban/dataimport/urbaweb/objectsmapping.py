@@ -10,7 +10,7 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     InquiryEndDateMapper, InquiryReclamationNumbersMapper, InquiryArticlesMapper, DecisionEventIdMapper, \
     DecisionEventDateMapper, DecisionEventDecisionMapper, DecisionEventTitleMapper, DecisionEventNotificationDateMapper, \
     ImplantationEventTypeMapper, ImplantationEventIdMapper, ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
-    ImplantationEventDecisionMapper
+    ImplantationEventDecisionMapper, TechnicalConditionsMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -36,6 +36,10 @@ FIELDS_MAPPINGS = {
         'mappers': {
             SimpleMapper: (
                 {
+                    'from': 'Urbanisme',
+                    'to': 'referenceDGATLP',
+                },
+                {
                     'from': 'LibNat',
                     'to': 'licenceSubject',
                 },
@@ -47,7 +51,7 @@ FIELDS_MAPPINGS = {
             },
 
             PortalTypeMapper: {
-                'from': ('TypeNat', 'Art127'),
+                'from': ('Rec', 'Art127'),
                 'to': ('portal_type', 'folderCategory',)
             },
 
@@ -86,8 +90,13 @@ FIELDS_MAPPINGS = {
             },
 
             ObservationsMapper: {
-                'from': ('Memo_Urba', 'memo_Autorisation', 'memo_Autorisation2'),
-                'to': ('description',),
+                'from': 'Memo_Urba',
+                'to': 'description',
+            },
+
+            TechnicalConditionsMapper: {
+                'from': ('memo_Autorisation', 'memo_Autorisation2'),
+                'to': 'locationTechnicalConditions',
             },
 
 #            ArchitectMapper: {

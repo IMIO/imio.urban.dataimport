@@ -42,7 +42,7 @@ class IdMapper(Mapper):
 
 class PortalTypeMapper(Mapper):
     def mapPortal_type(self, line):
-        type_value = self.getData('TypeNat').upper()
+        type_value = self.getData('Rec').upper()
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
@@ -52,7 +52,7 @@ class PortalTypeMapper(Mapper):
         art127 = self.getData('Art127')
         if bool(int(art127)):
             return 'art127'
-        type_value = self.getData('TypeNat').upper()
+        type_value = self.getData('Rec').upper()
         foldercategory = self.getValueMapping('type_map')[type_value]['foldercategory']
         return foldercategory
 
@@ -134,10 +134,15 @@ class InquiryArticlesMapper(PostCreationMapper):
 
 class ObservationsMapper(Mapper):
     def mapDescription(self, line):
-        obs_urban = '<p>%s</p>' % self.getData('Memo_Urba')
+        description = '<p>%s</p>' % self.getData('Memo_Urba')
+        return description
+
+
+class TechnicalConditionsMapper(Mapper):
+    def mapLocationtechnicalconditions(self, line):
         obs_decision1 = '<p>%s</p>' % self.getData('memo_Autorisation')
         obs_decision2 = '<p>%s</p>' % self.getData('memo_Autorisation2')
-        return '%s%s%s' % (obs_urban, obs_decision1, obs_decision2)
+        return '%s%s' % (obs_decision1, obs_decision2)
 
 
 class ReferenceMapper(PostCreationMapper):

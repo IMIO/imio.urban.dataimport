@@ -6,10 +6,10 @@ VALUES_MAPS = {
 
 'type_map': table({
 'header': ['portal_type',         'foldercategory', 'abreviation'],
-'B'     : ['BuildLicence',        'uap',            'PU'],
+'B'     : ['BuildLicence',        'uap',            'uap'],
+'U'     : ['BuildLicence',        'uap',            'PU'],
 'R'     : ['Declaration',         'dup',            'Decl'],
 'L'     : ['ParcelOutLicence',    '',               'PL'],
-'U'     : ['',                    '',               ''],
 'Z'     : ['MiscDemand',          'apct',           'DD'],
 }),
 
