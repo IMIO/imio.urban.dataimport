@@ -6,18 +6,20 @@ VALUES_MAPS = {
 
 'type_map': table({
 'header': ['portal_type',         'foldercategory', 'abreviation'],
-'NC'    : ['BuildLicence',        'uap',            'PU'],
-'PP'    : ['BuildLicence',        'upp',            'PU'],
-'NH'    : ['BuildLicence',        'uap',            'PU'],
-'LO'    : ['ParcelOutLicence',    '',               'PL'],
-'DI'    : ['MiscDemand',          'apct',           'DD'],
-''      : ['MiscDemand',          'apct',           'DD'],
-'TC'    : ['BuildLicence',        'uap',            'PU'],
-'TH'    : ['BuildLicence',        'uap',            'PU'],
-'DU'    : ['Declaration',         'dup',            'Decl'],
-'DE'    : ['BuildLicence',        'uap',            'PU'],
-'AB'    : ['BuildLicence',        'uap',            'PU'],
+'B'     : ['BuildLicence',        'uap',            'PU'],
+'R'     : ['Declaration',         'dup',            'Decl'],
+'L'     : ['ParcelOutLicence',    '',               'PL'],
+'U'     : ['',                    '',               ''],
+'Z'     : ['MiscDemand',          'apct',           'DD'],
 }),
+
+# type de permis, se baser sur la colonne "Rec":
+# B: BuildLicence
+# R: Declaration
+# E:
+# L: ParcelOutLicence
+# U: Permis uniques
+# Z: MiscDemand
 
 
 'eventtype_id_map': table({

@@ -235,7 +235,7 @@ FIELDS_MAPPINGS = {
             },
 
             CompleteFolderDateMapper: {
-                'from': 'AvisDossierComplet',
+                'from': 'Date_Rec',
                 'to': 'eventDate',
             },
         },
