@@ -16,7 +16,8 @@ from imio.urban.dataimport.utils import parse_cadastral_reference
 
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
-from Products.CMFCore.utils import getToolByName
+
+from plone import api
 
 import re
 
@@ -210,7 +211,7 @@ class CompletionStateMapper(PostCreationMapper):
             state = 'refused'
         else:
             return
-        workflow_tool = getToolByName(plone_object, 'portal_workflow')
+        workflow_tool = api.portal.get_tool('portal_workflow')
         workflow_def = workflow_tool.getWorkflowsFor(plone_object)[0]
         workflow_id = workflow_def.getId()
         workflow_state = workflow_tool.getStatusOf(workflow_id, plone_object)
@@ -423,7 +424,7 @@ class DepositEventMapper(Mapper):
 
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
-        urban_tool = getToolByName(licence, 'portal_urban')
+        urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['deposit_event']
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
@@ -470,7 +471,7 @@ class DepositEvent_2_IdMapper(Mapper):
 class CompleteFolderEventTypeMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
-        urban_tool = getToolByName(licence, 'portal_urban')
+        urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['folder_complete']
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
@@ -494,7 +495,7 @@ class CompleteFolderDateMapper(PostCreationMapper):
 class DecisionEventTypeMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
-        urban_tool = getToolByName(licence, 'portal_urban')
+        urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['decision_event']
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
@@ -540,7 +541,7 @@ class DecisionEventTitleMapper(Mapper):
             return u'Délivrance du permis par la tutelle (octroi ou refus)'
 
         licence = self.importer.current_containers_stack[-1]
-        urban_tool = getToolByName(licence, 'portal_urban')
+        urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['decision_event']
         config = urban_tool.getUrbanConfig(licence)
         event_type = getattr(config.urbaneventtypes, eventtype_id)
@@ -566,7 +567,7 @@ class ImplantationEventTypeMapper(Mapper):
         if not eventtype_id:
             return
 
-        urban_tool = getToolByName(licence, 'portal_urban')
+        urban_tool = api.portal.get_tool('portal_urban')
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 

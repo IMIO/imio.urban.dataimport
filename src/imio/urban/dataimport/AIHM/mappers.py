@@ -9,7 +9,9 @@ from imio.urban.dataimport.factory import BaseFactory, MultiObjectsFactory
 from imio.urban.dataimport.utils import cleanAndSplitWord, normalizeDate
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
-from Products.CMFCore.utils import getToolByName
+
+from plone import api
+
 import re
 
 #
@@ -204,7 +206,7 @@ class CompletionStateMapper(PostCreationMapper):
             state = 'accepted'
         else:
             return
-        workflow_tool = getToolByName(plone_object, 'portal_workflow')
+        workflow_tool = api.portal.get_tool('portal_workflow')
         workflow_def = workflow_tool.getWorkflowsFor(plone_object)[0]
         workflow_id = workflow_def.getId()
         workflow_state = workflow_tool.getStatusOf(workflow_id, plone_object)
@@ -428,7 +430,7 @@ class UrbanEventFactory(BaseFactory):
 class DepositEventTypeMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
-        urban_tool = getToolByName(licence, 'portal_urban')
+        urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['deposit_event']
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
@@ -452,7 +454,7 @@ class DepositDateMapper(PostCreationMapper):
 class CompleteFolderEventTypeMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
-        urban_tool = getToolByName(licence, 'portal_urban')
+        urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['folder_complete']
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
@@ -476,7 +478,7 @@ class CompleteFolderDateMapper(PostCreationMapper):
 class DecisionEventTypeMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
-        urban_tool = getToolByName(licence, 'portal_urban')
+        urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['decision_event']
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
