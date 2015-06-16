@@ -87,21 +87,6 @@ class StreetAndNumberMapper(Mapper):
         return []
 
 
-class ObservationsMapper(Mapper):
-    def mapDescription(self, line):
-        obs_urban = '<p>%s</p>' % self.getData('Memo_Urba')
-        obs_decision1 = '<p>%s</p>' % self.getData('memo_Autorisation')
-        obs_decision2 = '<p>%s</p>' % self.getData('memo_Autorisation2')
-        return '%s%s%s' % (obs_urban, obs_decision1, obs_decision2)
-
-
-class ReferenceMapper(PostCreationMapper):
-    def mapReference(self, line, plone_object):
-        ref = plone_object.getLicenceTypeAcronym()
-        ref = '%s/%s' % (ref, self.getData('Numero'))
-        return ref
-
-
 class ArchitectMapper(PostCreationMapper):
     def mapArchitects(self, line, plone_object):
         archi_name = self.getData('NomArchitecte')
@@ -348,30 +333,6 @@ class DepositEventIdMapper(Mapper):
         return 'deposit'
 
 #
-# UrbanEvent complete folder
-#
-
-#mappers
-
-
-class CompleteFolderEventTypeMapper(Mapper):
-    def mapEventtype(self, line):
-        licence = self.importer.current_containers_stack[-1]
-        urban_tool = api.portal.get_tool('portal_urban')
-        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['folder_complete']
-        config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
-
-
-class CompleteFolderDateMapper(PostCreationMapper):
-    def mapEventdate(self, line, plone_object):
-        date = self.getData('AvisDossierComplet')
-        date = date and DateTime(date) or None
-        if not date:
-            self.logError(self, line, "No 'folder complete' date found")
-        return date
-
-#
 # UrbanEvent decision
 #
 
@@ -398,81 +359,3 @@ class DecisionEventDateMapper(Mapper):
         if not date:
             self.logError(self, line, 'No decision date found')
         return str(date)
-
-
-class DecisionEventDecisionMapper(Mapper):
-    def mapDecision(self, line):
-        autorisa = self.getData('Autorisa')
-        refus = self.getData('Refus')
-        tutAutorisa = self.getData('TutAutorisa')
-        tutRefus = self.getData('TutRefus')
-        if autorisa or tutAutorisa:
-            return 'favorable'
-        elif refus or tutRefus:
-            return 'defavorable'
-        #error
-        return []
-
-
-class DecisionEventTitleMapper(Mapper):
-    def mapTitle(self, line):
-        tutAutorisa = self.getData('TutAutorisa')
-        tutRefus = self.getData('TutRefus')
-
-        if tutAutorisa or tutRefus:
-            return u'Délivrance du permis par la tutelle (octroi ou refus)'
-
-        licence = self.importer.current_containers_stack[-1]
-        urban_tool = api.portal.get_tool('portal_urban')
-        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['decision_event']
-        config = urban_tool.getUrbanConfig(licence)
-        event_type = getattr(config.urbaneventtypes, eventtype_id)
-        return event_type.Title()
-
-
-class DecisionEventNotificationDateMapper(Mapper):
-    def mapEventdate(self, line):
-        eventDate = self.getData('Notifica')
-        return eventDate
-
-#
-# UrbanEvent implantation
-#
-
-#mappers
-
-
-class ImplantationEventTypeMapper(Mapper):
-    def mapEventtype(self, line):
-        licence = self.importer.current_containers_stack[-1]
-        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['implantation_event']
-        if not eventtype_id:
-            return
-
-        urban_tool = api.portal.get_tool('portal_urban')
-        config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
-
-
-class ImplantationEventIdMapper(Mapper):
-    def mapId(self, line):
-        return 'implantation-event'
-
-
-class ImplantationEventControlDateMapper(Mapper):
-    def mapEventdate(self, line):
-        date = self.getData('Visite_DateDemande')
-        if not date:
-            self.logError(self, line, 'No implantation date found')
-        return date
-
-
-class ImplantationEventDecisionDateMapper(Mapper):
-    def mapDecisiondate(self, line):
-        eventDate = self.getData('Visite_DateCollege')
-        return eventDate
-
-
-class ImplantationEventDecisionMapper(Mapper):
-    def mapDecisiontext(self, line):
-        return self.getData('Visite_Resultat')

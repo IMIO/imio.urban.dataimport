@@ -4,11 +4,9 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     PortalTypeMapper, IdMapper, WorklocationMapper, ParcelsMapper, \
     CompletionStateMapper, ContactFactory, ContactPhoneMapper, StreetAndNumberMapper, \
     ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
-    LicenceSubjectMapper, CompleteFolderEventTypeMapper, CompleteFolderDateMapper, DepositDateMapper, \
+    LicenceSubjectMapper, DepositDateMapper, \
     DecisionEventTypeMapper, ErrorsMapper, DepositEventIdMapper, DecisionEventIdMapper, \
-    DecisionEventDateMapper, ImplantationEventTypeMapper, ImplantationEventIdMapper, \
-    ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
-    ImplantationEventDecisionMapper, ContactTitleMapper, ApplicantMapper, ContactIdMapper
+    DecisionEventDateMapper, ContactTitleMapper, ApplicantMapper, ContactIdMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -19,9 +17,7 @@ OBJECTS_NESTING = [
             ('CONTACT', []),
             ('PARCEL', []),
             ('DEPOSIT EVENT', []),
-#            ('COMPLETE FOLDER EVENT', []),
             ('DECISION EVENT', []),
-#            ('IMPLANTATION EVENT', []),
         ],
     ),
 ]
@@ -189,25 +185,6 @@ FIELDS_MAPPINGS = {
         },
     },
 
-    'COMPLETE FOLDER EVENT':
-    {
-        'factory': [UrbanEventFactory],
-
-        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
-
-        'mappers': {
-            CompleteFolderEventTypeMapper: {
-                'from': (),
-                'to': 'eventtype',
-            },
-
-            CompleteFolderDateMapper: {
-                'from': 'AvisDossierComplet',
-                'to': 'eventDate',
-            },
-        },
-    },
-
     'DECISION EVENT':
     {
         'factory': [UrbanEventFactory],
@@ -226,40 +203,6 @@ FIELDS_MAPPINGS = {
             DecisionEventDateMapper: {
                 'from': ('DOSSIER_DATEDELIV'),
                 'to': 'decisionDate',
-            },
-        },
-    },
-
-    'IMPLANTATION EVENT':
-    {
-        'factory': [UrbanEventFactory],
-
-        'allowed_containers': ['BuildLicence'],
-
-        'mappers': {
-            ImplantationEventTypeMapper: {
-                'from': (),
-                'to': 'eventtype',
-            },
-
-            ImplantationEventIdMapper: {
-                'from': (),
-                'to': 'id',
-            },
-
-            ImplantationEventControlDateMapper: {
-                'from': 'Visite_DateDemande',
-                'to': 'eventDate',
-            },
-
-            ImplantationEventDecisionDateMapper: {
-                'from': 'Visite_DateCollege',
-                'to': 'eventDate',
-            },
-
-            ImplantationEventDecisionMapper: {
-                'from': 'Visite_Resultat',
-                'to': 'decisionText',
             },
         },
     },
