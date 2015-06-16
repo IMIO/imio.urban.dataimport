@@ -4,9 +4,10 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     PortalTypeMapper, IdMapper, WorklocationMapper, ParcelsMapper, \
     CompletionStateMapper, ContactFactory, ContactPhoneMapper, StreetAndNumberMapper, \
     ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
-    LicenceSubjectMapper, DepositDateMapper, \
+    LicenceSubjectMapper, DepositDateMapper, CompleteFolderEventMapper, \
     DecisionEventTypeMapper, ErrorsMapper, DepositEventIdMapper, DecisionEventIdMapper, \
-    DecisionEventDateMapper, ContactTitleMapper, ApplicantMapper, ContactIdMapper
+    DecisionEventDateMapper, ContactTitleMapper, ApplicantMapper, ContactIdMapper, \
+    CompleteFolderEventIdMapper, CompleteFolderDateMapper, EventDateMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -17,6 +18,7 @@ OBJECTS_NESTING = [
             ('CONTACT', []),
             ('PARCEL', []),
             ('DEPOSIT EVENT', []),
+            ('COMPLETE FOLDER EVENT', []),
             ('DECISION EVENT', []),
         ],
     ),
@@ -185,6 +187,35 @@ FIELDS_MAPPINGS = {
         },
     },
 
+    'COMPLETE FOLDER EVENT':
+    {
+        'factory': [UrbanEventFactory],
+
+        'mappers': {
+            CompleteFolderEventMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            CompleteFolderEventIdMapper: {
+                'from': (),
+                'to': 'id',
+            },
+
+            EventDateMapper: {
+                'table': 'wrketape',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
+                'event_name': 'dossier complet',
+                'mappers': {
+                    CompleteFolderDateMapper: {
+                        'from': ('ETAPE_DATEDEPART',),
+                        'to': ('eventDate'),
+                    },
+                },
+            },
+        },
+    },
+
     'DECISION EVENT':
     {
         'factory': [UrbanEventFactory],
@@ -202,7 +233,7 @@ FIELDS_MAPPINGS = {
 
             DecisionEventDateMapper: {
                 'from': ('DOSSIER_DATEDELIV'),
-                'to': 'decisionDate',
+                'to': 'eventDate',
             },
         },
     },

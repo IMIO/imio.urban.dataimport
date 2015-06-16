@@ -292,6 +292,27 @@ class ParcelDataMapper(Mapper):
 # UrbanEvent deposit
 #
 
+class EventDateMapper(SecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(EventDateMapper, self).__init__(mysql_importer, args)
+        wrketape = self.importer.datasource.get_table('wrketape')
+        k2 = self.importer.datasource.get_table('k2')
+        self.query = self.query.filter_by(
+            ETAPE_NOMFR=args['event_name'],
+        ).join(
+            k2, wrketape.columns['WRKETAPE_ID'] == k2.columns['K_ID2']
+        )
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        event_type = -207
+
+        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
+
+        return lines
+
+
 # factory
 class UrbanEventFactory(BaseFactory):
     def getPortalType(self, **kwargs):
@@ -333,6 +354,38 @@ class DepositEventIdMapper(Mapper):
         return 'deposit'
 
 #
+# UrbanEvent complete Folder
+#
+
+#mappers
+
+
+class CompleteFolderEventMapper(Mapper):
+
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['folder_complete']
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class CompleteFolderDateMapper(Mapper):
+
+    def mapEventdate(self, line):
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+
+class CompleteFolderEventIdMapper(Mapper):
+
+    def mapId(self, line):
+        return 'complete_folder'
+
+#
 # UrbanEvent decision
 #
 
@@ -354,7 +407,7 @@ class DecisionEventIdMapper(Mapper):
 
 
 class DecisionEventDateMapper(Mapper):
-    def mapDecisiondate(self, line):
+    def mapEventdate(self, line):
         date = self.getData('DOSSIER_DATEDELIV')
         if not date:
             self.logError(self, line, 'No decision date found')

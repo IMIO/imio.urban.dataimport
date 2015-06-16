@@ -1,0 +1,26 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="imio.urban.dataimport">
+
+    <adapter
+        for="imio.urban.dataimport.acropole.interfaces.IAcropoleDataImporter"
+        factory=".importer.AcropoleMapping"
+        provides="imio.urban.dataimport.interfaces.IObjectsMapping"
+        name="objects mapping"
+        />
+
+    <adapter
+        for="imio.urban.dataimport.acropole.interfaces.IAcropoleDataImporter"
+        factory=".importer.AcropoleValuesMapping"
+        provides="imio.urban.dataimport.interfaces.IValuesMapping"
+        name="values mapping"
+        />
+
+    <adapter
+        for="imio.urban.dataimport.interfaces.IImportSettingsForm"
+        factory=".settings.AcropoleImporterFromImportSettings"
+        provides="imio.urban.dataimport.acropole.interfaces.IAcropoleDataImporter"
+        />
+
+</configure>
