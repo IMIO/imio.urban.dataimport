@@ -7,8 +7,10 @@
 
     <include package=".AIHM" />
     <include package=".access" />
+    <include package=".acropole" />
     <include package=".browser" />
     <include package=".csv" />
+    <include package=".MySQL" />
     <include package=".urbaweb" />
 
     <include file="profiles.zcml" />

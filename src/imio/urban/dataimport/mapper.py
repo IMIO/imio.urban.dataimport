@@ -17,7 +17,7 @@ class BaseMapper(object):
     def __init__(self, importer):
         self.importer = importer
         self.site = api.portal.get()
-        self.catalog = api.portal.get_tool(self.site, 'portal_catalog')
+        self.catalog = api.portal.get_tool('portal_catalog')
 
     def logError(self, mapper, line, msg, data={}):
         self.importer.logError(mapper, line, msg, data)

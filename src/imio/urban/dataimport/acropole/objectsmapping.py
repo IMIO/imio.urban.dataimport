@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
-    PortalTypeMapper, IdMapper, ReferenceMapper, WorklocationMapper, ObservationsMapper, \
-    ArchitectMapper, GeometricianMapper, CompletionStateMapper, ContactFactory, ContactNameMapper, \
-    ContactTitleMapper, ContactSreetMapper, ContactNumberMapper, ContactPhoneMapper, \
-    ContactIdMapper, ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
-    CompleteFolderEventTypeMapper, CompleteFolderDateMapper, DepositDate_1_Mapper, DepositDate_2_Mapper, \
-    DecisionEventTypeMapper, ErrorsMapper, DepositEvent_1_IdMapper, DepositEvent_2_IdMapper, InquiryStartDateMapper, \
-    InquiryEndDateMapper, InquiryReclamationNumbersMapper, InquiryArticlesMapper, DecisionEventIdMapper, \
-    DecisionEventDateMapper, DecisionEventDecisionMapper, DecisionEventTitleMapper, DecisionEventNotificationDateMapper, \
-    ImplantationEventTypeMapper, ImplantationEventIdMapper, ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
-    ImplantationEventDecisionMapper
+    PortalTypeMapper, IdMapper, WorklocationMapper, ParcelsMapper, \
+    CompletionStateMapper, ContactFactory, ContactPhoneMapper, StreetAndNumberMapper, \
+    ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
+    LicenceSubjectMapper, CompleteFolderEventTypeMapper, CompleteFolderDateMapper, DepositDateMapper, \
+    DecisionEventTypeMapper, ErrorsMapper, DepositEventIdMapper, DecisionEventIdMapper, \
+    DecisionEventDateMapper, ImplantationEventTypeMapper, ImplantationEventIdMapper, \
+    ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
+    ImplantationEventDecisionMapper, ContactTitleMapper, ApplicantMapper, ContactIdMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 
@@ -19,11 +17,10 @@ OBJECTS_NESTING = [
         'LICENCE', [
             ('CONTACT', []),
             ('PARCEL', []),
-            ('DEPOSIT EVENT 1', []),
-            ('DEPOSIT EVENT 2', []),
+            ('DEPOSIT EVENT', []),
 #            ('COMPLETE FOLDER EVENT', []),
             ('DECISION EVENT', []),
-            ('IMPLANTATION EVENT', []),
+#            ('IMPLANTATION EVENT', []),
         ],
     ),
 ]
@@ -36,58 +33,47 @@ FIELDS_MAPPINGS = {
         'mappers': {
             SimpleMapper: (
                 {
-                    'from': 'LibNat',
-                    'to': 'licenceSubject',
+                    'from': 'DOSSIER_REFCOM',
+                    'to': 'reference',
+                },
+                {
+                    'from': 'DOSSIER_REFURB',
+                    'to': 'referenceDGATLP',
                 },
             ),
 
             IdMapper: {
-                'from': ('Cle_Urba',),
+                'from': ('WRKDOSSIER_ID',),
                 'to': ('id',)
             },
 
             PortalTypeMapper: {
-                'from': ('TypeNat', 'Art127'),
+                'from': ('DOSSIER_TDOSSIERID', 'DOSSIER_TYPEIDENT'),
                 'to': ('portal_type', 'folderCategory',)
             },
 
-            ReferenceMapper: {
-                'from': ('Numero'),
-                'to': ('reference',)
+            LicenceSubjectMapper: {
+                'table': 'finddoss_index',
+                'KEYS': ('WRKDOSSIER_ID', 'ID'),
+                'mappers': {
+                    SimpleMapper: (
+                        {
+                            'from': 'OBJET_KEY',
+                            'to': 'licenceSubject',
+                        },
+                    ),
+                },
             },
 
             WorklocationMapper: {
-                'from': ('C_Adres', 'C_Num', 'C_Code', 'C_Loc'),
-                'to': ('workLocations',)
-            },
-
-            InquiryStartDateMapper: {
-                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
-                'from': 'E_Datdeb',
-                'to': 'investigationStart',
-            },
-
-            InquiryEndDateMapper: {
-                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
-                'from': 'E_Datfin',
-                'to': 'investigationEnd',
-            },
-
-            InquiryReclamationNumbersMapper: {
-                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
-                'from': 'NBRec',
-                'to': 'investigationWriteReclamationNumber',
-            },
-
-            InquiryArticlesMapper: {
-                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
-                'from': 'Enquete',
-                'to': 'investigationArticles',
-            },
-
-            ObservationsMapper: {
-                'from': ('Memo_Urba', 'memo_Autorisation', 'memo_Autorisation2'),
-                'to': ('description',),
+                'table': 'finddoss_index',
+                'KEYS': ('WRKDOSSIER_ID', 'ID'),
+                'mappers': {
+                    StreetAndNumberMapper: {
+                        'from': ('SITUATION_DES',),
+                        'to': ('workLocations',)
+                    },
+                },
             },
 
 #            ArchitectMapper: {
@@ -103,7 +89,7 @@ FIELDS_MAPPINGS = {
 #            },
 
             CompletionStateMapper: {
-                'from': ('Autorisa', 'Refus', 'TutAutorisa', 'TutRefus'),
+                'from': 'DOSSIER_OCTROI',
                 'to': (),  # <- no field to fill, its the workflow state that has to be changed
             },
 
@@ -119,49 +105,45 @@ FIELDS_MAPPINGS = {
         'factory': [ContactFactory],
 
         'mappers': {
-            SimpleMapper: (
-                {
-                    'from': 'D_Prenom',
-                    'to': 'name2',
+            ApplicantMapper: {
+                'table': 'cpsn',
+                'KEYS': ('WRKDOSSIER_ID', 'CPSN_ID'),
+                'mappers': {
+                    SimpleMapper: (
+                        {
+                            'from': 'CPSN_NOM',
+                            'to': 'name1',
+                        },
+                        {
+                            'from': 'CPSN_PRENOM',
+                            'to': 'name2',
+                        },
+                        {
+                            'from': 'CPSN_FAX',
+                            'to': 'fax',
+                        },
+                        {
+                            'from': 'CPSN_EMAIL',
+                            'to': 'email',
+                        },
+                    ),
+
+                    ContactIdMapper: {
+                        'from': ('CPSN_NOM', 'CPSN_PRENOM'),
+                        'to': 'id',
+                    },
+
+                    ContactTitleMapper: {
+                        'from': 'CPSN_TYPE',
+                        'to': 'personTitle',
+                    },
+
+                    ContactPhoneMapper: {
+                        'from': ('CPSN_TEL1', 'CPSN_GSM'),
+                        'to': 'phone',
+                    },
+
                 },
-                {
-                    'from': 'D_Code',
-                    'to': 'zipcode',
-                },
-                {
-                    'from': 'D_Loc',
-                    'to': 'city',
-                },
-            ),
-
-            ContactTitleMapper: {
-                'from': ('Civi', 'Civi2'),
-                'to': 'personTitle',
-            },
-
-            ContactNameMapper: {
-                'from': ('D_Nom', 'Civi2'),
-                'to': 'name1',
-            },
-
-            ContactSreetMapper: {
-                'from': ('D_Adres'),
-                'to': 'street',
-            },
-
-            ContactNumberMapper: {
-                'from': ('D_Adres'),
-                'to': 'number',
-            },
-
-            ContactPhoneMapper: {
-                'from': ('D_Tel', 'D_GSM'),
-                'to': 'phone',
-            },
-
-            ContactIdMapper: {
-                'from': ('D_Nom', 'D_Prenom'),
-                'to': 'id',
             },
         },
     },
@@ -171,14 +153,20 @@ FIELDS_MAPPINGS = {
         'factory': [ParcelFactory, {'portal_type': 'PortionOut'}],
 
         'mappers': {
-            ParcelDataMapper: {
-                'from': ('Cadastre', 'Cadastre_2', 'Section', 'Division'),
-                'to': (),
+            ParcelsMapper: {
+                'table': 'urbcadastre',
+                'KEYS': ('WRKDOSSIER_ID', 'CAD_DOSSIER_ID'),
+                'mappers': {
+                    ParcelDataMapper: {
+                        'from': ('CAD_NOM',),
+                        'to': (),
+                    },
+                },
             },
         },
     },
 
-    'DEPOSIT EVENT 1':
+    'DEPOSIT EVENT':
     {
         'factory': [UrbanEventFactory],
 
@@ -188,34 +176,12 @@ FIELDS_MAPPINGS = {
                 'to': 'eventtype',
             },
 
-            DepositDate_1_Mapper: {
-                'from': 'Recepisse',
+            DepositDateMapper: {
+                'from': 'DOSSIER_DATEDEPOT',
                 'to': 'eventDate',
             },
 
-            DepositEvent_1_IdMapper: {
-                'from': (),
-                'to': 'id',
-            }
-        },
-    },
-
-    'DEPOSIT EVENT 2':
-    {
-        'factory': [UrbanEventFactory],
-
-        'mappers': {
-            DepositEventMapper: {
-                'from': (),
-                'to': 'eventtype',
-            },
-
-            DepositDate_2_Mapper: {
-                'from': 'Recepisse2',
-                'to': 'eventDate',
-            },
-
-            DepositEvent_2_IdMapper: {
+            DepositEventIdMapper: {
                 'from': (),
                 'to': 'id',
             }
@@ -257,24 +223,9 @@ FIELDS_MAPPINGS = {
             },
 
             DecisionEventDateMapper: {
-                'from': ('Autorisa', 'Refus', 'TutAutorisa', 'TutRefus'),
+                'from': ('DOSSIER_DATEDELIV'),
                 'to': 'decisionDate',
             },
-
-            DecisionEventDecisionMapper: {
-                'from': ('Autorisa', 'Refus', 'TutAutorisa', 'TutRefus'),
-                'to': 'decision',
-            },
-
-            DecisionEventTitleMapper: {
-                'from': ('TutAutorisa', 'TutRefus'),
-                'to': 'Title',
-            },
-
-            DecisionEventNotificationDateMapper: {
-                'from': 'Notifica',
-                'to': 'eventDate',
-            }
         },
     },
 

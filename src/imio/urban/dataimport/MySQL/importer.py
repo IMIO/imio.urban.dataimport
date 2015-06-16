@@ -22,24 +22,25 @@ class MySQLImportSource(UrbanImportSource):
     def __init__(self, importer):
         super(MySQLImportSource, self).__init__(importer)
 
-        metadata, main_table, Session = self.loadMainTable()
+        session, metadata = self.init_session_and_metadata()
 
         self.metadata = metadata
-        self.main_table = main_table
-        self.new_session = Session
+        self.session = session
+        self.main_table = self.get_table(self.importer.table_name)
 
     def iterdata(self):
-        session = self.new_session()
 
-        result = session.main_table.query(self.main_table)
+        result = self.session.query(self.main_table)
         records = result.all()
 
         return records
 
-    def loadMainTable(self, importer):
+    def init_session_and_metadata(self):
+        importer = self.importer
+
         engine = create_engine(
             'mysql://{username}:{password}@{host}/{db_name}'.format(
-                user=importer.username,
+                username=importer.username,
                 password=importer.password,
                 host=importer.host,
                 db_name=importer.db_name,
@@ -48,25 +49,26 @@ class MySQLImportSource(UrbanImportSource):
         )
 
         metadata = MetaData(engine)
-        main_table = Table(importer.table_name, metadata, autoload=True)
         Session = sessionmaker(bind=engine)
 
-        return metadata, main_table, Session
+        return Session(), metadata
+
+    def get_table(self, table_name):
+        table = Table(table_name, self.metadata, autoload=True)
+        return table
 
 
 class MySQLDataExtractor(DataExtractor):
 
     def extractData(self, valuename, line):
-        tablename = getattr(self.mapper, 'table_name', self.mapper.importer.table_name)
-        datasource = self.datasource
-        data = line[datasource.header_indexes[tablename][valuename]]
-        return data
+        return getattr(line, valuename)
 
 
 class MySQLErrorMessage(ImportErrorMessage):
 
     def __str__(self):
-        key = self.importer.getData(self.importer.key_column, self.line)
+        key_column = getattr(self.error_location, 'key_column', self.importer.key_column)
+        key = self.importer.getData(key_column, self.line)
         migration_step = self.error_location.__class__.__name__
         factory_stack = self.importer.current_containers_stack
         stack_display = '\n'.join(
@@ -88,9 +90,8 @@ class MySQLErrorMessage(ImportErrorMessage):
 class MySQLDataImporter(UrbanDataImporter):
     """
     expect:
-        db_name: the .mdb filename to query
+        db_name: the mysql db filename to query
         table_name: the main table in the data base (the one that will be used as 'central node' to recover licences)
-        key_column: the db column used as key value when querying tables joint
     """
 
     implements(IMySQLImporter)
@@ -100,8 +101,9 @@ class MySQLDataImporter(UrbanDataImporter):
         self.db_name = db_name
         self.table_name = table_name
         self.key_column = key_column
+        self.username = 'root'
+        self.password = 'Fr0ume!'
+        self.host = 'localhost'
 
     def getData(self, valuename, line):
-        data_index = self.datasource.header_indexes[self.table_name][valuename]
-        data = line[data_index]
-        return data
+        return getattr(line, valuename)

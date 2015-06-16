@@ -183,12 +183,10 @@ class UrbanDataImporter(object):
         except NoObjectToCreateException:
             return
 
-        multiple_factory_args = self.getMultipleFactoryArguments(line, object_name)
-
-        if multiple_factory_args is not None and not factory_args:
-            for args in multiple_factory_args:
+        if type(factory_args) is list:
+            for args in factory_args:
                 self.recursiveImportOneObject(object_name, childs, line, stack, args)
-        elif factory_args and multiple_factory_args is None:
+        elif type(factory_args) is dict:
             self.recursiveImportOneObject(object_name, childs, line, stack, factory_args)
         else:
             raise FactoryArgumentsError
@@ -249,16 +247,12 @@ class UrbanDataImporter(object):
         factory_args = {}
         for mapper in self.mappers[object_name]['pre']:
             args = mapper.map(line)
-            if type(args) is not list:
+            if type(args) is dict:
                 factory_args.update(args)
+            elif type(args) is list:
+                return args
 
         return factory_args
-
-    def getMultipleFactoryArguments(self, line, object_name):
-        for mapper in self.mappers[object_name]['pre']:
-            args = mapper.map(line)
-            if type(args) is list:
-                return args
 
     def updateObjectFields(self, line, object_name, urban_object, mapper_type):
         for mapper in self.mappers[object_name][mapper_type]:
