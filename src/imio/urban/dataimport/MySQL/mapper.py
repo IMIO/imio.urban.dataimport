@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.mapper import BaseMapper, Mapper, SimpleMapper,\
-    PostCreationMapper, FinalMapper
+    PostCreationMapper, FinalMapper, SimpleStringMapper
 from imio.urban.dataimport.MySQL.interfaces import IMySQLMapper
 
 from zope.interface import implements
@@ -28,6 +28,10 @@ class MySQLMapper(MySQLBaseMapper, Mapper):
 
 
 class MySQLSimpleMapper(MySQLBaseMapper, SimpleMapper):
+    """ """
+
+
+class MySQLSimpleStringMapper(MySQLBaseMapper, SimpleStringMapper):
     """ """
 
 

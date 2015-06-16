@@ -111,3 +111,11 @@ class SimpleMapper(BaseMapper):
 
     def map(self, line):
         return dict([(bij[0], self.getData(bij[1], line)) for bij in self.bijections])
+
+
+class SimpleStringMapper(SimpleMapper):
+
+    def getData(self, valuename, line):
+        data = self.getValueFromLine(valuename, line)
+        data = data or ''
+        return data

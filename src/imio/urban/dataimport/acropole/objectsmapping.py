@@ -11,6 +11,7 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     ImplantationEventDecisionMapper, ContactTitleMapper, ApplicantMapper, ContactIdMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
+from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
 
 OBJECTS_NESTING = [
     (
@@ -109,7 +110,7 @@ FIELDS_MAPPINGS = {
                 'table': 'cpsn',
                 'KEYS': ('WRKDOSSIER_ID', 'CPSN_ID'),
                 'mappers': {
-                    SimpleMapper: (
+                    SimpleStringMapper: (
                         {
                             'from': 'CPSN_NOM',
                             'to': 'name1',
