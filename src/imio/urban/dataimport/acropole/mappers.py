@@ -206,20 +206,17 @@ class ApplicantMapper(SecondaryTableMapper):
 
     def __init__(self, mysql_importer, args):
         super(ApplicantMapper, self).__init__(mysql_importer, args)
-        self.cpsn_table = self.importer.datasource.get_table('cpsn')
-        self.k2_table = self.importer.datasource.get_table('k2')
+        cpsn = self.importer.datasource.get_table('cpsn')
+        k2 = self.importer.datasource.get_table('k2')
+        self.query = self.query.join(
+            k2, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
+        )
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        cpsn = self.cpsn_table
-        k2 = self.k2_table
         applicant_type = -204
 
-        lines = self.query.join(
-            k2, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
-        ).filter_by(
-            K_ID2=licence_id, K2KND_ID=applicant_type
-        ).all()
+        lines = self.query.filter_by(K_ID2=licence_id, K2KND_ID=applicant_type).all()
 
         return lines
 
