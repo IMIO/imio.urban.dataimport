@@ -38,6 +38,7 @@ setup(name='imio.urban.dataimport',
       zip_safe=False,
       install_requires=[
           'setuptools',
+          'SQLAlchemy',
           'Products.urban'
       ],
       extras_require={'test': ['zope.testing', 'plone.testing', 'plone.app.testing']},
