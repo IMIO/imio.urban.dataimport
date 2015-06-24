@@ -60,7 +60,7 @@ VALUES_MAPS = {
 'eventtype_id_map': table({
 'header'             : ['decision_event',                       'folder_complete',     'deposit_event',       'send_licence_applicant_event', 'send_licence_fd_event'],
 'BuildLicence'       : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', 'envoi-du-permis-au-demandeur', 'envoi-du-permis-au-fd'],
-'ParcelOutLicence'   : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', '', ''],
+'ParcelOutLicence'   : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', 'envoi-du-permis-au-demandeur', 'envoi-du-permis-au-fd'],
 'Declaration'        : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
 'MiscDemand'         : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
 'UrbanCertificateOne': ['octroi-cu1',                           '',                    'depot-de-la-demande', '', ''],
