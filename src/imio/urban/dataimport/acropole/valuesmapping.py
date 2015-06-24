@@ -64,6 +64,7 @@ VALUES_MAPS = {
 'Declaration'        : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
 'MiscDemand'         : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
 'UrbanCertificateOne': ['octroi-cu1',                           '',                    'depot-de-la-demande', '', ''],
+'UrbanCertificateTwo': ['octroi-cu2',                           '',                    'depot-de-la-demande', '', ''],
 }),
 
 'titre_map': {
