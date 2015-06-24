@@ -178,6 +178,10 @@ class UrbanDataImporter(object):
 
         self.current_containers_stack = stack
 
+        container = stack and stack[-1]
+        if not self.isAllowedType(object_name, container):
+            return
+
         try:
             factory_args = self.getFactoryArguments(line, object_name)
         except NoObjectToCreateException:
@@ -195,9 +199,6 @@ class UrbanDataImporter(object):
 
         factory = self.factories[object_name]
         container = stack and stack[-1] or factory.getCreationPlace(factory_args)
-
-        if not self.isAllowedType(object_name, container):
-            return
 
         old_object = factory.objectAlreadyExists(factory_args, container)
 

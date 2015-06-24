@@ -63,6 +63,7 @@ VALUES_MAPS = {
 'ParcelOutLicence'   : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', '', ''],
 'Declaration'        : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
 'MiscDemand'         : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
+'UrbanCertificateOne': ['octroi-cu1',                           '',                    'depot-de-la-demande', '', ''],
 }),
 
 'titre_map': {
