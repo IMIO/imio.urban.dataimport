@@ -29,11 +29,11 @@ import re
 
 class LicenceFactory(BaseFactory):
     def getCreationPlace(self, factory_args):
-        path = '{site}/urban/{folder}s'.format(
-            site=self.site.absolute_url_path(),
-            folder=factory_args['portal_type'].lower()
-        )
-        return self.site.restrictedTraverse(path)
+        urban_folder = self.site.urban
+        portal_type = factory_args.get('portal_type', '')
+        if portal_type:
+            return getattr(urban_folder, portal_type.lower() + 's')
+        return urban_folder
 
 # mappers
 
