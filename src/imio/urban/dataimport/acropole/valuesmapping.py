@@ -6,7 +6,7 @@ VALUES_MAPS = {
 
 'type_map': table({
 'header': ['portal_type',         'foldercategory'],
--67969  : [None,                  'plainte'   ], #  ne pas reprendre ces dossiers
+-67969  : ['',                    'plainte'   ], #  ne pas reprendre ces dossiers
 -62737  : ['ParcelOutLicence',    ''          ],
 -49306  : ['BuildLicence',        'art127'    ],
 -42575  : ['BuildLicence',        'uap'       ],
@@ -15,7 +15,7 @@ VALUES_MAPS = {
 -34766  : ['UrbanCertificateOne', ''          ],
 -15200  : ['Declaration',         ''          ],
 -10362  : ['MiscDemand',          'dpr'       ],
--10200  : [None,                  'uap'       ],  # ne pas reprendre ces dossiers
+-10200  : ['',                    'uap'       ],  # ne pas reprendre ces dossiers
 848193  : ['BuildLicence',        'uap'       ],
 848999  : ['ParcelOutLicence',    'lap'       ],
 850163  : ['ParcelOutLicence',    'lapm'      ],
@@ -42,6 +42,7 @@ VALUES_MAPS = {
     -3: 'accept',  # -3 = octroyé
     -2: 'retire',  # -2 = abandonné
     -1: '',  # -1 = en cours
+    0: 'refuse',  # -1 = refusé
     1: 'accept',  # 1 = octroyé
 },
 
@@ -57,11 +58,11 @@ VALUES_MAPS = {
 },
 
 'eventtype_id_map': table({
-'header'             : ['decision_event',                       'folder_complete',     'deposit_event',       'implantation_event'],
-'BuildLicence'       : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', 'indication-implantation'],
-'ParcelOutLicence'   : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', ''],
-'Declaration'        : ['deliberation-college',                 '',                    'depot-de-la-demande', ''],
-'MiscDemand'         : ['deliberation-college',                 '',                    'depot-de-la-demande', ''],
+'header'             : ['decision_event',                       'folder_complete',     'deposit_event',       'send_licence_applicant_event', 'send_licence_fd_event'],
+'BuildLicence'       : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', 'envoi-du-permis-au-demandeur', 'envoi-du-permis-au-fd'],
+'ParcelOutLicence'   : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', '', ''],
+'Declaration'        : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
+'MiscDemand'         : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
 }),
 
 'titre_map': {

@@ -7,7 +7,9 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     LicenceSubjectMapper, DepositDateMapper, CompleteFolderEventMapper, \
     DecisionEventTypeMapper, ErrorsMapper, DepositEventIdMapper, DecisionEventIdMapper, \
     DecisionEventDateMapper, ContactTitleMapper, ApplicantMapper, ContactIdMapper, \
-    CompleteFolderEventIdMapper, CompleteFolderDateMapper, EventDateMapper
+    CompleteFolderEventIdMapper, CompleteFolderDateMapper, EventDateMapper, \
+    LicenceToApplicantEventMapper, LicenceToApplicantEventIdMapper, LicenceToApplicantDateMapper, \
+    LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -20,6 +22,8 @@ OBJECTS_NESTING = [
             ('DEPOSIT EVENT', []),
             ('COMPLETE FOLDER EVENT', []),
             ('DECISION EVENT', []),
+            ('SEND LICENCE TO APPLICANT EVENT', []),
+            ('SEND LICENCE TO FD EVENT', []),
         ],
     ),
 ]
@@ -190,6 +194,7 @@ FIELDS_MAPPINGS = {
     'COMPLETE FOLDER EVENT':
     {
         'factory': [UrbanEventFactory],
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
 
         'mappers': {
             CompleteFolderEventMapper: {
@@ -234,6 +239,66 @@ FIELDS_MAPPINGS = {
             DecisionEventDateMapper: {
                 'from': ('DOSSIER_DATEDELIV'),
                 'to': 'eventDate',
+            },
+        },
+    },
+
+    'SEND LICENCE TO APPLICANT EVENT':
+    {
+        'factory': [UrbanEventFactory],
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+
+        'mappers': {
+            LicenceToApplicantEventMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            LicenceToApplicantEventIdMapper: {
+                'from': (),
+                'to': 'id',
+            },
+
+            EventDateMapper: {
+                'table': 'wrketape',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
+                'event_name': 'envoi du permis au demandeur',
+                'mappers': {
+                    LicenceToApplicantDateMapper: {
+                        'from': ('ETAPE_DATEDEPART',),
+                        'to': ('eventDate'),
+                    },
+                },
+            },
+        },
+    },
+
+    'SEND LICENCE TO FD EVENT':
+    {
+        'factory': [UrbanEventFactory],
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+
+        'mappers': {
+            LicenceToFDEventMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            LicenceToFDEventIdMapper: {
+                'from': (),
+                'to': 'id',
+            },
+
+            EventDateMapper: {
+                'table': 'wrketape',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
+                'event_name': 'envoi du permis au fd',
+                'mappers': {
+                    LicenceToFDDateMapper: {
+                        'from': ('ETAPE_DATEDEPART',),
+                        'to': ('eventDate'),
+                    },
+                },
             },
         },
     },

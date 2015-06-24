@@ -29,7 +29,10 @@ import re
 
 class LicenceFactory(BaseFactory):
     def getCreationPlace(self, factory_args):
-        path = '%s/urban/%ss' % (self.site.absolute_url_path(), factory_args['portal_type'].lower())
+        path = '{site}/urban/{folder}s'.format(
+            site=self.site.absolute_url_path(),
+            folder=factory_args['portal_type'].lower()
+        )
         return self.site.restrictedTraverse(path)
 
 # mappers
@@ -244,6 +247,10 @@ class ContactPhoneMapper(Mapper):
 class ParcelFactory(BaseFactory):
     def create(self, parcel, container=None, line=None):
         searchview = self.site.restrictedTraverse('searchparcels')
+
+        if parcel is None:
+            return None
+
         #need to trick the search browser view about the args in its request
         parcel_args = parcel.to_dict()
         parcel_args.pop('partie')
@@ -268,6 +275,8 @@ class ParcelFactory(BaseFactory):
         return super(ParcelFactory, self).create(parcel_args, container=container)
 
     def objectAlreadyExists(self, parcel, container):
+        if not parcel:
+            return
         existing_object = getattr(container, parcel.id, None)
         return existing_object
 
@@ -284,7 +293,10 @@ class ParcelDataMapper(Mapper):
         reference = parse_cadastral_reference(raw_reference)
         cadastral_ref = CadastralReference(*reference)
         division_map = self.getValueMapping('division_map')
-        cadastral_ref.division = division_map[cadastral_ref.division]
+        if cadastral_ref.division:
+            cadastral_ref.division = division_map[cadastral_ref.division]
+        else:
+            cadastral_ref = None
         return cadastral_ref
 
 
@@ -309,6 +321,9 @@ class EventDateMapper(SecondaryTableMapper):
         event_type = -207
 
         lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
+
+        if not lines:
+            raise NoObjectToCreateException
 
         return lines
 
@@ -412,3 +427,67 @@ class DecisionEventDateMapper(Mapper):
         if not date:
             self.logError(self, line, 'No decision date found')
         return str(date)
+
+#
+# UrbanEvent send licence to applicant
+#
+
+#mappers
+
+
+class LicenceToApplicantEventMapper(Mapper):
+
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['send_licence_applicant_event']
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class LicenceToApplicantDateMapper(Mapper):
+
+    def mapEventdate(self, line):
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+
+class LicenceToApplicantEventIdMapper(Mapper):
+
+    def mapId(self, line):
+        return 'licence_to_applicant'
+
+#
+# UrbanEvent send licence to FD
+#
+
+#mappers
+
+
+class LicenceToFDEventMapper(Mapper):
+
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['send_licence_fd_event']
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class LicenceToFDDateMapper(Mapper):
+
+    def mapEventdate(self, line):
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+
+class LicenceToFDEventIdMapper(Mapper):
+
+    def mapId(self, line):
+        return 'licence_to_fd'
