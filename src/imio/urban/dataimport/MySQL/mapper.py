@@ -3,6 +3,8 @@
 from imio.urban.dataimport.mapper import BaseMapper, Mapper, SimpleMapper,\
     PostCreationMapper, FinalMapper, SimpleStringMapper
 from imio.urban.dataimport.MySQL.interfaces import IMySQLMapper
+from imio.urban.dataimport.exceptions import NoObjectToCreateException
+
 
 from zope.interface import implements
 
@@ -85,6 +87,8 @@ class SecondaryTableMapper(SubQueryMapper):
             for mapper in self.mappers:
                 mapper.line = secondary_line
                 objects_args.update(mapper.map(secondary_line, **kwargs))
+        else:
+            raise NoObjectToCreateException
         return objects_args
 
     def query_secondary_table(self, line):

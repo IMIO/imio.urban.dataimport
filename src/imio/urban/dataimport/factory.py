@@ -51,7 +51,7 @@ class BaseFactory(object):
         return self.portal_type
 
     def objectAlreadyExists(self, object_args, container):
-        existing_object = getattr(container, object_args['id'], None)
+        existing_object = getattr(container, object_args.get('id', ''), None)
         return existing_object
 
 

@@ -213,7 +213,8 @@ class ContactIdMapper(Mapper):
     def mapId(self, line):
         name = '%s%s' % (self.getData('CPSN_NOM'), self.getData('CPSN_PRENOM'))
         name = name.replace(' ', '').replace('-', '')
-        return normalizeString(self.site.portal_urban.generateUniqueId(name))
+        contact_id = normalizeString(self.site.portal_urban.generateUniqueId(name))
+        return contact_id
 
 
 class ContactTitleMapper(Mapper):
