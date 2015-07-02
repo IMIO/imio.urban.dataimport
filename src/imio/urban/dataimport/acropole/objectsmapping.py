@@ -79,18 +79,6 @@ FIELDS_MAPPINGS = {
                 },
             },
 
-#            ArchitectMapper: {
-#                'allowed_containers': ['BuildLicence'],
-#                'from': ('NomArchitecte',),
-#                'to': ('architects',)
-#            },
-
-#            GeometricianMapper: {
-#                'allowed_containers': ['ParcelOutLicence'],
-#                'from': ('Titre', 'Nom', 'Prenom'),
-#                'to': ('geometricians',)
-#            },
-
             CompletionStateMapper: {
                 'from': 'DOSSIER_OCTROI',
                 'to': (),  # <- no field to fill, its the workflow state that has to be changed

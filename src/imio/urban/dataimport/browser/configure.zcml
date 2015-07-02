@@ -12,4 +12,11 @@
         provides="zope.schema.interfaces.IVocabularyFactory"
     />
 
+    <!-- Available importers Vocabulary -->
+    <utility
+        factory=".import_panel.AvailableImporters"
+        name="imio.urban.dataimport.AvailableImporters"
+        provides="zope.schema.interfaces.IVocabularyFactory"
+    />
+
 </configure>

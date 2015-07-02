@@ -1,5 +1,16 @@
 <?xml version="1.0"?>
 <registry>
     <records interface="imio.urban.dataimport.browser.import_panel.IImporterSettingsSchema">
+    <record
+        field="selected_importer"
+        name="imio.urban.dataimport.AvailableImporters">
+        <field type="plone.registry.field.Tuple">
+            <title>Available importers</title>
+            <value_type type="plone.registry.field.TextLine" />
+        </field>
+        <value>
+            <element>Licences</element>
+        </value>
+    </record>
     </records>
- </registry>
+</registry>

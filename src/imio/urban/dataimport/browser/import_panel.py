@@ -5,20 +5,30 @@ from Products.statusmessages.interfaces import IStatusMessage
 from imio.urban.dataimport import _
 from imio.urban.dataimport.browser.adapter import ControlPanelSubForm
 from imio.urban.dataimport.interfaces import IImportSettingsForm
+from imio.urban.dataimport.interfaces import IUrbanDataImporter
 
+from plone import api
 from plone.app.registry.browser.controlpanel import ControlPanelFormWrapper
 from plone.app.registry.browser.controlpanel import RegistryEditForm
 
 from z3c.form import button
 
 from zope import schema
+from zope.component import getAdapters
 from zope.interface import Interface
 from zope.interface import implements
+from zope.schema.vocabulary import SimpleTerm
+from zope.schema.vocabulary import SimpleVocabulary
 
 
 class IImporterSettingsSchema(Interface):
     """
     """
+    selected_importer = schema.Choice(
+        title=_(u'Importer'),
+        vocabulary='imio.urban.dataimport.AvailableImporters',
+        required=True,
+    )
 
     start = schema.Int(
         title=_(u'Start line'),
@@ -71,7 +81,8 @@ class ImporterSettingsForm(RegistryEditForm, ControlPanelSubForm):
 
         start = data.get('start')
         end = data.get('end')
-        importer = self.new_importer()
+        selected_importer = data.get('selected_importer')
+        importer = self.new_importer(selected_importer)
         importer.setupImport()
         importer.importData(start, end)
         # importer.picklesErrorLog()
@@ -79,3 +90,21 @@ class ImporterSettingsForm(RegistryEditForm, ControlPanelSubForm):
 
 class ImporterSettings(ControlPanelFormWrapper):
     form = ImporterSettingsForm
+
+
+class AvailableImporters(object):
+
+    def __call__(self, context):
+
+        site = api.portal.get()
+        panel_view = site.restrictedTraverse('@@dataimport-controlpanel')
+        adapters = list(getAdapters((panel_view.form_instance,), IUrbanDataImporter))
+
+        vocabulary_terms = []
+        for name, adapter in adapters:
+            vocabulary_terms.append(
+                SimpleTerm(name, name, name)
+            )
+
+        vocabulary = SimpleVocabulary(vocabulary_terms)
+        return vocabulary

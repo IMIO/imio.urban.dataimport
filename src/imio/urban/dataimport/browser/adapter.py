@@ -38,6 +38,10 @@ class ControlPanelSubForm(object):
         importer_name = importer_factory.importer_class.__name__
         return importer_name
 
-    def new_importer(self):
-        importer_factory = getAdapter(self, IUrbanDataImporter)
+    def new_importer(self, name):
+        importer_factory = getAdapter(
+            self,
+            IUrbanDataImporter,
+            name=name
+        )
         return importer_factory()
