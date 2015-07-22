@@ -7,3 +7,7 @@ class IdentifierError(StandardError):
 
 class FactoryArgumentsError(StandardError):
     """ """
+
+
+class NoPortalTypeError(StandardError):
+    """ Every imported object should have an type."""

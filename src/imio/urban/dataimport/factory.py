@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.errors import IdentifierError
+from imio.urban.dataimport.errors import NoPortalTypeError
 from imio.urban.dataimport.interfaces import IFactory
 
 from plone import api
@@ -25,7 +26,7 @@ class BaseFactory(object):
     def create(self, kwargs, container=None, line=None):
         portal_type = kwargs.get('portal_type', self.getPortalType(container, **kwargs))
         if not portal_type:
-            return
+            raise NoPortalTypeError
         if 'id' in kwargs:
             kwargs['id'] = kwargs['id'].strip('_')
             if not kwargs['id']:
@@ -53,12 +54,3 @@ class BaseFactory(object):
     def objectAlreadyExists(self, object_args, container):
         existing_object = getattr(container, object_args.get('id', ''), None)
         return existing_object
-
-
-class MultiObjectsFactory(BaseFactory):
-
-    def create(self, args, container=None, line=None):
-        objs = []
-        for object_args in args:
-            objs.append(super(MultiObjectsFactory, self).create(object_args, container=container)[0])
-        return objs

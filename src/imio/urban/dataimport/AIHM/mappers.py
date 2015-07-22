@@ -5,7 +5,7 @@ from imio.urban.dataimport.access.mapper import SecondaryTableMapper
 from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as PostCreationMapper
 from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 
-from imio.urban.dataimport.factory import BaseFactory, MultiObjectsFactory
+from imio.urban.dataimport.factory import BaseFactory
 from imio.urban.dataimport.utils import cleanAndSplitWord, normalizeDate
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
@@ -351,7 +351,7 @@ class ContactRepresentedByMapper(Mapper):
 #factory
 
 
-class ParcelFactory(MultiObjectsFactory):
+class ParcelFactory(BaseFactory):
     def create(self, place=None, line=None, **kwargs):
         parcels = {}
         searchview = self.site.restrictedTraverse('searchparcels')
