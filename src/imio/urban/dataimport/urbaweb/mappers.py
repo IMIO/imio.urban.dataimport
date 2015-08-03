@@ -479,7 +479,7 @@ class CompleteFolderEventTypeMapper(Mapper):
 
 class CompleteFolderDateMapper(PostCreationMapper):
     def mapEventdate(self, line, plone_object):
-        date = self.getData('AvisDossierComplet')
+        date = self.getData('Date_Rec')
         date = date and DateTime(date) or None
         if not date:
             self.logError(self, line, "No 'folder complete' date found")

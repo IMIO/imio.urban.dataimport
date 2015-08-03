@@ -21,7 +21,7 @@ OBJECTS_NESTING = [
             ('PARCEL', []),
             ('DEPOSIT EVENT 1', []),
             ('DEPOSIT EVENT 2', []),
-#            ('COMPLETE FOLDER EVENT', []),
+            ('COMPLETE FOLDER EVENT', []),
             ('DECISION EVENT', []),
             ('IMPLANTATION EVENT', []),
         ],
