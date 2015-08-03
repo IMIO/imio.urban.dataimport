@@ -38,7 +38,6 @@ class BaseFactory(object):
         else:
             raise IdentifierError
         obj = getattr(container, object_id)
-        obj._renameAfterCreation()
         return obj
 
     def logError(self, factory, line, msg, data={}):
