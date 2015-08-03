@@ -43,6 +43,10 @@ FIELDS_MAPPINGS = {
                     'from': 'LibNat',
                     'to': 'licenceSubject',
                 },
+                {
+                    'from': 'Zon',
+                    'to': 'folderZone',
+                },
             ),
 
             IdMapper: {
