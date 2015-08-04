@@ -212,14 +212,37 @@ class ParcellingUIDMapper(Mapper):
         title = self.getData('Lotis')
         parcelling_id = normalizeString(title)
         catalog = api.portal.get_tool('portal_catalog')
-        parcelling = catalog(id=parcelling_id)[0].getObject()
-        return parcelling.UID()
+        brains = catalog(id=parcelling_id)
+        parcelling_uids = [brain.getObject().UID() for brain in brains]
+        return parcelling_uids
 
 
 class IsInSubdivisionMapper(Mapper):
 
     def mapIsinsubdivision(self, line):
-        return True
+        title = self.getData('Lotis')
+        return bool(title)
+
+
+class PcaMapper(SecondaryTableMapper):
+    """ """
+
+
+class PcaUIDMapper(Mapper):
+
+    def mapPca(self, line):
+        title = self.getData('PPA')
+        if title:
+            catalog = api.portal.get_tool('portal_catalog')
+            pca_id = catalog(portal_type='PcaTerm', Title=title)[0].id
+            return pca_id
+
+
+class IsInPcaMapper(Mapper):
+
+    def mapIsinpca(self, line):
+        title = self.getData('PPA')
+        return bool(title)
 
 
 class CompletionStateMapper(PostCreationMapper):

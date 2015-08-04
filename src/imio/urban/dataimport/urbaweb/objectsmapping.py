@@ -10,7 +10,8 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     InquiryEndDateMapper, InquiryReclamationNumbersMapper, InquiryArticlesMapper, DecisionEventIdMapper, \
     DecisionEventDateMapper, DecisionEventDecisionMapper, DecisionEventTitleMapper, DecisionEventNotificationDateMapper, \
     ImplantationEventTypeMapper, ImplantationEventIdMapper, ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
-    ImplantationEventDecisionMapper, TechnicalConditionsMapper, ParcellingsMapper, ParcellingUIDMapper, IsInSubdivisionMapper
+    ImplantationEventDecisionMapper, TechnicalConditionsMapper, ParcellingsMapper, ParcellingUIDMapper, IsInSubdivisionMapper, \
+    PcaMapper, PcaUIDMapper, IsInPcaMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -131,8 +132,30 @@ FIELDS_MAPPINGS = {
                     },
 
                     IsInSubdivisionMapper: {
-                        'from': (),
+                        'from': 'Lotis',
                         'to': 'isInSubdivision',
+                    }
+                },
+            },
+
+            PcaMapper: {
+                'table': 'PPA',
+                'KEYS': ('Cle_Urba', 'Cle_PPA'),
+                'mappers': {
+                    SimpleMapper: (
+                        {
+                            'from': 'PPA_Affectation',
+                            'to': 'pcaDetails',
+                        },
+                    ),
+                    PcaUIDMapper: {
+                        'from': 'PPA',
+                        'to': 'pca',
+                    },
+
+                    IsInPcaMapper: {
+                        'from': 'PPA',
+                        'to': 'isInPCA',
                     }
                 },
             },
