@@ -10,7 +10,7 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     InquiryEndDateMapper, InquiryReclamationNumbersMapper, InquiryArticlesMapper, DecisionEventIdMapper, \
     DecisionEventDateMapper, DecisionEventDecisionMapper, DecisionEventTitleMapper, DecisionEventNotificationDateMapper, \
     ImplantationEventTypeMapper, ImplantationEventIdMapper, ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
-    ImplantationEventDecisionMapper, TechnicalConditionsMapper
+    ImplantationEventDecisionMapper, TechnicalConditionsMapper, ParcellingsMapper, ParcellingUIDMapper, IsInSubdivisionMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -114,6 +114,28 @@ FIELDS_MAPPINGS = {
 #                'from': ('Titre', 'Nom', 'Prenom'),
 #                'to': ('geometricians',)
 #            },
+
+            ParcellingsMapper: {
+                'table': 'LOTISSEM',
+                'KEYS': ('Cle_Urba', 'Cle_Lot'),
+                'mappers': {
+                    SimpleMapper: (
+                        {
+                            'from': 'Lot',
+                            'to': 'subdivisionDetails',
+                        },
+                    ),
+                    ParcellingUIDMapper: {
+                        'from': 'Lotis',
+                        'to': 'parcellings',
+                    },
+
+                    IsInSubdivisionMapper: {
+                        'from': (),
+                        'to': 'isInSubdivision',
+                    }
+                },
+            },
 
             CompletionStateMapper: {
                 'from': ('Autorisa', 'Refus', 'TutAutorisa', 'TutRefus'),

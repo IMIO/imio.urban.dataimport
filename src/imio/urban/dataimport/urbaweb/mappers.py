@@ -3,6 +3,7 @@
 from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
 from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as PostCreationMapper
+from imio.urban.dataimport.access.mapper import SecondaryTableMapper
 from imio.urban.dataimport.access.mapper import SubQueryMapper
 
 from imio.urban.dataimport.exceptions import NoObjectToCreateException
@@ -199,6 +200,26 @@ class GeometricianMapper(PostCreationMapper):
                           'search_result': len(geometrician)
                       })
         return []
+
+
+class ParcellingsMapper(SecondaryTableMapper):
+    """ """
+
+
+class ParcellingUIDMapper(Mapper):
+
+    def mapParcellings(self, line):
+        title = self.getData('Lotis')
+        parcelling_id = normalizeString(title)
+        catalog = api.portal.get_tool('portal_catalog')
+        parcelling = catalog(id=parcelling_id)[0].getObject()
+        return parcelling.UID()
+
+
+class IsInSubdivisionMapper(Mapper):
+
+    def mapIsinsubdivision(self, line):
+        return True
 
 
 class CompletionStateMapper(PostCreationMapper):

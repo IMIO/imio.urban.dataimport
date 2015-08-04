@@ -51,10 +51,11 @@ class SubQueryMapper(AccessMapper):
 class SecondaryTableMapper(SubQueryMapper):
 
     def __init__(self, access_importer, args):
-        args['from'] = args.get('from', [args['KEY']])
+        args['from'] = args.get('from', [args['KEYS']])
         args['to'] = args.get('to', [])
         super(SecondaryTableMapper, self).__init__(access_importer, args)
-        self.key = args['KEY']
+        self.key = args['KEYS']
+        self.key_column = self.key[1]
         self.secondary_table = args['table']
         self.mappers = self._setMappers(args['mappers'])
 
@@ -65,18 +66,33 @@ class SecondaryTableMapper(SubQueryMapper):
                 mapper = mapper_class(self.importer, mapper_args, table_name=self.secondary_table)
             else:
                 mapper = mapper_class(self.importer, mapper_args)
+            setattr(mapper, 'key_column', self.key_column)
             mappers.append(mapper)
         return mappers
 
     def map(self, line, **kwargs):
         objects_args = {}
-        key_value = self.getData(self.key, line)
-        db_query = "Select * from %s Where CLEF = '%s'" % (self.secondary_table, key_value)
-        i = 0
-        for line in self._query(db_query):
-            args = {}
+        lines = self.query_secondary_table(line)
+        for secondary_line in lines:
             for mapper in self.mappers:
-                args.update(mapper.map(line, **kwargs))
-            objects_args[str(i)] = args
-            i = i + 1
+                objects_args.update(mapper.map(secondary_line, **kwargs))
+            break
+        return objects_args
+
+    def query_secondary_table(self, line):
+        key_value = self.getData(self.key[0], line)
+        db_query = "Select * from %s Where %s = '%s'" % (self.secondary_table, self.key[1], key_value)
+        lines = self._query(db_query)
+        return lines
+
+
+class MultiLinesSecondaryTableMapper(SecondaryTableMapper):
+
+    def map(self, line, **kwargs):
+        objects_args = []
+        lines = self.query_secondary_table(line)
+        for secondary_line in lines:
+            for mapper in self.mappers:
+                mapper.line = secondary_line
+                objects_args.append(mapper.map(line, **kwargs))
         return objects_args
