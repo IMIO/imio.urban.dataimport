@@ -3,6 +3,7 @@
 from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
 from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as PostCreationMapper
+from imio.urban.dataimport.access.mapper import MultiLinesSecondaryTableMapper
 from imio.urban.dataimport.access.mapper import SecondaryTableMapper
 from imio.urban.dataimport.access.mapper import SubQueryMapper
 
@@ -317,13 +318,9 @@ class ContactIdMapper(Mapper):
 class ContactTitleMapper(Mapper):
     def mapPersontitle(self, line):
         title1 = self.getData('Civi').lower()
-        title = self.getData('Civi2').lower()
-        if title1:
-            title = title1
+        title = title1 or self.getData('Civi2').lower()
         title_mapping = self.getValueMapping('titre_map')
-        if title in title_mapping.keys():
-            return title_mapping[title]
-        return 'notitle'
+        return title_mapping.get(title, 'notitle')
 
 
 class ContactNameMapper(Mapper):
@@ -556,6 +553,63 @@ class InquiryDateMapper(Mapper):
         if not date:
             raise NoObjectToCreateException
         return date
+
+#
+# Claimant
+#
+
+# factory
+
+
+class ClaimantFactory(BaseFactory):
+    def getPortalType(self, container, **kwargs):
+        return 'Claimant'
+
+#mappers
+
+
+class ClaimantsMapper(MultiLinesSecondaryTableMapper):
+    """ """
+
+
+class ClaimantIdMapper(Mapper):
+    def mapId(self, line):
+        name = '%s%s' % (self.getData('RECNom'), self.getData('RECPrenom'))
+        name = name.replace(' ', '').replace('-', '')
+        if not name:
+            raise NoObjectToCreateException
+        return normalizeString(self.site.portal_urban.generateUniqueId(name))
+
+
+class ClaimantTitleMapper(Mapper):
+    def mapPersontitle(self, line):
+        title = self.getData('Civi_Rec').lower()
+        title_mapping = self.getValueMapping('titre_map')
+        return title_mapping.get(title, 'notitle')
+
+
+class ClaimantSreetMapper(Mapper):
+    def mapStreet(self, line):
+        regex = '((?:[^\d,]+\s*)+),?'
+        raw_street = self.getData('RECAdres')
+        match = re.match(regex, raw_street)
+        if match:
+            street = match.group(1)
+        else:
+            street = raw_street
+        return street
+
+
+class ClaimantNumberMapper(Mapper):
+    def mapNumber(self, line):
+        regex = '(?:[^\d,]+\s*)+,?\s*(.*)'
+        raw_street = self.getData('RECAdres')
+        number = ''
+
+        match = re.match(regex, raw_street)
+        if match:
+            number = match.group(1)
+        return number
 
 #
 # UrbanEvent decision

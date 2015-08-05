@@ -11,7 +11,8 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     DecisionEventDateMapper, DecisionEventDecisionMapper, DecisionEventTitleMapper, DecisionEventNotificationDateMapper, \
     ImplantationEventTypeMapper, ImplantationEventIdMapper, ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
     ImplantationEventDecisionMapper, TechnicalConditionsMapper, ParcellingsMapper, ParcellingUIDMapper, IsInSubdivisionMapper, \
-    PcaMapper, PcaUIDMapper, IsInPcaMapper, InquiryEventTypeMapper, InquiryDateMapper, InquiryEventIdMapper
+    PcaMapper, PcaUIDMapper, IsInPcaMapper, InquiryEventTypeMapper, InquiryDateMapper, InquiryEventIdMapper, \
+    ClaimantFactory, ClaimantIdMapper, ClaimantTitleMapper, ClaimantSreetMapper, ClaimantNumberMapper, ClaimantsMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -25,7 +26,7 @@ OBJECTS_NESTING = [
             ('COMPLETE FOLDER EVENT', []),
             (
                 'INQUIRY EVENT', [
-                    # ('CLAIMANT', []),
+                    ('CLAIMANT', []),
                 ]
             ),
             ('DECISION EVENT', []),
@@ -324,6 +325,66 @@ FIELDS_MAPPINGS = {
             InquiryDateMapper: {
                 'from': 'E_Datdeb',
                 'to': 'eventDate',
+            },
+        },
+    },
+
+    'CLAIMANT':
+    {
+        'factory': [ClaimantFactory],
+
+        'mappers': {
+            ClaimantsMapper: {
+                'table': 'RECLAMANTS',
+                'KEYS': ('Cle_Urba', 'Cle_Rec'),
+                'mappers': {
+                    SimpleMapper: (
+                        {
+                            'from': 'RECNom',
+                            'to': 'name1',
+                        },
+                        {
+                            'from': 'RECPrenom',
+                            'to': 'name2',
+                        },
+                        {
+                            'from': 'RECCode',
+                            'to': 'zipcode',
+                        },
+                        {
+                            'from': 'RELoc',
+                            'to': 'city',
+                        },
+                        {
+                            'from': 'RECTel',
+                            'to': 'phone',
+                        },
+                        {
+                            'from': 'RecRemarque',
+                            'to': 'claimingText',
+                        },
+                    ),
+
+                    ClaimantTitleMapper: {
+                        'from': 'Civi_Rec',
+                        'to': 'personTitle',
+                    },
+
+                    ClaimantSreetMapper: {
+                        'from': 'RECAdres',
+                        'to': 'street',
+                    },
+
+                    ClaimantNumberMapper: {
+                        'from': 'RECAdres',
+                        'to': 'number',
+                    },
+
+                    ClaimantIdMapper: {
+                        'from': ('RECNom', 'RECPrenom'),
+                        'to': 'id',
+                    },
+                },
             },
         },
     },

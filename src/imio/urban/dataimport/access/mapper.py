@@ -92,7 +92,9 @@ class MultiLinesSecondaryTableMapper(SecondaryTableMapper):
         objects_args = []
         lines = self.query_secondary_table(line)
         for secondary_line in lines:
+            object_args = {}
             for mapper in self.mappers:
                 mapper.line = secondary_line
-                objects_args.append(mapper.map(line, **kwargs))
+                object_args.update(mapper.map(secondary_line, **kwargs))
+            objects_args.append(object_args)
         return objects_args
