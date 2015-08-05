@@ -530,6 +530,34 @@ class CompleteFolderDateMapper(PostCreationMapper):
         return date
 
 #
+# UrbanEvent inquiry
+#
+
+#mappers
+
+
+class InquiryEventTypeMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['inquiry_event']
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class InquiryEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'inquiry-event'
+
+
+class InquiryDateMapper(Mapper):
+    def mapEventdate(self, line):
+        date = self.getData('E_Datdeb')
+        if not date:
+            raise NoObjectToCreateException
+        return date
+
+#
 # UrbanEvent decision
 #
 
