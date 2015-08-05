@@ -23,11 +23,11 @@ VALUES_MAPS = {
 
 
 'eventtype_id_map': table({
-'header'             : ['decision_event',                       'folder_complete',     'deposit_event',       'implantation_event',      'inquiry_event'],
-'BuildLicence'       : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', 'indication-implantation', 'enquete-publique'],
-'ParcelOutLicence'   : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande', '',                        'enquete-publique'],
-'Declaration'        : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
-'MiscDemand'         : ['deliberation-college',                 '',                    'depot-de-la-demande', '', ''],
+'header'             : ['decision_event'],
+'BuildLicence'       : ['delivrance-du-permis-octroi-ou-refus'],
+'ParcelOutLicence'   : ['delivrance-du-permis-octroi-ou-refus'],
+'Declaration'        : ['deliberation-college'],
+'MiscDemand'         : ['deliberation-college'],
 }),
 
 'titre_map': {

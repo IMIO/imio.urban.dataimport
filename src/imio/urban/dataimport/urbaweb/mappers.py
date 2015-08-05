@@ -466,7 +466,7 @@ class DepositEventMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
-        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['deposit_event']
+        eventtype_id = 'depot-de-la-demande'
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
@@ -513,7 +513,7 @@ class CompleteFolderEventTypeMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
-        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['folder_complete']
+        eventtype_id = 'accuse-de-reception'
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
@@ -523,7 +523,31 @@ class CompleteFolderDateMapper(PostCreationMapper):
         date = self.getData('Date_Rec')
         date = date and DateTime(date) or None
         if not date:
-            self.logError(self, line, "No 'folder complete' date found")
+            raise NoObjectToCreateException
+        return date
+
+#
+# UrbanEvent primo RW
+#
+
+#mappers
+
+
+class PrimoEventTypeMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'transmis-1er-dossier-rw'
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class PrimoDateMapper(PostCreationMapper):
+    def mapEventdate(self, line, plone_object):
+        date = self.getData('UR_Datenv')
+        date = date and DateTime(date) or None
+        if not date:
+            raise NoObjectToCreateException
         return date
 
 #
@@ -537,7 +561,7 @@ class InquiryEventTypeMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
-        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['inquiry_event']
+        eventtype_id = 'enquete-publique'
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
@@ -689,7 +713,7 @@ class DecisionEventNotificationDateMapper(Mapper):
 class ImplantationEventTypeMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
-        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['implantation_event']
+        eventtype_id = 'indication-implantation'
         if not eventtype_id:
             return
 
@@ -707,7 +731,7 @@ class ImplantationEventControlDateMapper(Mapper):
     def mapEventdate(self, line):
         date = self.getData('Visite_DateDemande')
         if not date:
-            self.logError(self, line, 'No implantation date found')
+            raise NoObjectToCreateException
         return date
 
 

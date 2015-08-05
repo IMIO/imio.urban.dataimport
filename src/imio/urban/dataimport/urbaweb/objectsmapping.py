@@ -12,7 +12,8 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     ImplantationEventTypeMapper, ImplantationEventIdMapper, ImplantationEventControlDateMapper, ImplantationEventDecisionDateMapper, \
     ImplantationEventDecisionMapper, TechnicalConditionsMapper, ParcellingsMapper, ParcellingUIDMapper, IsInSubdivisionMapper, \
     PcaMapper, PcaUIDMapper, IsInPcaMapper, InquiryEventTypeMapper, InquiryDateMapper, InquiryEventIdMapper, \
-    ClaimantFactory, ClaimantIdMapper, ClaimantTitleMapper, ClaimantSreetMapper, ClaimantNumberMapper, ClaimantsMapper
+    ClaimantFactory, ClaimantIdMapper, ClaimantTitleMapper, ClaimantSreetMapper, ClaimantNumberMapper, ClaimantsMapper, \
+    PrimoEventTypeMapper, PrimoDateMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -24,11 +25,10 @@ OBJECTS_NESTING = [
             ('DEPOSIT EVENT 1', []),
             ('DEPOSIT EVENT 2', []),
             ('COMPLETE FOLDER EVENT', []),
-            (
-                'INQUIRY EVENT', [
-                    ('CLAIMANT', []),
-                ]
-            ),
+            ('PRIMO RW EVENT', []),
+            ('INQUIRY EVENT', [
+                ('CLAIMANT', []),
+            ]),
             ('DECISION EVENT', []),
             ('IMPLANTATION EVENT', []),
         ],
@@ -300,6 +300,25 @@ FIELDS_MAPPINGS = {
 
             CompleteFolderDateMapper: {
                 'from': 'Date_Rec',
+                'to': 'eventDate',
+            },
+        },
+    },
+
+    'PRIMO RW EVENT':
+    {
+        'factory': [UrbanEventFactory],
+
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+
+        'mappers': {
+            PrimoEventTypeMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            PrimoDateMapper: {
+                'from': 'UR_Datenv',
                 'to': 'eventDate',
             },
         },
