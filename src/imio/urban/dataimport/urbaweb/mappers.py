@@ -523,7 +523,7 @@ class CompleteFolderDateMapper(PostCreationMapper):
         date = self.getData('Date_Rec')
         date = date and DateTime(date) or None
         if not date:
-            raise NoObjectToCreateException
+            self.logError(self, line, "No 'folder complete' date found")
         return date
 
 #
@@ -542,8 +542,8 @@ class PrimoEventTypeMapper(Mapper):
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
-class PrimoDateMapper(PostCreationMapper):
-    def mapEventdate(self, line, plone_object):
+class PrimoDateMapper(Mapper):
+    def mapEventdate(self, line):
         date = self.getData('UR_Datenv')
         date = date and DateTime(date) or None
         if not date:
@@ -634,6 +634,51 @@ class ClaimantNumberMapper(Mapper):
         if match:
             number = match.group(1)
         return number
+
+#
+# UrbanEvent second RW
+#
+
+#mappers
+
+
+class SecondRWEventTypeMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'transmis-2eme-dossier-rw'
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class SecondRWEventDateMapper(Mapper):
+    def mapEventdate(self, line):
+        date = self.getData('UR_Datenv2')
+        date = date and DateTime(date) or None
+        if not date:
+            raise NoObjectToCreateException
+        return date
+
+
+class SecondRWDecisionMapper(Mapper):
+    def mapExternaldecision(self, line):
+        raw_decision = self.getData('UR_Avis')
+        decision = self.getValueMapping('externaldecisions_map').get(raw_decision, [])
+        return decision
+
+
+class SecondRWDecisionDateMapper(Mapper):
+    def mapDecisiondate(self, line):
+        date = self.getData('UR_Datpre')
+        date = date and DateTime(date) or None
+        return date
+
+
+class SecondRWReceiptDateMapper(Mapper):
+    def mapReceiptdate(self, line):
+        date = self.getData('UR_Datret')
+        date = date and DateTime(date) or None
+        return date
 
 #
 # UrbanEvent decision

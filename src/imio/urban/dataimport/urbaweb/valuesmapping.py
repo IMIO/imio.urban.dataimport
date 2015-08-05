@@ -38,4 +38,11 @@ VALUES_MAPS = {
     'mademoiselle': 'miss',
     'monsieur et madame': 'madam_and_mister',
 },
+
+'externaldecisions_map': {
+    'F': 'favorable',
+    'FC': 'favorable-conditionnel',
+    'D': 'defavorable',
+    'RF': 'favorable-defaut',
+},
 }

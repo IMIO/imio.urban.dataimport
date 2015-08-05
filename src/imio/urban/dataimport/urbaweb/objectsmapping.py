@@ -13,7 +13,8 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     ImplantationEventDecisionMapper, TechnicalConditionsMapper, ParcellingsMapper, ParcellingUIDMapper, IsInSubdivisionMapper, \
     PcaMapper, PcaUIDMapper, IsInPcaMapper, InquiryEventTypeMapper, InquiryDateMapper, InquiryEventIdMapper, \
     ClaimantFactory, ClaimantIdMapper, ClaimantTitleMapper, ClaimantSreetMapper, ClaimantNumberMapper, ClaimantsMapper, \
-    PrimoEventTypeMapper, PrimoDateMapper
+    PrimoEventTypeMapper, PrimoDateMapper, SecondRWEventTypeMapper, SecondRWEventDateMapper, SecondRWDecisionDateMapper, \
+    SecondRWReceiptDateMapper, SecondRWDecisionMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -29,6 +30,7 @@ OBJECTS_NESTING = [
             ('INQUIRY EVENT', [
                 ('CLAIMANT', []),
             ]),
+            ('SECOND RW EVENT', []),
             ('DECISION EVENT', []),
             ('IMPLANTATION EVENT', []),
         ],
@@ -404,6 +406,40 @@ FIELDS_MAPPINGS = {
                         'to': 'id',
                     },
                 },
+            },
+        },
+    },
+
+    'SECOND RW EVENT':
+    {
+        'factory': [UrbanEventFactory],
+
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+
+        'mappers': {
+            SecondRWEventTypeMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            SecondRWEventDateMapper: {
+                'from': 'UR_Datenv2',
+                'to': 'eventDate',
+            },
+
+            SecondRWDecisionMapper: {
+                'from': 'UR_Avis',
+                'to': 'externalDecision',
+            },
+
+            SecondRWDecisionDateMapper: {
+                'from': 'UR_Datpre',
+                'to': 'decisionDate',
+            },
+
+            SecondRWReceiptDateMapper: {
+                'from': 'UR_Datret',
+                'to': 'receiptDate',
             },
         },
     },
