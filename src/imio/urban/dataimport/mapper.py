@@ -77,9 +77,18 @@ class AfterCreationMapper(Mapper):
         for dest in self.destinations:
             mapping_method = 'map%s' % dest.capitalize()
             if hasattr(self, mapping_method):
-                mutator = plone_object.getField(dest).getMutator(plone_object)
-                value = getattr(self, mapping_method)(line, plone_object)
-                mutator(value)
+                field = plone_object.getField(dest)
+                if field:
+                    mutator = field.getMutator(plone_object)
+                    value = getattr(self, mapping_method)(line, plone_object)
+                    mutator(value)
+                else:
+                    msg = '{mapper}: THE FIELD {field} DOES EXIST ON OBJECT {object}'.format(
+                        mapper=self,
+                        field=dest,
+                        object=plone_object,
+                    )
+                    print msg
             else:
                 print '%s: NO MAPPING METHOD FOUND' % self
                 print 'target field : %s' % dest
