@@ -86,6 +86,12 @@ class WorklocationMapper(Mapper):
         return {}
 
 
+class WorkTypeMapper(Mapper):
+    def mapWorktype(self, line):
+        worktype = self.getData('Code_220+')
+        return [worktype]
+
+
 class InquiryStartDateMapper(Mapper):
     def mapInvestigationstart(self, line):
         date = self.getData('E_Datdeb')
@@ -237,6 +243,7 @@ class PcaUIDMapper(Mapper):
             catalog = api.portal.get_tool('portal_catalog')
             pca_id = catalog(portal_type='PcaTerm', Title=title)[0].id
             return pca_id
+        return []
 
 
 class IsInPcaMapper(Mapper):

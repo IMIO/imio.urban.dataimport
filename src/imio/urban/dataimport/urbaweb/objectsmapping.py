@@ -14,7 +14,7 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     PcaMapper, PcaUIDMapper, IsInPcaMapper, InquiryEventTypeMapper, InquiryDateMapper, InquiryEventIdMapper, \
     ClaimantFactory, ClaimantIdMapper, ClaimantTitleMapper, ClaimantSreetMapper, ClaimantNumberMapper, ClaimantsMapper, \
     PrimoEventTypeMapper, PrimoDateMapper, SecondRWEventTypeMapper, SecondRWEventDateMapper, SecondRWDecisionDateMapper, \
-    SecondRWReceiptDateMapper, SecondRWDecisionMapper
+    SecondRWReceiptDateMapper, SecondRWDecisionMapper, WorkTypeMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -59,8 +59,8 @@ FIELDS_MAPPINGS = {
             ),
 
             IdMapper: {
-                'from': ('Cle_Urba',),
-                'to': ('id',)
+                'from': 'Cle_Urba',
+                'to': 'id',
             },
 
             PortalTypeMapper: {
@@ -69,13 +69,19 @@ FIELDS_MAPPINGS = {
             },
 
             ReferenceMapper: {
-                'from': ('Numero'),
-                'to': ('reference',)
+                'from': 'Numero',
+                'to': 'reference',
             },
 
             WorklocationMapper: {
                 'from': ('C_Adres', 'C_Num', 'C_Code', 'C_Loc'),
-                'to': ('workLocations',)
+                'to': 'workLocations',
+            },
+
+            WorkTypeMapper: {
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+                'from': 'Code_220+',
+                'to': 'workType',
             },
 
             InquiryStartDateMapper: {

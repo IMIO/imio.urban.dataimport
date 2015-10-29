@@ -31,10 +31,7 @@ class BaseFactory(object):
             kwargs['id'] = kwargs['id'].strip('_')
             if not kwargs['id']:
                 raise IdentifierError
-            try:
-                object_id = container.invokeFactory(portal_type, **kwargs)
-            except:
-                import ipdb; ipdb.set_trace()
+            object_id = container.invokeFactory(portal_type, **kwargs)
         else:
             raise IdentifierError
         obj = getattr(container, object_id)
