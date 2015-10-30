@@ -510,6 +510,54 @@ class DepositEvent_2_IdMapper(Mapper):
         return 'deposit-2'
 
 #
+# UrbanEvent incomplete folder
+#
+
+#mappers
+
+
+class IncompleteFolderEventTypeMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'dossier-incomplet'
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class IncompleteFolderDateMapper(Mapper):
+    def mapEventdate(self, line):
+        date = self.getData('P_Datdem')
+        date = date and DateTime(date) or None
+        if not date:
+            raise NoObjectToCreateException
+        return date
+
+#
+# UrbanEvent complement receipt
+#
+
+#mappers
+
+
+class ComplementReceiptEventTypeMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'recepisse-art15-complement'
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class ComplementReceiptDateMapper(Mapper):
+    def mapEventdate(self, line):
+        date = self.getData('P_Datrec')
+        date = date and DateTime(date) or None
+        if not date:
+            raise NoObjectToCreateException
+        return date
+
+#
 # UrbanEvent complete folder
 #
 
@@ -525,12 +573,12 @@ class CompleteFolderEventTypeMapper(Mapper):
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
-class CompleteFolderDateMapper(PostCreationMapper):
-    def mapEventdate(self, line, plone_object):
+class CompleteFolderDateMapper(Mapper):
+    def mapEventdate(self, line):
         date = self.getData('Date_Rec')
         date = date and DateTime(date) or None
         if not date:
-            self.logError(self, line, "No 'folder complete' date found")
+            raise NoObjectToCreateException
         return date
 
 #
@@ -717,6 +765,7 @@ class DecisionEventDateMapper(Mapper):
         date = autorisa or refus or tutAutorisa or tutRefus
         if not date:
             self.logError(self, line, 'No decision date found')
+            raise NoObjectToCreateException
         return date
 
 
@@ -731,7 +780,7 @@ class DecisionEventDecisionMapper(Mapper):
         elif refus or tutRefus:
             return 'defavorable'
         #error
-        return []
+        raise NoObjectToCreateException
 
 
 class DecisionEventTitleMapper(Mapper):

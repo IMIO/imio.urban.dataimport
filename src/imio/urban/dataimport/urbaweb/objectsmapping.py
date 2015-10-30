@@ -14,7 +14,8 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     PcaMapper, PcaUIDMapper, IsInPcaMapper, InquiryEventTypeMapper, InquiryDateMapper, InquiryEventIdMapper, \
     ClaimantFactory, ClaimantIdMapper, ClaimantTitleMapper, ClaimantSreetMapper, ClaimantNumberMapper, ClaimantsMapper, \
     PrimoEventTypeMapper, PrimoDateMapper, SecondRWEventTypeMapper, SecondRWEventDateMapper, SecondRWDecisionDateMapper, \
-    SecondRWReceiptDateMapper, SecondRWDecisionMapper, WorkTypeMapper
+    SecondRWReceiptDateMapper, SecondRWDecisionMapper, WorkTypeMapper, IncompleteFolderEventTypeMapper, \
+    IncompleteFolderDateMapper, ComplementReceiptEventTypeMapper, ComplementReceiptDateMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -25,6 +26,8 @@ OBJECTS_NESTING = [
             ('PARCEL', []),
             ('DEPOSIT EVENT 1', []),
             ('DEPOSIT EVENT 2', []),
+            ('INCOMPLETE FOLDER EVENT', []),
+            ('COMPLEMENT RECEIPT EVENT', []),
             ('COMPLETE FOLDER EVENT', []),
             ('PRIMO RW EVENT', []),
             ('INQUIRY EVENT', [
@@ -291,6 +294,44 @@ FIELDS_MAPPINGS = {
                 'from': (),
                 'to': 'id',
             }
+        },
+    },
+
+    'INCOMPLETE FOLDER EVENT':
+    {
+        'factory': [UrbanEventFactory],
+
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+
+        'mappers': {
+            IncompleteFolderEventTypeMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            IncompleteFolderDateMapper: {
+                'from': 'P_Datdem',
+                'to': 'eventDate',
+            },
+        },
+    },
+
+    'COMPLEMENT RECEIPT EVENT':
+    {
+        'factory': [UrbanEventFactory],
+
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+
+        'mappers': {
+            ComplementReceiptEventTypeMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            ComplementReceiptDateMapper: {
+                'from': 'P_Datrec',
+                'to': 'eventDate',
+            },
         },
     },
 
