@@ -14,7 +14,6 @@ from plone import api
 from zope.interface import implements
 
 import os
-import pickle
 import transaction
 import zope
 
@@ -57,8 +56,6 @@ class UrbanDataImporter(object):
 
         savepoint = self.savepoint_length
         processed_lines = 0
-        errors = 0
-        total = end - start + 1
 
         for dataline in self.datasource.iterdata():
             if end and self.current_line > end:
@@ -199,6 +196,10 @@ class UrbanDataImporter(object):
 
         factory = self.factories[object_name]
         container = stack and stack[-1] or factory.getCreationPlace(factory_args)
+        if type(container) is list:
+            for creation_place in container:
+                self.recursiveImportOneObject(object_name, childs, line, [creation_place], factory_args)
+            return
 
         old_object = factory.objectAlreadyExists(factory_args, container)
 
@@ -230,6 +231,12 @@ class UrbanDataImporter(object):
         self.updateObjectFields(line, object_name, urban_object, 'final')
 
         urban_object.processForm()
+        self.post_creation_process(urban_object, container)
+
+    def post_creation_process(self, urban_object, container):
+        """
+        Hook for any custom work to be done after the object creation.
+        """
 
     def isAllowedType(self, object_name, container):
         if not container:

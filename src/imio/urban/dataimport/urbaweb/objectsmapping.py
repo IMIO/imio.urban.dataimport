@@ -15,7 +15,8 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     ClaimantFactory, ClaimantIdMapper, ClaimantTitleMapper, ClaimantSreetMapper, ClaimantNumberMapper, ClaimantsMapper, \
     PrimoEventTypeMapper, PrimoDateMapper, SecondRWEventTypeMapper, SecondRWEventDateMapper, SecondRWDecisionDateMapper, \
     SecondRWReceiptDateMapper, SecondRWDecisionMapper, WorkTypeMapper, IncompleteFolderEventTypeMapper, \
-    IncompleteFolderDateMapper, ComplementReceiptEventTypeMapper, ComplementReceiptDateMapper
+    IncompleteFolderDateMapper, ComplementReceiptEventTypeMapper, ComplementReceiptDateMapper, OpinionMakersTableMapper, \
+    OpinionMakersMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -33,6 +34,7 @@ OBJECTS_NESTING = [
             ('INQUIRY EVENT', [
                 ('CLAIMANT', []),
             ]),
+            ('ASK OPINION EVENTS', []),
             ('SECOND RW EVENT', []),
             ('DECISION EVENT', []),
             ('IMPLANTATION EVENT', []),
@@ -393,6 +395,35 @@ FIELDS_MAPPINGS = {
             InquiryDateMapper: {
                 'from': 'E_Datdeb',
                 'to': 'eventDate',
+            },
+        },
+    },
+
+    'ASK OPINION EVENTS':
+    {
+        'factory': [UrbanEventFactory],
+
+        'mappers': {
+            OpinionMakersTableMapper: {
+                'table': 'SERVICES',
+                'KEYS': ('Cle_Urba', 'Cle_Serv'),
+                'mappers': {
+                    OpinionMakersMapper: {
+                        'from': (
+                            'Org1', 'Cont1', 'Rec1', 'Ref1',
+                            'Org2', 'Cont2', 'Rec2', 'Ref2',
+                            'Org3', 'Cont3', 'Rec3', 'Ref3',
+                            'Org4', 'Cont4', 'Rec4', 'Ref4',
+                            'Org5', 'Cont5', 'Rec5', 'Ref5',
+                            'Org6', 'Cont6', 'Rec6', 'Ref6',
+                            'Org7', 'Cont7', 'Rec7', 'Ref7',
+                            'Org8', 'Cont8', 'Rec8', 'Ref8',
+                            'Org9', 'Cont9', 'Rec9', 'Ref9',
+                            'Org10', 'Cont10', 'Rec10', 'Ref10',
+                        ),
+                        'to': (),
+                    }
+                },
             },
         },
     },

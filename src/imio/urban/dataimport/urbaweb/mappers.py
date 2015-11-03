@@ -633,6 +633,89 @@ class InquiryDateMapper(Mapper):
             raise NoObjectToCreateException
         return date
 
+
+#
+# UrbanEvent inquiry
+#
+
+#mappers
+
+
+class InquiryEventTypeMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'enquete-publique'
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class InquiryEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'inquiry-event'
+
+
+class InquiryDateMapper(Mapper):
+    def mapEventdate(self, line):
+        date = self.getData('E_Datdeb')
+        if not date:
+            raise NoObjectToCreateException
+        return date
+
+#
+# UrbanEvent inquiry
+#
+
+# factory
+
+
+class OpinionMakersFactory(BaseFactory):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'enquete-publique'
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+#mappers
+
+
+class OpinionMakersTableMapper(SecondaryTableMapper):
+    """ """
+
+    def map(self, line, **kwargs):
+        lines = self.query_secondary_table(line)
+        for secondary_line in lines:
+            for mapper in self.mappers:
+                return mapper.map(secondary_line, **kwargs)
+            break
+        return []
+
+
+class OpinionMakersMapper(Mapper):
+
+    def map(self, line):
+        opinionmakers_args = []
+        for i in range(1, 11):
+            opinionmakers_id = self.getData('Org{}'.format(i), line)
+            if not opinionmakers_id:
+                return opinionmakers_args
+            event_date = self.getData('Cont{}'.format(i), line)
+            receipt_date = self.getData('Rec{}'.format(i), line)
+            args = {
+                'id': '{}{}'.format(opinionmakers_id, str(i)),
+                'eventtype': opinionmakers_id,
+                'eventDate': event_date and DateTime(event_date) or None,
+                'transmitDate': event_date and DateTime(event_date) or None,
+                'receiptDate': receipt_date and DateTime(receipt_date) or None,
+                'receivedDocumentReference': self.getData('Ref{}'.format(i), line),
+            }
+            opinionmakers_args.append(args)
+        if not opinionmakers_args:
+            raise NoObjectToCreateException
+        return opinionmakers_args
+
+
 #
 # Claimant
 #
