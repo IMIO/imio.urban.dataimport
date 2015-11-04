@@ -38,7 +38,7 @@ OBJECTS_NESTING = [
             ('SECOND RW EVENT', []),
             ('DECISION EVENT', []),
             ('IMPLANTATION EVENT', []),
-#            ('DOCUMENTS', []),
+            ('DOCUMENTS', []),
         ],
     ),
 ]
@@ -612,15 +612,15 @@ FIELDS_MAPPINGS = {
         },
     },
 
-#    'DOCUMENTS':
-#    {
-#        'factory': [DocumentsFactory],
-#
-#        'mappers': {
-#            DocumentsMapper: {
-#                'from': 'Cle_Urba',
-#                'to': (),
-#            },
-#        },
-#    },
+    'DOCUMENTS':
+    {
+        'factory': [DocumentsFactory],
+
+        'mappers': {
+            DocumentsMapper: {
+                'from': 'Cle_Urba',
+                'to': (),
+            },
+        },
+    },
 }

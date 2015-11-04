@@ -38,15 +38,14 @@ VALUES_MAPS = {
 'MiscDemand'         : ['deliberation-college'],
 }),
 
-'documents_map': table({
-'header'             : ['documents_folder'],
-'BuildLicence'       : ['URBA'],
-'ParcelOutLicence'   : ['LOTISSEMENT'],
-'Declaration'        : ['REGISTRE-PU'],
-'UrbanCertificateOne': ['CU/1'],
-'UrbanCertificateTwo': ['CU/2'],
-'MiscDemand'         : ['AUTRE DOSSIER'],
-}),
+'documents_map': {
+    'BuildLicence': 'URBA',
+    'ParcelOutLicence': 'LOTISSEMENT',
+    'Declaration': 'REGISTRE-PU',
+    'UrbanCertificateOne': 'CU/1',
+    'UrbanCertificateTwo': 'CU/2',
+    'MiscDemand': 'AUTRE DOSSIER',
+},
 
 'titre_map': {
     'monsieur': 'mister',

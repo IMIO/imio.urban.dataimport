@@ -7,6 +7,8 @@ from imio.urban.dataimport.access.mapper import MultiLinesSecondaryTableMapper
 from imio.urban.dataimport.access.mapper import SecondaryTableMapper
 from imio.urban.dataimport.access.mapper import SubQueryMapper
 
+from imio.urban.dataimport.config import IMPORT_FOLDER_PATH
+
 from imio.urban.dataimport.exceptions import NoObjectToCreateException
 
 from imio.urban.dataimport.factory import BaseFactory
@@ -21,6 +23,7 @@ from Products.CMFPlone.utils import normalizeString
 
 from plone import api
 
+import os
 import re
 
 #
@@ -955,17 +958,32 @@ class ImplantationEventDecisionMapper(Mapper):
 
 
 class DocumentsFactory(BaseFactory):
-    def getPortalType(self, container, **kwargs):
-        return 'File'
+    """ """
 
 #mappers
 
 
-class DocumentsMapper(PostCreationMapper):
-    def map(self, line, licence):
-        path_mapping = self.getValueMapping('document_map')
-        documents_path = './documents/{folder}/DOSSIERS/{id}/'.format(
+class DocumentsMapper(Mapper):
+    def map(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        path_mapping = self.getValueMapping('documents_map')
+        documents_path = '{base}/documents/{folder}/DOSSIERS/{id}/'.format(
+            base=IMPORT_FOLDER_PATH,
             folder=path_mapping.get(licence.portal_type),
             id=licence.id[1:]
         )
-        return documents_path
+
+        documents_args = []
+        for doc_name in os.listdir(documents_path):
+            doc = open(documents_path + doc_name, 'rb')
+            doc_content = doc.read()
+            doc.close()
+
+            doc_args = {
+                'portal_type': 'File',
+                'id': doc_name.replace('+', '-'),
+                'title': doc_name,
+                'file': doc_content,
+            }
+            documents_args.append(doc_args)
+        return documents_args
