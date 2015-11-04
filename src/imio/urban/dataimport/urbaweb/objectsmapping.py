@@ -16,7 +16,7 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     PrimoEventTypeMapper, PrimoDateMapper, SecondRWEventTypeMapper, SecondRWEventDateMapper, SecondRWDecisionDateMapper, \
     SecondRWReceiptDateMapper, SecondRWDecisionMapper, WorkTypeMapper, IncompleteFolderEventTypeMapper, \
     IncompleteFolderDateMapper, ComplementReceiptEventTypeMapper, ComplementReceiptDateMapper, OpinionMakersTableMapper, \
-    OpinionMakersMapper
+    OpinionMakersMapper, DocumentsFactory, DocumentsMapper, AskOpinionsMapper, AskOpinionTableMapper, LinkedInquiryMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -38,6 +38,7 @@ OBJECTS_NESTING = [
             ('SECOND RW EVENT', []),
             ('DECISION EVENT', []),
             ('IMPLANTATION EVENT', []),
+#            ('DOCUMENTS', []),
         ],
     ),
 ]
@@ -90,27 +91,39 @@ FIELDS_MAPPINGS = {
             },
 
             InquiryStartDateMapper: {
-                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'UrbanCertificateTwo'],
                 'from': 'E_Datdeb',
                 'to': 'investigationStart',
             },
 
             InquiryEndDateMapper: {
-                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'UrbanCertificateTwo'],
                 'from': 'E_Datfin',
                 'to': 'investigationEnd',
             },
 
             InquiryReclamationNumbersMapper: {
-                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'UrbanCertificateTwo'],
                 'from': 'NBRec',
                 'to': 'investigationWriteReclamationNumber',
             },
 
             InquiryArticlesMapper: {
-                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'UrbanCertificateTwo'],
                 'from': 'Enquete',
                 'to': 'investigationArticles',
+            },
+
+            AskOpinionTableMapper: {
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'UrbanCertificateTwo', 'MiscDemand'],
+                'table': 'SERVICES',
+                'KEYS': ('Cle_Urba', 'Cle_Serv'),
+                'mappers': {
+                    AskOpinionsMapper: {
+                        'from': ('Org1', 'Org3', 'Org4', 'Org5', 'Org6', 'Org7', 'Org8', 'Org9', 'Org10'),
+                        'to': 'solicitOpinionsTo',
+                    }
+                }
             },
 
             ObservationsMapper: {
@@ -303,7 +316,7 @@ FIELDS_MAPPINGS = {
     {
         'factory': [UrbanEventFactory],
 
-        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'UrbanCertificateTwo'],
 
         'mappers': {
             IncompleteFolderEventTypeMapper: {
@@ -379,7 +392,7 @@ FIELDS_MAPPINGS = {
     {
         'factory': [UrbanEventFactory],
 
-        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'UrbanCertificateTwo'],
 
         'mappers': {
             InquiryEventTypeMapper: {
@@ -403,6 +416,8 @@ FIELDS_MAPPINGS = {
     {
         'factory': [UrbanEventFactory],
 
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'UrbanCertificateTwo', 'MiscDemand'],
+
         'mappers': {
             OpinionMakersTableMapper: {
                 'table': 'SERVICES',
@@ -422,9 +437,13 @@ FIELDS_MAPPINGS = {
                             'Org10', 'Cont10', 'Rec10', 'Ref10',
                         ),
                         'to': (),
-                    }
+                    },
                 },
             },
+            LinkedInquiryMapper: {
+                'from': (),
+                'to': 'linkedInquiry',
+            }
         },
     },
 
@@ -592,4 +611,16 @@ FIELDS_MAPPINGS = {
             },
         },
     },
+
+#    'DOCUMENTS':
+#    {
+#        'factory': [DocumentsFactory],
+#
+#        'mappers': {
+#            DocumentsMapper: {
+#                'from': 'Cle_Urba',
+#                'to': (),
+#            },
+#        },
+#    },
 }

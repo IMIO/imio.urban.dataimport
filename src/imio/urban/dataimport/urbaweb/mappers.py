@@ -49,6 +49,7 @@ class PortalTypeMapper(Mapper):
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
+            raise NoObjectToCreateException
         return portal_type
 
     def mapFoldercategory(self, line):
@@ -139,6 +140,20 @@ class InquiryArticlesMapper(PostCreationMapper):
 
     def article_exists(self, article_id, licence):
         return article_id in licence.getLicenceConfig().investigationarticles.objectIds()
+
+
+class AskOpinionTableMapper(SecondaryTableMapper):
+    """ """
+
+
+class AskOpinionsMapper(Mapper):
+    def mapSolicitopinionsto(self, line):
+        ask_opinions = []
+        for i in range(1, 11):
+            opinionmakers = self.getData('Org{}'.format(i), line)
+            if opinionmakers:
+                ask_opinions.append(opinionmakers)
+        return ask_opinions
 
 
 class ObservationsMapper(Mapper):
@@ -663,26 +678,20 @@ class InquiryDateMapper(Mapper):
         return date
 
 #
-# UrbanEvent inquiry
+# UrbanEvent ask opinions
 #
 
 # factory
 
 
 class OpinionMakersFactory(BaseFactory):
-    def mapEventtype(self, line):
-        licence = self.importer.current_containers_stack[-1]
-        urban_tool = api.portal.get_tool('portal_urban')
-        eventtype_id = 'enquete-publique'
-        config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+    """ """
 
 #mappers
 
 
 class OpinionMakersTableMapper(SecondaryTableMapper):
     """ """
-
     def map(self, line, **kwargs):
         lines = self.query_secondary_table(line)
         for secondary_line in lines:
@@ -703,7 +712,7 @@ class OpinionMakersMapper(Mapper):
             event_date = self.getData('Cont{}'.format(i), line)
             receipt_date = self.getData('Rec{}'.format(i), line)
             args = {
-                'id': '{}{}'.format(opinionmakers_id, str(i)),
+                'id': opinionmakers_id,
                 'eventtype': opinionmakers_id,
                 'eventDate': event_date and DateTime(event_date) or None,
                 'transmitDate': event_date and DateTime(event_date) or None,
@@ -714,6 +723,15 @@ class OpinionMakersMapper(Mapper):
         if not opinionmakers_args:
             raise NoObjectToCreateException
         return opinionmakers_args
+
+
+class LinkedInquiryMapper(PostCreationMapper):
+
+    def map(self, line, plone_object):
+        opinion_event = plone_object
+        licence = opinion_event.aq_inner.aq_parent
+        inquiry = licence.getInquiries() and licence.getInquiries()[-1] or licence
+        opinion_event.setLinkedInquiry(inquiry)
 
 
 #
@@ -928,3 +946,26 @@ class ImplantationEventDecisionDateMapper(Mapper):
 class ImplantationEventDecisionMapper(Mapper):
     def mapDecisiontext(self, line):
         return self.getData('Visite_Resultat')
+
+#
+# Documents
+#
+
+# factory
+
+
+class DocumentsFactory(BaseFactory):
+    def getPortalType(self, container, **kwargs):
+        return 'File'
+
+#mappers
+
+
+class DocumentsMapper(PostCreationMapper):
+    def map(self, line, licence):
+        path_mapping = self.getValueMapping('document_map')
+        documents_path = './documents/{folder}/DOSSIERS/{id}/'.format(
+            folder=path_mapping.get(licence.portal_type),
+            id=licence.id[1:]
+        )
+        return documents_path
