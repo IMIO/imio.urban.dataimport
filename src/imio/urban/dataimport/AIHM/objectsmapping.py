@@ -183,7 +183,7 @@ FIELDS_MAPPINGS = {
         'mappers': {
             ParcelDataMapper: {
                 'table': 'Parcelles',
-                'KEY': 'CLEF',
+                'KEYS': ('CLEF', 'CLEF'),
                 'mappers': {
                     SimpleMapper:  (
                         {

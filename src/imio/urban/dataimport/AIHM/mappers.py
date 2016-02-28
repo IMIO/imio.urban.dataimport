@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
-from imio.urban.dataimport.access.mapper import SecondaryTableMapper
+from imio.urban.dataimport.access.mapper import MultiLinesSecondaryTableMapper
 from imio.urban.dataimport.access.mapper import AccessPostCreationMapper as PostCreationMapper
 from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 
@@ -22,8 +22,8 @@ import re
 
 
 class LicenceFactory(BaseFactory):
-    def getCreationPlace(self, **kwargs):
-        path = '%s/urban/%ss' % (self.site.absolute_url_path(), kwargs['portal_type'].lower())
+    def getCreationPlace(self, factory_args):
+        path = '%s/urban/%ss' % (self.site.absolute_url_path(), factory_args['portal_type'].lower())
         return self.site.restrictedTraverse(path)
 
 # mappers
@@ -248,9 +248,9 @@ class ErrorsMapper(FinalMapper):
 
 
 class ContactFactory(BaseFactory):
-    def create(self, place, **kwargs):
-        if self.getPortalType(place) == 'Applicant' or kwargs['personTitle'] not in ['master', 'masters']:
-            return super(ContactFactory, self).create(place, **kwargs)
+    def create(self, kwargs, container, line=None):
+        if self.getPortalType(container) == 'Applicant' or kwargs['personTitle'] not in ['master', 'masters']:
+            return super(ContactFactory, self).create(kwargs, container)
         else:
             #notaries are bound  with a reference
             return []
@@ -352,30 +352,27 @@ class ContactRepresentedByMapper(Mapper):
 
 
 class ParcelFactory(BaseFactory):
-    def create(self, place=None, line=None, **kwargs):
-        parcels = {}
+    def create(self, kwargs, container, line=None):
         searchview = self.site.restrictedTraverse('searchparcels')
-        for index, args in kwargs.iteritems():
-            # need to trick the search browser view about the args in its request
-            for k, v in args.iteritems():
-                searchview.context.REQUEST[k] = v
-            # check if we can find a parcel in the db cadastre with these infos
-            found = searchview.findParcel(**args)
-            if not found:
-                found = searchview.findParcel(browseoldparcels=True, **args)
-            if len(found) == 1:
-                args['divisionCode'] = args['division']
-                args['division'] = args['division']
-                parcels[index] = args
-            else:
-                parcels[index] = args
-                self.logError(self, line, 'Too much parcels found or not enough parcels found', {'args': args, 'search result': len(found)})
-        return super(ParcelFactory, self).create(place=place, **parcels)
+        # need to trick the search browser view about the args in its request
+        for k, v in kwargs.iteritems():
+            searchview.context.REQUEST[k] = v
+        # check if we can find a parcel in the db cadastre with these infos
+        found = searchview.findParcel(**kwargs)
+        if not found:
+            found = searchview.findParcel(browseoldparcels=True, **kwargs)
+        if len(found) == 1:
+            kwargs['divisionCode'] = kwargs['division']
+            kwargs['division'] = kwargs['division']
+        else:
+            self.logError(self, line, 'Too much parcels found or not enough parcels found', {'kwargs': kwargs, 'search result': len(found)})
+        kwargs['id'] = ''.join([''.join(cleanAndSplitWord(ref)) for ref in kwargs.values()])
+        return super(ParcelFactory, self).create(kwargs, container=container)
 
 # mappers
 
 
-class ParcelDataMapper(SecondaryTableMapper):
+class ParcelDataMapper(MultiLinesSecondaryTableMapper):
     pass
 
 
@@ -418,11 +415,11 @@ class UrbanEventFactory(BaseFactory):
     def getPortalType(self, **kwargs):
         return 'UrbanEvent'
 
-    def create(self, place, **kwargs):
+    def create(self, kwargs, container, line=None):
         if not kwargs['eventtype']:
             return []
-        event = place.createUrbanEvent(kwargs['eventtype'])
-        return [event]
+        event = container.createUrbanEvent(kwargs['eventtype'])
+        return event
 
 #mappers
 
