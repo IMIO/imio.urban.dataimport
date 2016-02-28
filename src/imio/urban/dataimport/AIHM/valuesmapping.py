@@ -14,7 +14,7 @@ VALUES_MAPS = {
 '22'    : ['NotaryLetter',        '',               'Not'],
 '30'    : ['ParcelOutLicence',    '',               'PL'],
 '40'    : ['MiscDemand',          'apct',           'DD'],
-'50'    : ['BuildLicence',        'art127',         'PU'],
+'50'    : ['Article127',          '',               'PU127'],
 '80'    : ['BuildLicence',        'pu',             'PU'],
 '82'    : ['Declaration',         'dup',            'Decl'],
 '100'   : ['MiscDemand',          'apct',           'Decl'],
@@ -24,6 +24,7 @@ VALUES_MAPS = {
 'eventtype_id_map': table({
 'header'             : ['decision_event',                       'folder_complete',     'deposit_event'],
 'BuildLicence'       : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande'],
+'Article127'         : ['delivrance-du-permis-octroi-ou-refus', 'accuse-de-reception', 'depot-de-la-demande'],
 'UrbanCertificateOne': ['octroi-cu1',                           '',                    'depot-de-la-demande'],
 'UrbanCertificateTwo': ['octroi-cu2',                           '',                    'depot-de-la-demande'],
 'NotaryLetter'       : ['octroi-lettre-notaire',                '',                    'depot-de-la-demande'],
