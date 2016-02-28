@@ -343,6 +343,7 @@ class ContactRepresentedByMapper(Mapper):
             return container.getArchitects() and container.getArchitects()[0].UID() or ''
         elif container.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo']:
             return container.getNotaryContact() and container.getNotaryContact()[0].UID() or ''
+        return ''
 
 #
 # PARCEL
