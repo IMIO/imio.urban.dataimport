@@ -253,7 +253,7 @@ class ContactFactory(BaseFactory):
             return super(ContactFactory, self).create(kwargs, container)
         else:
             #notaries are bound  with a reference
-            return []
+            return None
 
     def getPortalType(self, place, **kwargs):
         if place.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo', 'NotaryLetter']:
