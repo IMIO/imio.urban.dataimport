@@ -31,7 +31,7 @@ class LicenceFactory(BaseFactory):
 
 class IdMapper(Mapper):
     def mapId(self, line):
-        return normalizeString(self.getData('CLEF'))
+        return normalizeString(self.getData('CLEF')).strip('_')
 
 
 class PortalTypeMapper(Mapper):
