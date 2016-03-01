@@ -16,7 +16,8 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     PrimoEventTypeMapper, PrimoDateMapper, SecondRWEventTypeMapper, SecondRWEventDateMapper, SecondRWDecisionDateMapper, \
     SecondRWReceiptDateMapper, SecondRWDecisionMapper, WorkTypeMapper, IncompleteFolderEventTypeMapper, \
     IncompleteFolderDateMapper, ComplementReceiptEventTypeMapper, ComplementReceiptDateMapper, OpinionMakersTableMapper, \
-    OpinionMakersMapper, DocumentsFactory, DocumentsMapper, AskOpinionsMapper, AskOpinionTableMapper, LinkedInquiryMapper
+    OpinionMakersMapper, DocumentsFactory, DocumentsMapper, AskOpinionsMapper, AskOpinionTableMapper, LinkedInquiryMapper, \
+    AdditionalContactMapper, AdditionalContactIdMapper, AdditionalContactTitleMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -24,6 +25,7 @@ OBJECTS_NESTING = [
     (
         'LICENCE', [
             ('CONTACT', []),
+            ('ADDITIONAL CONTACTS', []),
             ('PARCEL', []),
             ('DEPOSIT EVENT 1', []),
             ('DEPOSIT EVENT 2', []),
@@ -252,6 +254,53 @@ FIELDS_MAPPINGS = {
             ContactIdMapper: {
                 'from': ('D_Nom', 'D_Prenom'),
                 'to': 'id',
+            },
+        },
+    },
+
+    'ADDITIONAL CONTACTS':
+    {
+        'factory': [ContactFactory],
+
+        'mappers': {
+            AdditionalContactMapper: {
+                'table': 'COHABITANT',
+                'KEYS': ('Cle_Urba', 'Cle_Co'),
+                'mappers': {
+                    SimpleMapper: (
+                        {
+                            'from': 'CONom',
+                            'to': 'name1',
+                        },
+                        {
+                            'from': 'COPrenom',
+                            'to': 'name2',
+                        },
+                        {
+                            'from': 'COCode',
+                            'to': 'zipcode',
+                        },
+                        {
+                            'from': 'COLoc',
+                            'to': 'city',
+                        },
+                        {
+                            'from': 'COTel',
+                            'to': 'phone',
+                        },
+
+                    ),
+
+                    AdditionalContactTitleMapper: {
+                        'from': 'CiviC',
+                        'to': 'personTitle',
+                    },
+
+                    AdditionalContactIdMapper: {
+                        'from': ('CONom', 'COPrenom'),
+                        'to': 'id',
+                    },
+                },
             },
         },
     },

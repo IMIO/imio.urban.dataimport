@@ -22,6 +22,7 @@ from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
 
 from plone import api
+from plone.i18n.normalizer import idnormalizer
 
 import os
 import re
@@ -352,7 +353,31 @@ class ContactNameMapper(Mapper):
     def mapName1(self, line):
         title = self.getData('Civi2')
         name = self.getData('D_Nom')
-        if '.' in title:
+        regular_titles = [
+            'M.',
+            'M et Mlle',
+            'M et Mme',
+            'M. et Mme',
+            'M. l\'Architecte',
+            'M. le président',
+            'Madame',
+            'Madame Vve',
+            'Mademoiselle',
+            'Maître',
+            'Mlle et Monsieur',
+            'Mesdames',
+            'Mesdemoiselles',
+            'Messieurs',
+            'Mlle',
+            'MM',
+            'Mme',
+            'Mme et M',
+            'Monsieur',
+            'Monsieur,',
+            'Monsieur et Madame',
+            'Monsieur l\'Architecte',
+        ]
+        if title not in regular_titles:
             name = '%s %s' % (title, name)
         return name
 
@@ -391,6 +416,26 @@ class ContactPhoneMapper(Mapper):
         if gsm:
             phone = phone and '%s %s' % (phone, gsm) or gsm
         return phone
+
+
+class AdditionalContactMapper(MultiLinesSecondaryTableMapper):
+    """
+    Additional contacts mapper
+    """
+
+
+class AdditionalContactIdMapper(Mapper):
+    def mapId(self, line):
+        name = '%s%s' % (self.getData('CONom'), self.getData('COPrenom'))
+        name = name.replace(' ', '').replace('-', '')
+        return normalizeString(self.site.portal_urban.generateUniqueId(name))
+
+
+class AdditionalContactTitleMapper(Mapper):
+    def mapPersontitle(self, line):
+        title = self.getData('CiviC').lower()
+        title_mapping = self.getValueMapping('titre_map')
+        return title_mapping.get(title, 'notitle')
 
 #
 # PARCEL
@@ -981,7 +1026,7 @@ class DocumentsMapper(Mapper):
 
             doc_args = {
                 'portal_type': 'File',
-                'id': doc_name.replace('+', '-'),
+                'id': idnormalizer.normalize(doc_name),
                 'title': doc_name,
                 'file': doc_content,
             }
