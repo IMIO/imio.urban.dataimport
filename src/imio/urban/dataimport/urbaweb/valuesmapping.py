@@ -5,16 +5,19 @@ from imio.urban.dataimport.mapping import table
 VALUES_MAPS = {
 
 'type_map': table({
-'header': ['portal_type',         'foldercategory', 'abreviation'],
-'B'     : ['BuildLicence',        'uap',            ''],
-'U'     : ['',                    '',               'PU'],  # permis uniques, pas encore dans urban
-'E'     : ['',                    '',               'E'],  # permis d'environnement, comment les distinguer??
-'R'     : ['Declaration',         'dup',            'Decl'],
-'L'     : ['ParcelOutLicence',    '',               'PL'],
-'1'     : ['UrbanCertificateOne', '',               'CU2'],
-'2'     : ['UrbanCertificateTwo', '',               'CU1'],
-'A'     : ['MiscDemand',          'apct',           'DD'],
-'Z'     : ['MiscDemand',          'apct',           'DD'],
+'header'  : ['portal_type',         'foldercategory', 'abreviation'],
+'B'       : ['BuildLicence',        'uap',            ''],
+'U'       : ['',                    '',               'PU'],  # permis uniques, pas encore dans urban
+'Autre'   : ['MiscDemand',          'env',            'E'],  # ancien dossier environnement
+'Classe 1': ['EnvClassOne',         '',               'E1'],
+'Classe 2': ['EnvClassTwo',         '',               'E2'],
+'Classe 3': ['EnvClassThree',       '',               'E3'],
+'R'       : ['Declaration',         'dup',            'Decl'],
+'L'       : ['ParcelOutLicence',    '',               'PL'],
+'1'       : ['UrbanCertificateOne', '',               'CU2'],
+'2'       : ['UrbanCertificateTwo', '',               'CU1'],
+'A'       : ['MiscDemand',          'apct',           'DD'],
+'Z'       : ['MiscDemand',          'apct',           'DD'],
 }),
 
 # type de permis, se baser sur la colonne "Rec":

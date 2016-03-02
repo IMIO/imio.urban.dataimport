@@ -47,9 +47,23 @@ class IdMapper(Mapper):
         return normalizeString(self.getData('Cle_Urba'))
 
 
-class PortalTypeMapper(Mapper):
+class PortalTypeMapper(SubQueryMapper):
     def mapPortal_type(self, line):
         type_value = self.getData('Rec').upper()
+        if type_value == 'E':
+            # special case for environnement licences to determine if its class
+            # 1, 2 or 3
+            db_query = "Select * from ENVIRONNEMENT Where Cle_Env = '%s'" % self.getData('Cle_Urba')
+            lines = [l for l in self._query(db_query)]
+            type_value = self.getData('Classe', line=lines[0])
+            if 'Classe 1' in type_value:
+                type_value = 'Classe 1'
+            if 'Classe 2' in type_value:
+                type_value = 'Classe 2'
+            if 'Classe 3' in type_value:
+                type_value = 'Classe 3'
+            else:
+                type_value = 'Autre'
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
@@ -61,6 +75,20 @@ class PortalTypeMapper(Mapper):
         if bool(int(art127)):
             return 'art127'
         type_value = self.getData('Rec').upper()
+        if type_value == 'E':
+            # special case for environnement licences to determine if its class
+            # 1, 2 or 3
+            db_query = "Select * from ENVIRONNEMENT Where Cle_Env = '%s'" % self.getData('Cle_Urba')
+            lines = [l for l in self._query(db_query)]
+            type_value = self.getData('Classe', line=lines[0])
+            if 'Classe 1' in type_value:
+                type_value = 'Classe 1'
+            if 'Classe 2' in type_value:
+                type_value = 'Classe 2'
+            if 'Classe 3' in type_value:
+                type_value = 'Classe 3'
+            else:
+                type_value = 'Autre'
         foldercategory = self.getValueMapping('type_map')[type_value]['foldercategory']
         return foldercategory
 
@@ -173,9 +201,24 @@ class TechnicalConditionsMapper(Mapper):
         return '%s%s' % (obs_decision1, obs_decision2)
 
 
-class ReferenceMapper(PostCreationMapper):
+class ReferenceMapper(PostCreationMapper, SubQueryMapper):
     def mapReference(self, line, plone_object):
-        ref = plone_object.getLicenceTypeAcronym()
+        type_value = self.getData('Rec').upper()
+        if type_value == 'E':
+            # special case for environnement licences to determine if its class
+            # 1, 2 or 3
+            db_query = "Select * from ENVIRONNEMENT Where Cle_Env = '%s'" % self.getData('Cle_Urba')
+            lines = [l for l in self._query(db_query)]
+            type_value = self.getData('Classe', line=lines[0])
+            if 'Classe 1' in type_value:
+                type_value = 'Classe 1'
+            if 'Classe 2' in type_value:
+                type_value = 'Classe 2'
+            if 'Classe 3' in type_value:
+                type_value = 'Classe 3'
+            else:
+                type_value = 'Autre'
+        ref = self.getValueMapping('type_map')[type_value]['abreviation']
         ref = '%s/%s' % (ref, self.getData('Numero'))
         return ref
 
