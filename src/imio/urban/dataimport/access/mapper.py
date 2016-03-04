@@ -81,7 +81,7 @@ class SecondaryTableMapper(SubQueryMapper):
 
     def query_secondary_table(self, line):
         key_value = self.getData(self.key[0], line)
-        db_query = "Select * from %s Where %s = '%s'" % (self.secondary_table, self.key[1], key_value)
+        db_query = "Select * from \"%s\" Where %s = '%s'" % (self.secondary_table, self.key[1], key_value)
         lines = self._query(db_query)
         return lines
 

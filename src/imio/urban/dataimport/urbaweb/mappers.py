@@ -24,7 +24,6 @@ from Products.CMFPlone.utils import normalizeString
 from plone import api
 from plone.i18n.normalizer import idnormalizer
 
-import os
 import re
 
 #
@@ -55,6 +54,7 @@ class PortalTypeMapper(SubQueryMapper):
             # 1, 2 or 3
             db_query = "Select * from ENVIRONNEMENT Where Cle_Env = '%s'" % self.getData('Cle_Urba')
             lines = [l for l in self._query(db_query)]
+            self.table_name = 'ENVIRONNEMENT'
             type_value = self.getData('Classe', line=lines[0])
             if 'Classe 1' in type_value:
                 type_value = 'Classe 1'
@@ -64,6 +64,7 @@ class PortalTypeMapper(SubQueryMapper):
                 type_value = 'Classe 3'
             else:
                 type_value = 'Autre'
+            delattr(self, 'table_name')
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
@@ -80,6 +81,7 @@ class PortalTypeMapper(SubQueryMapper):
             # 1, 2 or 3
             db_query = "Select * from ENVIRONNEMENT Where Cle_Env = '%s'" % self.getData('Cle_Urba')
             lines = [l for l in self._query(db_query)]
+            self.table_name = 'ENVIRONNEMENT'
             type_value = self.getData('Classe', line=lines[0])
             if 'Classe 1' in type_value:
                 type_value = 'Classe 1'
@@ -89,8 +91,13 @@ class PortalTypeMapper(SubQueryMapper):
                 type_value = 'Classe 3'
             else:
                 type_value = 'Autre'
+            delattr(self, 'table_name')
         foldercategory = self.getValueMapping('type_map')[type_value]['foldercategory']
         return foldercategory
+
+
+class EnvLicenceSubjectMapper(SecondaryTableMapper):
+    """ """
 
 
 class WorklocationMapper(Mapper):
@@ -209,6 +216,7 @@ class ReferenceMapper(PostCreationMapper, SubQueryMapper):
             # 1, 2 or 3
             db_query = "Select * from ENVIRONNEMENT Where Cle_Env = '%s'" % self.getData('Cle_Urba')
             lines = [l for l in self._query(db_query)]
+            self.table_name = 'ENVIRONNEMENT'
             type_value = self.getData('Classe', line=lines[0])
             if 'Classe 1' in type_value:
                 type_value = 'Classe 1'
@@ -218,6 +226,7 @@ class ReferenceMapper(PostCreationMapper, SubQueryMapper):
                 type_value = 'Classe 3'
             else:
                 type_value = 'Autre'
+            delattr(self, 'table_name')
         ref = self.getValueMapping('type_map')[type_value]['abreviation']
         ref = '%s/%s' % (ref, self.getData('Numero'))
         return ref
@@ -313,6 +322,13 @@ class IsInPcaMapper(Mapper):
     def mapIsinpca(self, line):
         title = self.getData('PPA')
         return bool(title)
+
+
+class EnvRubricsMapper(Mapper):
+
+    def mapDescription(self, line):
+        rubric = self.getData('LibNat')
+        return rubric
 
 
 class CompletionStateMapper(PostCreationMapper):
@@ -1047,31 +1063,36 @@ class ImplantationEventDecisionMapper(Mapper):
 
 class DocumentsFactory(BaseFactory):
     """ """
+    def getPortalType(self, container, **kwargs):
+        return 'File'
 
 #mappers
 
 
-class DocumentsMapper(Mapper):
-    def map(self, line):
-        licence = self.importer.current_containers_stack[-1]
-        path_mapping = self.getValueMapping('documents_map')
-        documents_path = '{base}/documents/{folder}/DOSSIERS/{id}/'.format(
+class DocumentsMapper(MultiLinesSecondaryTableMapper):
+    """ """
+
+
+class DocumentIdMapper(Mapper):
+    def mapId(self, line):
+        document_path = self.getData('Fichier')
+        doc_id = document_path.split('\\')[-1]
+        doc_id = idnormalizer.normalize(doc_id)
+        return doc_id
+
+
+class DocumentFileMapper(Mapper):
+    def mapFile(self, line):
+        document_path = self.getData('Fichier')
+        document_path = '{base}/documents/{rel_path}'.format(
             base=IMPORT_FOLDER_PATH,
-            folder=path_mapping.get(licence.portal_type),
-            id=licence.id[1:]
+            rel_path=document_path[12:].replace('\\', '/')
         )
-
-        documents_args = []
-        for doc_name in os.listdir(documents_path):
-            doc = open(documents_path + doc_name, 'rb')
-            doc_content = doc.read()
-            doc.close()
-
-            doc_args = {
-                'portal_type': 'File',
-                'id': idnormalizer.normalize(doc_name),
-                'title': doc_name,
-                'file': doc_content,
-            }
-            documents_args.append(doc_args)
-        return documents_args
+        try:
+            doc = open(document_path, 'rb')
+        except:
+            print "COULD NOT FIND DOCUMENT {}".format(document_path)
+            raise NoObjectToCreateException
+        doc_content = doc.read()
+        doc.close()
+        return doc_content

@@ -39,15 +39,22 @@ VALUES_MAPS = {
 'UrbanCertificateOne': ['octroi-cu1'],
 'UrbanCertificateTwo': ['decision-octroi-refus'],
 'MiscDemand'         : ['deliberation-college'],
+'EnvClassOne'        : ['decision'],
+'EnvClassTwo'        : ['desision'],
+'EnvClassThree'      : ['acceptation-de-la-demande'],
 }),
 
 'documents_map': {
     'BuildLicence': 'URBA',
+    'UniqueLicence': 'PERMIS-UNIQUE',
     'ParcelOutLicence': 'LOTISSEMENT',
     'Declaration': 'REGISTRE-PU',
     'UrbanCertificateOne': 'CU/1',
     'UrbanCertificateTwo': 'CU/2',
     'MiscDemand': 'AUTRE DOSSIER',
+    'EnvClassOne': 'ENVIRONNEMENT',
+    'EnvClassTwo': 'ENVIRONNEMENT',
+    'EnvClassThree': 'ENVIRONNEMENT',
 },
 
 'titre_map': {

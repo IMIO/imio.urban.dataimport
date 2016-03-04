@@ -17,7 +17,8 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     SecondRWReceiptDateMapper, SecondRWDecisionMapper, WorkTypeMapper, IncompleteFolderEventTypeMapper, \
     IncompleteFolderDateMapper, ComplementReceiptEventTypeMapper, ComplementReceiptDateMapper, OpinionMakersTableMapper, \
     OpinionMakersMapper, DocumentsFactory, DocumentsMapper, AskOpinionsMapper, AskOpinionTableMapper, LinkedInquiryMapper, \
-    AdditionalContactMapper, AdditionalContactIdMapper, AdditionalContactTitleMapper
+    AdditionalContactMapper, AdditionalContactIdMapper, AdditionalContactTitleMapper, EnvLicenceSubjectMapper, \
+    EnvRubricsMapper, DocumentFileMapper, DocumentIdMapper
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -74,6 +75,20 @@ FIELDS_MAPPINGS = {
             PortalTypeMapper: {
                 'from': ('Rec', 'Art127'),
                 'to': ('portal_type', 'folderCategory',)
+            },
+
+            EnvLicenceSubjectMapper: {
+                'allowed_containers': ['EnvClassOne', 'EnvClassTwo', 'EnvClassThree'],
+                'table': 'ENVIRONNEMENT',
+                'KEYS': ('Cle_Urba', 'Cle_Env'),
+                'mappers': {
+                    SimpleMapper: (
+                        {
+                            'from': 'NatureEtablissement',
+                            'to': 'licenceSubject',
+                        },
+                    ),
+                }
             },
 
             ReferenceMapper: {
@@ -192,6 +207,12 @@ FIELDS_MAPPINGS = {
                         'to': 'isInPCA',
                     }
                 },
+            },
+
+            EnvRubricsMapper: {
+                'allowed_containers': ['EnvClassOne', 'EnvClassTwo', 'EnvClassThree'],
+                'from': 'LibNat',
+                'to': 'description',
             },
 
             CompletionStateMapper: {
@@ -667,9 +688,25 @@ FIELDS_MAPPINGS = {
 
         'mappers': {
             DocumentsMapper: {
-                'from': 'Cle_Urba',
-                'to': (),
-            },
+                'table': 'EMAESTRO-DOC',
+                'KEYS': ('Cle_Urba', 'Cle_eMaestro'),
+                'mappers': {
+                    SimpleMapper: (
+                        {
+                            'from': 'Libelle',
+                            'to': 'title',
+                        },
+                    ),
+                    DocumentIdMapper: {
+                        'from': 'Fichier',
+                        'to': 'id',
+                    },
+                    DocumentFileMapper: {
+                        'from': 'Fichier',
+                        'to': 'file',
+                    },
+                }
+            }
         },
     },
 }
