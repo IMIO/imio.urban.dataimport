@@ -26,6 +26,8 @@ from plone.i18n.normalizer import idnormalizer
 
 import re
 
+import os
+
 #
 # LICENCE
 #
@@ -1055,6 +1057,52 @@ class ImplantationEventDecisionMapper(Mapper):
         return self.getData('Visite_Resultat')
 
 #
+# UrbanEvent suspension
+#
+
+
+# factory
+class SuspensionEventFactory(UrbanEventFactory):
+
+    def create(self, kwargs, container, line):
+        if not kwargs['eventtype']:
+            return []
+        eventtype_uid = kwargs.pop('eventtype')
+        suspension_reason = kwargs.pop('suspensionReason')
+        urban_event = container.createUrbanEvent(eventtype_uid, **kwargs)
+        urban_event.setSuspensionReason(suspension_reason)
+        return urban_event
+
+#mappers
+
+
+class SuspensionsMapper(MultiLinesSecondaryTableMapper):
+    """ """
+
+
+class SuspensionEventTypeMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        eventtype_id = 'suspension-du-permis'
+        if not eventtype_id:
+            return
+
+        urban_tool = api.portal.get_tool('portal_urban')
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class SuspensionEventIdMapper(Mapper):
+    def mapId(self, line):
+        return self.site.portal_urban.generateUniqueId('suspension')
+
+
+class SuspensionEventReasonMapper(Mapper):
+    def mapSuspensionreason(self, line):
+        reason = '<p>{}</p>'.format(self.getData('Motif'))
+        return reason
+
+#
 # Documents
 #
 
@@ -1096,3 +1144,29 @@ class DocumentFileMapper(Mapper):
         doc_content = doc.read()
         doc.close()
         return doc_content
+
+
+class DocumentsMapper2(Mapper):
+    def map(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        path_mapping = self.getValueMapping('documents_map')
+        documents_path = '{base}/documents/{folder}/DOSSIERS/{id}/'.format(
+            base=IMPORT_FOLDER_PATH,
+            folder=path_mapping.get(licence.portal_type),
+            id=licence.id[1:]
+        )
+
+        documents_args = []
+        for doc_name in os.listdir(documents_path):
+            doc = open(documents_path + doc_name, 'rb')
+            doc_content = doc.read()
+            doc.close()
+
+            doc_args = {
+                'portal_type': 'File',
+                'id': idnormalizer.normalize(doc_name),
+                'title': doc_name,
+                'file': doc_content,
+            }
+            documents_args.append(doc_args)
+        return documents_args

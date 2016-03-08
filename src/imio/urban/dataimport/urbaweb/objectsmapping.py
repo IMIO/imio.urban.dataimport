@@ -18,7 +18,8 @@ from imio.urban.dataimport.urbaweb.mappers import LicenceFactory, \
     IncompleteFolderDateMapper, ComplementReceiptEventTypeMapper, ComplementReceiptDateMapper, OpinionMakersTableMapper, \
     OpinionMakersMapper, DocumentsFactory, DocumentsMapper, AskOpinionsMapper, AskOpinionTableMapper, LinkedInquiryMapper, \
     AdditionalContactMapper, AdditionalContactIdMapper, AdditionalContactTitleMapper, EnvLicenceSubjectMapper, \
-    EnvRubricsMapper, DocumentFileMapper, DocumentIdMapper
+    EnvRubricsMapper, DocumentFileMapper, DocumentIdMapper, SuspensionsMapper, SuspensionEventTypeMapper, SuspensionEventReasonMapper, \
+    SuspensionEventIdMapper, SuspensionEventFactory
 
 from imio.urban.dataimport.access.mapper import AccessSimpleMapper as SimpleMapper
 
@@ -41,6 +42,7 @@ OBJECTS_NESTING = [
             ('SECOND RW EVENT', []),
             ('DECISION EVENT', []),
             ('IMPLANTATION EVENT', []),
+            ('SUSPENSION EVENT', []),
             ('DOCUMENTS', []),
         ],
     ),
@@ -678,6 +680,46 @@ FIELDS_MAPPINGS = {
             ImplantationEventDecisionMapper: {
                 'from': 'Visite_Resultat',
                 'to': 'decisionText',
+            },
+        },
+    },
+
+    'SUSPENSION EVENT':
+    {
+        'factory': [SuspensionEventFactory],
+
+        'allowed_containers': ['BuildLicence', 'Article127', 'ParcelOutLicence'],
+
+        'mappers': {
+            SuspensionsMapper: {
+                'table': 'SUSPENSIONS',
+                'KEYS': ('Cle_Urba', 'Cle_Susp'),
+                'mappers': {
+                    SimpleMapper: (
+                        {
+                            'from': 'Date_Deb',
+                            'to': 'eventDate',
+                        },
+                        {
+                            'from': 'Date_Fin',
+                            'to': 'suspensionEndDate',
+                        },
+                    ),
+                    SuspensionEventTypeMapper: {
+                        'from': (),
+                        'to': 'eventtype',
+                    },
+
+                    SuspensionEventIdMapper: {
+                        'from': (),
+                        'to': 'id',
+                    },
+
+                    SuspensionEventReasonMapper: {
+                        'from': 'Motif',
+                        'to': 'suspensionReason',
+                    },
+                },
             },
         },
     },
