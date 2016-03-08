@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+:# -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
@@ -20,6 +20,7 @@ from imio.urban.dataimport.utils import parse_cadastral_reference
 
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
+from Products.CMFPlone.utils import safe_unicode
 
 from plone import api
 from plone.i18n.normalizer import idnormalizer
@@ -1157,14 +1158,19 @@ class DocumentsMapper2(Mapper):
         )
 
         documents_args = []
-        for doc_name in os.listdir(documents_path):
+        try:
+            doc_names = os.listdir(documents_path)
+        except:
+            return documents_args 
+
+        for doc_name in doc_names:
             doc = open(documents_path + doc_name, 'rb')
             doc_content = doc.read()
             doc.close()
 
             doc_args = {
                 'portal_type': 'File',
-                'id': idnormalizer.normalize(doc_name),
+                'id': normalizeString(safe_unicode(doc_name)),
                 'title': doc_name,
                 'file': doc_content,
             }

@@ -37,7 +37,7 @@ VALUES_MAPS = {
 'ParcelOutLicence'   : ['delivrance-du-permis-octroi-ou-refus'],
 'Declaration'        : ['deliberation-college'],
 'UrbanCertificateOne': ['octroi-cu1'],
-'UrbanCertificateTwo': ['decision-octroi-refus'],
+'UrbanCertificateTwo': ['octroi-cu2'],
 'MiscDemand'         : ['deliberation-college'],
 'EnvClassOne'        : ['decision'],
 'EnvClassTwo'        : ['desision'],
