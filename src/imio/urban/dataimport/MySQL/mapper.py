@@ -66,7 +66,7 @@ class SecondaryTableMapper(SubQueryMapper):
         super(SecondaryTableMapper, self).__init__(mysql_importer, args)
         self.key = args['KEYS']
         self.key_column = self.key[1]
-        self.mappers = self._setMappers(args['mappers'])
+        self.mappers = self._setMappers(args.get('mappers', {}))
 
     def _setMappers(self, mappers_dscr):
         mappers = []
@@ -106,3 +106,23 @@ class MultiLinesSecondaryTableMapper(SecondaryTableMapper):
                 mapper.line = secondary_line
                 objects_args.append(mapper.map(line, **kwargs))
         return objects_args
+
+
+class FieldMultiLinesSecondaryTableMapper(SecondaryTableMapper):
+
+    def map(self, line, **kwargs):
+        mapped = {}
+        lines = self.query_secondary_table(line)
+        for dest in self.destinations:
+            values = []
+            for secondary_line in lines:
+                mapping_method = 'map%s' % dest.capitalize()
+                if hasattr(self, mapping_method):
+                    value = getattr(self, mapping_method)(secondary_line)
+                    if value not in values:
+                        values.append(value)
+                else:
+                    print '%s: NO MAPPING METHOD FOUND' % self
+                    print 'target field : %s' % dest
+            mapped[dest] = values
+        return mapped
