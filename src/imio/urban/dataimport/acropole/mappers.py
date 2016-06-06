@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from imio.urban.dataimport.MySQL.mapper import FieldMultiLinesSecondaryTableMapper
 from imio.urban.dataimport.MySQL.mapper import MultiLinesSecondaryTableMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLMapper as Mapper
 from imio.urban.dataimport.MySQL.mapper import MySQLPostCreationMapper as PostCreationMapper
@@ -49,6 +50,7 @@ class PortalTypeMapper(Mapper):
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
+            raise NoObjectToCreateException
         if portal_type == 'UrbanCertificateOne' and self.getData('DOSSIER_TYPEIDENT') == 'CU2':
             portal_type = 'UrbanCertificateTwo'
         return portal_type
@@ -138,6 +140,145 @@ class GeometricianMapper(PostCreationMapper):
         return []
 
 
+class FolderZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(FolderZoneTableMapper, self).__init__(mysql_importer, args)
+        prc_data = self.importer.datasource.get_table('prc_data')
+        urbcadastre = self.importer.datasource.get_table('urbcadastre')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        self.query = self.query.join(
+            urbcadastre,
+            prc_data.columns['PRCD_PRC'] == urbcadastre.columns['CAD_NOM']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID'] == urbcadastre.columns['CAD_DOSSIER_ID']
+        )
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        lines = self.query.filter_by(WRKDOSSIER_ID=licence_id).all()
+        return lines
+
+    def mapFolderzone(self, line):
+        raw_folder_zone = self.getData('PRCD_AFFLABEL', line=line)
+        raw_folder_zone = raw_folder_zone.lower()
+        zoneDictionnary = {
+            u"zone d'habitat": "zh",
+            u"zone d'habitat à caractère rural": "zhcr",
+            u"zone d'habitat à caractère rural sur +/- 50 m et le surplus en zone agricole": "zhcrza",
+            u"zone de services publics et d'équipements communautaires": "zspec",
+            u"zone de centre d'enfouissement technique": "zcet",
+            u"zone de loisirs": "zl",
+            u"zones d'activité économique mixte": "zaem",
+            u"zones d'activité économique industrielle": "zaei",
+            u"zones d'activité économique spécifique agro-économique": "zaesae",
+            u"zones d'activité économique spécifique grande distribution": "zaesgd",
+            u"zone d'aménagement différé à caractère industriel": "zadci",
+            u"zone agricole": "za",
+            u"zone forestière": "zf",
+            u"zone d'espaces verts": "zev",
+            u"zone naturelle": "zn",
+            u"zone de parc": "zp",
+            u"zone natura 2000": "znatura2000",
+            u"zone d'assainissement collectif": "zac",
+            u"zone de construction d'habitation fermée": "zchf",
+            u"zone de cours et jardins": "zcj",
+            u"zone de recul": "zr",
+            u"zone forestière d'intérêt paysager": "zfip",
+            u"zone faiblement habitée": "zfh",
+            u"zone de construction en annexe": "zca",
+            u"zone de construction d'habitation semi-ouverte": "zcso",
+            u"zone de construction d'habitation ouverte": "zcho",
+            u"zone de bâtisses agricoles": "zba",
+            u"zone d'habitat dans un périmètre d'intérêt culturel, historique ou esthétique": "zhche",
+            u"zone d'habitat à caractère rural sur une profondeur de 50 mètres": "zhcr50",
+            u"zone d'habitat à caractère rural sur une profondeur de 40 mètres": "zhcr40",
+            u"zone d'extraction": "ze",
+            u"zone d'ext. d'habitat": "zeh",
+            u"zone d'équipements communautaires et de services publics": "zspec",
+            u"zone d'équipement communautaire": "zec",
+            u"zone d'assainissement autonome": "zaa",
+            u"zone d'aménagement communal concerté mise en oeuvre": "zaccmeo",
+            u"zone d'aménagement communal concerté": "zacc",
+            u"zone boisée": "zb",
+            u"zone artisanale": "zart",
+            u"zone agricole pour partie": "zapp",
+            u"zone agricole pour le surplus": "zapls",
+            u"zone agricole et zone forestière": "zaezf",
+            u"zone agricole dans un périmètre d'intérêt paysager pour le surplus": "zapippls",
+            u"zone agricole dans un périmètre d'intérêt paysager": "zapip",
+            u"voirie": "zv",
+            u"sans affectation": "sa",
+            u"pv de constat d'infraction": "pvci",
+            u"plan d'eau": "pe",
+            u"périmètre de réservation sur 75 m de profondeur à partir de l'axe de la voirie": "pr75padlv",
+            u"infraction relevée mais sans PV": "pr75irspvpadlv",
+            u"aire de faible densité": "afd",
+            u"aire de moyenne densité": "amd",
+            u"aire de forte densité": "afod",
+            u"en partie dans un périmètre de réservation": "eppdr",
+            u"déclaré inhabitable": "di",
+            u"dans un périmètre d''intérêt culturel, historique ou esthétique": "pche",
+            u"dans un périmètre de réservation": "dpdr",
+            u"dans un périmètre d'intérêt paysager": "dpip",
+        }
+
+        #print raw_folder_zone
+        #print zoneDictionnary[raw_folder_zone]
+
+        if raw_folder_zone in zoneDictionnary:
+            return zoneDictionnary[raw_folder_zone]
+        else:
+            print raw_folder_zone
+            return "unknown"
+
+
+class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
+
+    def mapSolicitopinionsto(self, line):
+        raw_solicit_opinion_to = self.getData('AVIS_NOM', line=line)
+        raw_solicit_opinion_to = raw_solicit_opinion_to.lower()
+
+        solicit_opinion_toDictionnary = {
+            u"stp_eau": "stp",
+            u"stp": "stp",
+            u"stp_voirie": "stp",
+            u"base aérienne": "ba",
+            u"ddr": "ddr",
+            u"sri": "sri",
+            u"direction des routes": "spw-dgo1",
+            u"x4": "x4",
+            u"défense": "defense",
+            u"fluxys": "fluxys",
+            u"asbl bois du roi": "asblbdr",
+            u"cwedd": "cwedd",  #Conseil wallon de l'Environnement pour le Développement durable
+            u"elia": "elia",
+            u"police": "Police",
+            u"tec": "tec",
+            u"égouts": "egouts",
+            u"ores": "ores",
+            u"inasep": "inasep",
+            u"dnf": "dnf",
+            u"sncb": "sncb",
+            u"ccatm": "ccatm",
+            u"dgrne": "dgrne",
+            u"belgacom": "belgacom",
+            u"autres": "autres",
+        }
+
+        if raw_solicit_opinion_to in solicit_opinion_toDictionnary:
+            print raw_solicit_opinion_to
+            return solicit_opinion_toDictionnary[raw_solicit_opinion_to]
+        else:
+            print raw_solicit_opinion_to
+            import ipdb
+            ipdb.set_trace()
+            return "unknown"
+
+        return solicit_opinion_toDictionnary[raw_solicit_opinion_to]
+
+
 class CompletionStateMapper(PostCreationMapper):
     def map(self, line, plone_object):
         state = self.getData('DOSSIER_OCTROI', line)
@@ -183,7 +324,7 @@ class ErrorsMapper(FinalMapper):
 
 class ContactFactory(BaseFactory):
     def getPortalType(self, container, **kwargs):
-        if container.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo', 'NotaryLetter']:
+        if container.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo', 'NotaryLetter', 'Division']:
             return 'Proprietary'
         return 'Applicant'
 
