@@ -10,7 +10,7 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     CompleteFolderEventIdMapper, CompleteFolderDateMapper, EventDateMapper, \
     LicenceToApplicantEventMapper, LicenceToApplicantEventIdMapper, LicenceToApplicantDateMapper, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
-    FolderZoneTableMapper, SolicitOpinionsToMapper
+    FolderZoneTableMapper, SolicitOpinionsToMapper, PCATypeMapper, PCAMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -92,6 +92,20 @@ FIELDS_MAPPINGS = {
                 'KEYS': ('WRKDOSSIER_ID', 'AVIS_DOSSIERID'),
                 'from': 'AVIS_NOM',
                 'to': 'solicitOpinionsTo',
+            },
+
+            PCATypeMapper: {
+                'table': 'schema',
+                'KEYS': ('WRKDOSSIER_ID', 'SCHEMA_ID'),
+                'from': 'SCH_FUSION',
+                'to': 'pca',
+            },
+
+            PCAMapper: {
+                'table': 'schema',
+                'KEYS': ('WRKDOSSIER_ID', 'SCHEMA_ID'),
+                'from': 'SCH_FUSION',
+                'to': 'isInPca',
             },
 
             CompletionStateMapper: {

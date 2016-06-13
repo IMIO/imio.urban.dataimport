@@ -272,11 +272,87 @@ class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
             return solicit_opinion_toDictionnary[raw_solicit_opinion_to]
         else:
             print raw_solicit_opinion_to
-            import ipdb
-            ipdb.set_trace()
             return "unknown"
 
         return solicit_opinion_toDictionnary[raw_solicit_opinion_to]
+
+
+class PCAInit(SecondaryTableMapper):
+
+    raw_pca_toDictionnary = {
+        u"ppa1part": "pca1",
+        u"ppa1": "pca1",
+        u"ppa3": "pca3",
+        u"ppa3part": "pca3",
+        u"ppa2": "pca2",
+        u"ppa2part": "pca2",
+        # u"ps": "pca1"
+    }
+
+    def __init__(self, mysql_importer, args):
+        super(PCAInit, self).__init__(mysql_importer, args)
+        schema = self.importer.datasource.get_table('schema')
+        prc_data = self.importer.datasource.get_table('prc_data')
+        urbcadastre = self.importer.datasource.get_table('urbcadastre')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+
+        self.query = self.query.join(
+            prc_data,
+            schema.columns['SCHEMA_ID'] == prc_data.columns['PRCD_SCHID']
+        ).join(
+            urbcadastre,
+            prc_data.columns['PRCD_PRC'] == urbcadastre.columns['CAD_NOM']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID'] == urbcadastre.columns['CAD_DOSSIER_ID']
+        )
+
+
+class PCATypeMapper(PCAInit):
+
+    def map(self, line, **kwargs):
+
+        objects_args = {}
+        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
+        if lines:
+            for line in lines:
+                mapped_value = self.mapPca(line, **kwargs)
+                if mapped_value:
+                    objects_args.update({'pca': mapped_value})
+
+        return objects_args
+
+    def mapPca(self, line):
+
+        raw_pca = self.getData('SCH_FUSION', line=line)
+        if raw_pca is None:
+            return
+        raw_pca = raw_pca.lower()
+
+        return self.raw_pca_toDictionnary.get(raw_pca, None)
+
+
+class PCAMapper(PCAInit):
+
+    def map(self, line, **kwargs):
+
+        objects_args = {}
+        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
+        if lines:
+            for line in lines:
+                mapped_value = self.mapIsinpca(line, **kwargs)
+                if mapped_value:
+                    objects_args.update({'isInPCA': mapped_value})
+
+        return objects_args
+
+    def mapIsinpca(self, line):
+        raw_pca = self.getData('SCH_FUSION', line=line)
+        if raw_pca is None:
+            return
+        raw_pca = raw_pca.lower()
+
+        return self.raw_pca_toDictionnary.get(raw_pca, False)
 
 
 class CompletionStateMapper(PostCreationMapper):
