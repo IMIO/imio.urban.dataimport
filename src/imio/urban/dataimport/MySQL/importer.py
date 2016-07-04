@@ -102,7 +102,7 @@ class MySQLDataImporter(UrbanDataImporter):
         self.table_name = table_name
         self.key_column = key_column
         self.username = 'root'
-        self.password = ''
+        self.password = 'password'
         self.host = 'localhost'
 
     def getData(self, valuename, line):

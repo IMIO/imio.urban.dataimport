@@ -1,4 +1,4 @@
-:# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from imio.urban.dataimport.access.mapper import AccessFinalMapper as FinalMapper
 from imio.urban.dataimport.access.mapper import AccessMapper as Mapper
@@ -1161,7 +1161,7 @@ class DocumentsMapper2(Mapper):
         try:
             doc_names = os.listdir(documents_path)
         except:
-            return documents_args 
+            return documents_args
 
         for doc_name in doc_names:
             doc = open(documents_path + doc_name, 'rb')

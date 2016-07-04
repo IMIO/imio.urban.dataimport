@@ -10,7 +10,8 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     CompleteFolderEventIdMapper, CompleteFolderDateMapper, EventDateMapper, \
     LicenceToApplicantEventMapper, LicenceToApplicantEventIdMapper, LicenceToApplicantDateMapper, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
-    FolderZoneTableMapper, SolicitOpinionsToMapper, PCATypeMapper, PCAMapper
+    FolderZoneTableMapper, SolicitOpinionsToMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
+    RwTransmittedMapper, FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -23,6 +24,7 @@ OBJECTS_NESTING = [
             ('DEPOSIT EVENT', []),
             ('COMPLETE FOLDER EVENT', []),
             ('DECISION EVENT', []),
+            ('FIRST FOLDER TRANSMITTED TO RW EVENT', []),
             ('SEND LICENCE TO APPLICANT EVENT', []),
             ('SEND LICENCE TO FD EVENT', []),
         ],
@@ -106,6 +108,13 @@ FIELDS_MAPPINGS = {
                 'KEYS': ('WRKDOSSIER_ID', 'SCHEMA_ID'),
                 'from': 'SCH_FUSION',
                 'to': 'isInPca',
+            },
+
+            InvestigationDateMapper: {
+                'table': 'wrkparam',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                'from': ('PARAM_VALUE', 'PARAM_VALUE',),
+                'to': ('investigationStart', 'investigationEnd',),
             },
 
             CompletionStateMapper: {
@@ -256,6 +265,30 @@ FIELDS_MAPPINGS = {
             DecisionEventDateMapper: {
                 'from': ('DOSSIER_DATEDELIV'),
                 'to': 'eventDate',
+            },
+        },
+    },
+
+    'FIRST FOLDER TRANSMITTED TO RW EVENT':
+    {
+        'factory': [UrbanEventFactory],
+
+        'mappers': {
+            FirstFolderTransmittedToRwEventTypeMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            FirstFolderTransmittedToRwEventIdMapper: {
+                'from': (),
+                'to': 'id',
+            },
+
+            RwTransmittedMapper: {
+                'table': 'wrkparam',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                'from': ('PARAM_VALUE', 'PARAM_NOMFUSION', 'PARAM_DATATYPE',),
+                'to': ('externalDecision', 'eventDate', 'decisionDate',),
             },
         },
     },
