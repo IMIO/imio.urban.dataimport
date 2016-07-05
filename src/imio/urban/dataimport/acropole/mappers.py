@@ -75,7 +75,7 @@ class StreetAndNumberMapper(Mapper):
         raw_street = self.getData('SITUATION_DES') or u''
         parsed_street = re.search('(.*?)(\d+.*)?\( (?:(?:562\d)|(?:0 FLORENNES))', raw_street)
         if parsed_street:
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             street, num = parsed_street.groups()
             street_keywords = cleanAndSplitWord(street)
             brains = self.catalog(portal_type='Street', Title=street_keywords)
@@ -232,7 +232,7 @@ class FolderZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
         if raw_folder_zone in zoneDictionnary:
             return zoneDictionnary[raw_folder_zone]
         else:
-            print raw_folder_zone
+            print (raw_folder_zone)
             return "unknown"
 
 
@@ -270,10 +270,10 @@ class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
         }
 
         if raw_solicit_opinion_to in solicit_opinion_toDictionnary:
-            print raw_solicit_opinion_to
+            print (raw_solicit_opinion_to)
             return solicit_opinion_toDictionnary[raw_solicit_opinion_to]
         else:
-            print raw_solicit_opinion_to
+            print (raw_solicit_opinion_to)
             return "unknown"
 
         return solicit_opinion_toDictionnary[raw_solicit_opinion_to]
