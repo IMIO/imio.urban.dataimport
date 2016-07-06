@@ -272,6 +272,7 @@ FIELDS_MAPPINGS = {
     'FIRST FOLDER TRANSMITTED TO RW EVENT':
     {
         'factory': [UrbanEventFactory],
+        'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
 
         'mappers': {
             FirstFolderTransmittedToRwEventTypeMapper: {
