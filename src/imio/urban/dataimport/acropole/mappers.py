@@ -22,6 +22,7 @@ from plone import api
 
 import re
 
+
 #
 # LICENCE
 #
@@ -37,15 +38,18 @@ class LicenceFactory(BaseFactory):
             return getattr(urban_folder, portal_type.lower() + 's')
         return urban_folder
 
+
 # mappers
 
 
 class IdMapper(Mapper):
+
     def mapId(self, line):
         return normalizeString(self.getData('WRKDOSSIER_ID'))
 
 
 class PortalTypeMapper(Mapper):
+
     def mapPortal_type(self, line):
         type_value = self.getData('DOSSIER_TDOSSIERID')
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
@@ -71,6 +75,7 @@ class WorklocationMapper(SecondaryTableMapper):
 
 
 class StreetAndNumberMapper(Mapper):
+
     def mapWorklocations(self, line):
         raw_street = self.getData('SITUATION_DES') or u''
         parsed_street = re.search('(.*?)(\d+.*)?\( (?:(?:562\d)|(?:0 FLORENNES))', raw_street)
@@ -95,6 +100,7 @@ class StreetAndNumberMapper(Mapper):
 
 
 class ArchitectMapper(PostCreationMapper):
+
     def mapArchitects(self, line, plone_object):
         archi_name = self.getData('NomArchitecte')
         fullname = cleanAndSplitWord(archi_name)
@@ -115,6 +121,7 @@ class ArchitectMapper(PostCreationMapper):
 
 
 class GeometricianMapper(PostCreationMapper):
+
     def mapGeometricians(self, line, plone_object):
         title_words = [word for word in self.getData('Titre').lower().split()]
         for word in title_words:
@@ -226,9 +233,6 @@ class FolderZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
             u"dans un périmètre d'intérêt paysager": "dpip",
         }
 
-        #print raw_folder_zone
-        #print zoneDictionnary[raw_folder_zone]
-
         if raw_folder_zone in zoneDictionnary:
             return zoneDictionnary[raw_folder_zone]
         else:
@@ -254,7 +258,7 @@ class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
             u"défense": "defense",
             u"fluxys": "fluxys",
             u"asbl bois du roi": "asblbdr",
-            u"cwedd": "cwedd",  #Conseil wallon de l'Environnement pour le Développement durable
+            u"cwedd": "cwedd",  # Conseil wallon de l'Environnement pour le Développement durable
             u"elia": "elia",
             u"police": "Police",
             u"tec": "tec",
@@ -312,7 +316,6 @@ class PCAInit(SecondaryTableMapper):
 class PCATypeMapper(PCAInit):
 
     def map(self, line, **kwargs):
-
         objects_args = {}
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
         if lines:
@@ -324,7 +327,6 @@ class PCATypeMapper(PCAInit):
         return objects_args
 
     def mapPca(self, line):
-
         raw_pca = self.getData('SCH_FUSION', line=line)
         if raw_pca is None:
             return
@@ -336,7 +338,6 @@ class PCATypeMapper(PCAInit):
 class PCAMapper(PCAInit):
 
     def map(self, line, **kwargs):
-
         objects_args = {}
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
         if lines:
@@ -359,31 +360,30 @@ class PCAMapper(PCAInit):
 class InvestigationDateMapper(SecondaryTableMapper):
 
     def __init__(self, mysql_importer, args):
-            super(InvestigationDateMapper, self).__init__(mysql_importer, args)
-            wrkparam = self.importer.datasource.get_table('wrkparam')
-            k2 = self.importer.datasource.get_table('k2')
-            wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        super(InvestigationDateMapper, self).__init__(mysql_importer, args)
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        k2 = self.importer.datasource.get_table('k2')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
 
-            self.query = self.query.join(
-                k2,
-                wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
-            ).join(
-                wrkdossier,
-                wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
-            ).filter(or_(wrkparam.columns['PARAM_IDENT'] == 'EnqDatDeb',
-                         wrkparam.columns['PARAM_IDENT'] == 'EnqDatFin',))
+        self.query = self.query.join(
+            k2,
+            wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
+        ).filter(or_(wrkparam.columns['PARAM_IDENT'] == 'EnqDatDeb',
+                     wrkparam.columns['PARAM_IDENT'] == 'EnqDatFin', ))
 
     def map(self, line, **kwargs):
-
         objects_args = {}
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
         if lines:
             for line in lines:
-                if(self.getData('PARAM_IDENT', line=line) == 'EnqDatDeb'):
-                    if(self.getData('PARAM_VALUE', line=line)):
+                if (self.getData('PARAM_IDENT', line=line) == 'EnqDatDeb'):
+                    if (self.getData('PARAM_VALUE', line=line)):
                         objects_args.update({'investigationStart': self.getData('PARAM_VALUE', line=line)})
-                elif(self.getData('PARAM_IDENT', line=line) == 'EnqDatFin'):
-                    if(self.getData('PARAM_VALUE', line=line)):
+                elif (self.getData('PARAM_IDENT', line=line) == 'EnqDatFin'):
+                    if (self.getData('PARAM_VALUE', line=line)):
                         objects_args.update({'investigationEnd': self.getData('PARAM_VALUE', line=line)})
                 else:
                     return
@@ -394,24 +394,23 @@ class InvestigationDateMapper(SecondaryTableMapper):
 class RwTransmittedMapper(SecondaryTableMapper):
 
     def __init__(self, mysql_importer, args):
-            super(RwTransmittedMapper, self).__init__(mysql_importer, args)
-            wrkparam = self.importer.datasource.get_table('wrkparam')
-            k2 = self.importer.datasource.get_table('k2')
-            wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        super(RwTransmittedMapper, self).__init__(mysql_importer, args)
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        k2 = self.importer.datasource.get_table('k2')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
 
-            self.query = self.query.join(
-                k2,
-                wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
-            ).join(
-                wrkdossier,
-                wrkdossier.columns['WRKDOSSIER_ID']
-            ).filter(
-                or_(wrkparam.columns['PARAM_DATATYPE'] == 'Date', wrkparam.columns['PARAM_DATATYPE'] == 'Oui/Non'
-                    )
-            ).filter(wrkparam.columns['PARAM_VALUE'].isnot(None))
+        self.query = self.query.join(
+            k2,
+            wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID']
+        ).filter(
+            or_(wrkparam.columns['PARAM_DATATYPE'] == 'Date', wrkparam.columns['PARAM_DATATYPE'] == 'Oui/Non'
+                )
+        ).filter(wrkparam.columns['PARAM_VALUE'].isnot(None)).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
 
     def map(self, line, **kwargs):
-
         raw_externalDecision_toDictionnary = {
             u"avis favorable": "favorable",
             u"avis favorable conditionnel": "favorable-conditionnel",
@@ -425,34 +424,27 @@ class RwTransmittedMapper(SecondaryTableMapper):
         if lines:
             for line in lines:
                 try:
-                    tmpDossierLabel = self.getValueMapping('type_map')[line[6]]['portal_type']
+                    tmpDossierLabel = self.getValueMapping('type_map')[line[21]]['portal_type']
                 except KeyError:
                     continue
 
-                if(tmpDossierLabel == 'BuildLicence' or tmpDossierLabel == 'ParcelOutLicence'):
-                    # if((self.getData('PARAM_DATATYPE', line=line) == 'Oui/Non') &
-                    #    (self.getData('PARAM_VALUE', line=line) == '1')):
-                    #     print "Nombre :" + self.getData('PARAM_DATATYPE', line=line)
-                    #     print "value :" + self.getData('PARAM_VALUE', line=line)
-                    if((self.getData('PARAM_DATATYPE', line=line) == 'Oui/Non') &
-                       (self.getData('PARAM_VALUE', line=line) == '1') &
-                       (self.getData('PARAM_NOMFUSION', line=line) in raw_externalDecision_toDictionnary)):
-                            print self.getData('PARAM_VALUE', line=line)
-                            # import ipdb; ipdb.set_trace()
-                            objects_args.update({'externalDecision': raw_externalDecision_toDictionnary[
-                                self.getData('PARAM_NOMFUSION', line=line)
-                            ]})
-                    elif((self.getData('PARAM_DATATYPE', line=line) == 'Date') &
-                         (self.getData('PARAM_NOMFUSION', line=line) == u'Date Transmis permis au FD')):
-                            # print self.getData('PARAM_VALUE', line=line)
-                            # import ipdb; ipdb.set_trace()
-                            objects_args.update({'eventDate': self.getData('PARAM_VALUE', line=line)})
-                    elif((self.getData('PARAM_DATATYPE', line=line) == 'Date') &
-                         (self.getData('PARAM_NOMFUSION', line=line) == u'Date décision FD')):
-                            print self.getData('PARAM_VALUE', line=line)
-                            # import ipdb; ipdb.set_trace()
-                            objects_args.update({'decisionDate': self.getData('PARAM_VALUE', line=line)})
+                if ('BuildLicence' == tmpDossierLabel or 'ParcelOutLicence' == tmpDossierLabel):
+                    if ((self.getData('PARAM_DATATYPE', line=line) == 'Oui/Non') &
+                            (self.getData('PARAM_VALUE', line=line) == '1') &
+                            (self.getData('PARAM_NOMFUSION', line=line) in raw_externalDecision_toDictionnary)):
+                        print self.getData('PARAM_VALUE', line=line)
+                        objects_args.update({'externalDecision': raw_externalDecision_toDictionnary[
+                            self.getData('PARAM_NOMFUSION', line=line)
+                        ]})
+                    elif ((self.getData('PARAM_DATATYPE', line=line) == 'Date') &
+                              (self.getData('PARAM_NOMFUSION', line=line) == u'Date Transmis permis au FD')):
+                        objects_args.update({'eventDate': self.getData('PARAM_VALUE', line=line)})
 
+                    elif ((self.getData('PARAM_DATATYPE', line=line) == 'Date') &
+                              (self.getData('PARAM_NOMFUSION', line=line) == u'Date décision FD')):
+                        print self.getData('PARAM_VALUE', line=line)
+
+                        objects_args.update({'decisionDate': self.getData('PARAM_VALUE', line=line)})
         return objects_args
 
 
@@ -461,6 +453,7 @@ class ParcelsMapper(MultiLinesSecondaryTableMapper):
 
 
 class CompletionStateMapper(PostCreationMapper):
+
     def map(self, line, plone_object):
         state = self.getData('DOSSIER_OCTROI', line)
         transition = self.getValueMapping('state_map')[state]
@@ -469,6 +462,7 @@ class CompletionStateMapper(PostCreationMapper):
 
 
 class ErrorsMapper(FinalMapper):
+
     def mapDescription(self, line, plone_object):
 
         line_number = self.importer.current_line
@@ -489,12 +483,14 @@ class ErrorsMapper(FinalMapper):
                 elif 'geometricians' in error.message:
                     error_trace.append('<p>géomètre : %s</p>' % data['raw_name'])
                 elif 'parcelling' in error.message:
-                    error_trace.append('<p>lotissement : %s %s, autorisé le %s</p>' % (data['approval date'], data['city'], data['auth_date']))
+                    error_trace.append('<p>lotissement : %s %s, autorisé le %s</p>' % (
+                    data['approval date'], data['city'], data['auth_date']))
                 elif 'article' in error.message.lower():
                     error_trace.append('<p>Articles de l\'enquête : %s</p>' % (data['articles']))
         error_trace = ''.join(error_trace)
 
         return '%s%s' % (error_trace, description)
+
 
 #
 # CONTACT
@@ -504,10 +500,12 @@ class ErrorsMapper(FinalMapper):
 
 
 class ContactFactory(BaseFactory):
+
     def getPortalType(self, container, **kwargs):
         if container.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo', 'NotaryLetter', 'Division']:
             return 'Proprietary'
         return 'Applicant'
+
 
 # mappers
 
@@ -532,6 +530,7 @@ class ApplicantMapper(SecondaryTableMapper):
 
 
 class ContactIdMapper(Mapper):
+
     def mapId(self, line):
         name = '%s%s' % (self.getData('CPSN_NOM'), self.getData('CPSN_PRENOM'))
         name = name.replace(' ', '').replace('-', '')
@@ -540,6 +539,7 @@ class ContactIdMapper(Mapper):
 
 
 class ContactTitleMapper(Mapper):
+
     def mapPersontitle(self, line):
         title = self.getData('CPSN_TYPE')
         title_mapping = self.getValueMapping('titre_map')
@@ -547,6 +547,7 @@ class ContactTitleMapper(Mapper):
 
 
 class ContactPhoneMapper(Mapper):
+
     def mapPhone(self, line):
         phone_numbers = []
 
@@ -560,27 +561,29 @@ class ContactPhoneMapper(Mapper):
 
         return ', '.join(phone_numbers)
 
+
 #
 # PARCEL
 #
 
-#factory
+# factory
 
 
 class ParcelFactory(BaseFactory):
+
     def create(self, parcel, container=None, line=None):
         searchview = self.site.restrictedTraverse('searchparcels')
 
         if parcel is None:
             return None
 
-        #need to trick the search browser view about the args in its request
+        # need to trick the search browser view about the args in its request
         parcel_args = parcel.to_dict()
         parcel_args.pop('partie')
 
         for k, v in parcel_args.iteritems():
             searchview.context.REQUEST[k] = v
-        #check if we can find a parcel in the db cadastre with these infos
+        # check if we can find a parcel in the db cadastre with these infos
         found = searchview.findParcel(**parcel_args)
         if not found:
             found = searchview.findParcel(browseoldparcels=True, **parcel_args)
@@ -589,7 +592,8 @@ class ParcelFactory(BaseFactory):
             parcel_args['divisionCode'] = parcel_args['division']
             parcel_args['isOfficialParcel'] = True
         else:
-            self.logError(self, line, 'Too much parcels found or not enough parcels found', {'args': parcel_args, 'search result': len(found)})
+            self.logError(self, line, 'Too much parcels found or not enough parcels found',
+                          {'args': parcel_args, 'search result': len(found)})
             parcel_args['isOfficialParcel'] = False
 
         parcel_args['id'] = parcel.id
@@ -603,10 +607,12 @@ class ParcelFactory(BaseFactory):
         existing_object = getattr(container, parcel.id, None)
         return existing_object
 
+
 # mappers
 
 
 class ParcelDataMapper(Mapper):
+
     def map(self, line, **kwargs):
         raw_reference = self.getData('CAD_NOM')
         reference = parse_cadastral_reference(raw_reference)
@@ -649,6 +655,7 @@ class EventDateMapper(SecondaryTableMapper):
 
 # factory
 class UrbanEventFactory(BaseFactory):
+
     def getPortalType(self, **kwargs):
         return 'UrbanEvent'
 
@@ -659,7 +666,8 @@ class UrbanEventFactory(BaseFactory):
         urban_event = container.createUrbanEvent(eventtype_uid, **kwargs)
         return urban_event
 
-#mappers
+
+# mappers
 
 
 class DepositEventMapper(Mapper):
@@ -687,11 +695,12 @@ class DepositEventIdMapper(Mapper):
     def mapId(self, line):
         return 'deposit'
 
+
 #
 # UrbanEvent complete Folder
 #
 
-#mappers
+# mappers
 
 
 class CompleteFolderEventMapper(Mapper):
@@ -719,14 +728,16 @@ class CompleteFolderEventIdMapper(Mapper):
     def mapId(self, line):
         return 'complete_folder'
 
+
 #
 # UrbanEvent decision
 #
 
-#mappers
+# mappers
 
 
 class DecisionEventTypeMapper(Mapper):
+
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -736,22 +747,25 @@ class DecisionEventTypeMapper(Mapper):
 
 
 class DecisionEventIdMapper(Mapper):
+
     def mapId(self, line):
         return 'decision-event'
 
 
 class DecisionEventDateMapper(Mapper):
+
     def mapEventdate(self, line):
         date = self.getData('DOSSIER_DATEDELIV')
         if not date:
             self.logError(self, line, 'No decision date found')
         return str(date)
 
+
 #
 # UrbanEvent send licence to applicant
 #
 
-#mappers
+# mappers
 
 
 class LicenceToApplicantEventMapper(Mapper):
@@ -779,11 +793,12 @@ class LicenceToApplicantEventIdMapper(Mapper):
     def mapId(self, line):
         return 'licence_to_applicant'
 
+
 #
 # UrbanEvent send licence to FD
 #
 
-#mappers
+# mappers
 
 
 class LicenceToFDEventMapper(Mapper):
@@ -807,35 +822,36 @@ class LicenceToFDDateMapper(Mapper):
 
 
 class LicenceToFDEventIdMapper(Mapper):
-
     def mapId(self, line):
         return 'licence_to_fd'
+
 
 #
 # UrbanEvent complete Folder
 #
 
-#mappers
+# mappers
 
 
 class FirstFolderTransmittedToRwEventTypeMapper(Mapper):
 
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
-        if(licence.portal_type == 'Division'):
-            return 'decision-octroi-refus'
-        elif(licence.portal_type == 'Declaration'):
-            return 'deliberation-college'
-        else:
-            urban_tool = api.portal.get_tool('portal_urban')
-            eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['first_folder_transmitted_to_rw_event']
-            config = urban_tool.getUrbanConfig(licence)
-            return getattr(config.urbaneventtypes, eventtype_id).UID()
+        # if(licence.portal_type == 'Division'):
+        #     import ipdb; ipdb.set_trace()
+        #     return 'decision-octroi-refus'
+        # elif(licence.portal_type == 'Declaration'):
+        #     import ipdb; ipdb.set_trace()
+        #     return 'deliberation-college'
+        # else:
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type][
+            'first_folder_transmitted_to_rw_event']
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 class FirstFolderTransmittedToRwEventIdMapper(Mapper):
 
     def mapId(self, line):
         return 'first_folder_transmitted_to_rw_event'
-
-

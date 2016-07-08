@@ -288,7 +288,7 @@ FIELDS_MAPPINGS = {
             RwTransmittedMapper: {
                 'table': 'wrkparam',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
-                'from': ('PARAM_VALUE', 'PARAM_NOMFUSION', 'PARAM_DATATYPE',),
+                'from': ('PARAM_VALUE', 'PARAM_NOMFUSION', 'PARAM_DATATYPE','DOSSIER_TDOSSIERID'),
                 'to': ('externalDecision', 'eventDate', 'decisionDate',),
             },
         },
