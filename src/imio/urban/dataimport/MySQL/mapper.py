@@ -122,7 +122,7 @@ class FieldMultiLinesSecondaryTableMapper(SecondaryTableMapper):
                     if value not in values:
                         values.append(value)
                 else:
-                    print '%s: NO MAPPING METHOD FOUND' % self
-                    print 'target field : %s' % dest
+                    print ('NO MAPPING METHOD FOUND' % self)
+                    print ('target field : %s' % dest)
             mapped[dest] = values
         return mapped

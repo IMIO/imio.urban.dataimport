@@ -47,14 +47,14 @@ class Mapper(BaseMapper):
             if hasattr(self, mapping_method):
                 mapped[dest] = getattr(self, mapping_method)(line)
             else:
-                print '%s: NO MAPPING METHOD FOUND' % self
-                print 'target field : %s' % dest
+                print ('%s: NO MAPPING METHOD FOUND' % self)
+                print ('target field : %s' % dest)
         return mapped
 
     def getData(self, valuename, line=''):
         if valuename not in self.sources:
-            print 'DATA SOURCE "%s" IS NOT EXPLICITLY DECLARED FOR MAPPER %s'\
-                  % (valuename, self.__class__.__name__)
+            print ('DATA SOURCE "%s" IS NOT EXPLICITLY DECLARED FOR MAPPER %s'\
+                  % (valuename, self.__class__.__name__))
         line = line or self.line
 
         data = self.getValueFromLine(valuename, line)
@@ -88,10 +88,10 @@ class AfterCreationMapper(Mapper):
                         field=dest,
                         object=plone_object,
                     )
-                    print msg
+                    print (msg)
             else:
-                print '%s: NO MAPPING METHOD FOUND' % self
-                print 'target field : %s' % dest
+                print ('%s: NO MAPPING METHOD FOUND' % self)
+                print ('target field : %s' % dest)
 
 
 class PostCreationMapper(AfterCreationMapper):
