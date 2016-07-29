@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 
-from imio.urban.dataimport.MySQL.mapper import FieldMultiLinesSecondaryTableMapper
+from DateTime import DateTime
+from Products.CMFPlone.utils import normalizeString
+from plone import api
+from sqlalchemy import or_
+from plone.i18n.normalizer import idnormalizer
+
+import re
+from imio.urban.dataimport.MySQL.mapper import FieldMultiLinesSecondaryTableMapper, SubQueryMapper
 from imio.urban.dataimport.MySQL.mapper import MultiLinesSecondaryTableMapper
+from imio.urban.dataimport.MySQL.mapper import MySQLFinalMapper as FinalMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLMapper as Mapper
 from imio.urban.dataimport.MySQL.mapper import MySQLPostCreationMapper as PostCreationMapper
-from imio.urban.dataimport.MySQL.mapper import MySQLFinalMapper as FinalMapper
 from imio.urban.dataimport.MySQL.mapper import SecondaryTableMapper
-
 from imio.urban.dataimport.exceptions import NoObjectToCreateException
-
 from imio.urban.dataimport.factory import BaseFactory
 from imio.urban.dataimport.utils import CadastralReference
 from imio.urban.dataimport.utils import cleanAndSplitWord
 from imio.urban.dataimport.utils import parse_cadastral_reference
-
-from DateTime import DateTime
-from Products.CMFPlone.utils import normalizeString
-from sqlalchemy import or_
-
-from plone import api
-
-import re
 
 
 #
@@ -50,9 +47,15 @@ class IdMapper(Mapper):
 
 class PortalTypeMapper(Mapper):
 
+    cpt_dossier = 0
+
     def mapPortal_type(self, line):
+        PortalTypeMapper.cpt_dossier += 1
         type_value = self.getData('DOSSIER_TDOSSIERID')
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
+        # # TODO remove this filter! Dev mode
+        # if portal_type != 'NotaryLetter':
+        #     raise NoObjectToCreateException
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
             raise NoObjectToCreateException
@@ -428,22 +431,22 @@ class RwTransmittedMapper(SecondaryTableMapper):
                 except KeyError:
                     continue
 
-                if ('BuildLicence' == tmpDossierLabel or 'ParcelOutLicence' == tmpDossierLabel):
-                    if ((self.getData('PARAM_DATATYPE', line=line) == 'Oui/Non') &
+                if 'BuildLicence' == tmpDossierLabel or 'ParcelOutLicence' == tmpDossierLabel:
+                    if ((self.getData('PARAM_DATATYPE', line=line) == 'Oui/Non') and
                             (self.getData('PARAM_VALUE', line=line) == '1') &
                             (self.getData('PARAM_NOMFUSION', line=line) in raw_externalDecision_toDictionnary)):
-                        print self.getData('PARAM_VALUE', line=line)
                         objects_args.update({'externalDecision': raw_externalDecision_toDictionnary[
                             self.getData('PARAM_NOMFUSION', line=line)
                         ]})
-                    elif ((self.getData('PARAM_DATATYPE', line=line) == 'Date') &
+                    elif ((self.getData('PARAM_DATATYPE', line=line) == 'Date') and
                               (self.getData('PARAM_NOMFUSION', line=line) == u'Date Transmis permis au FD')):
                         objects_args.update({'eventDate': self.getData('PARAM_VALUE', line=line)})
-
-                    elif ((self.getData('PARAM_DATATYPE', line=line) == 'Date') &
-                              (self.getData('PARAM_NOMFUSION', line=line) == u'Date décision FD')):
+                        print line[0]
+                        with open("Date_Transmis_permis_au_FD.csv", "a") as file:
+                            file.write(str(line[0]) + "," + self.getData('PARAM_VALUE', line=line) + "\n")
                         print self.getData('PARAM_VALUE', line=line)
-
+                    elif ((self.getData('PARAM_DATATYPE', line=line) == 'Date') and
+                              (self.getData('PARAM_NOMFUSION', line=line) == u'Date décision FD')):
                         objects_args.update({'decisionDate': self.getData('PARAM_VALUE', line=line)})
         return objects_args
 
@@ -515,10 +518,13 @@ class ApplicantMapper(SecondaryTableMapper):
     def __init__(self, mysql_importer, args):
         super(ApplicantMapper, self).__init__(mysql_importer, args)
         cpsn = self.importer.datasource.get_table('cpsn')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+
         k2 = self.importer.datasource.get_table('k2')
         self.query = self.query.join(
             k2, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
-        )
+        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+        ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
@@ -532,6 +538,7 @@ class ApplicantMapper(SecondaryTableMapper):
 class ContactIdMapper(Mapper):
 
     def mapId(self, line):
+
         name = '%s%s' % (self.getData('CPSN_NOM'), self.getData('CPSN_PRENOM'))
         name = name.replace(' ', '').replace('-', '')
         contact_id = normalizeString(self.site.portal_urban.generateUniqueId(name))
@@ -541,6 +548,7 @@ class ContactIdMapper(Mapper):
 class ContactTitleMapper(Mapper):
 
     def mapPersontitle(self, line):
+
         title = self.getData('CPSN_TYPE')
         title_mapping = self.getValueMapping('titre_map')
         return title_mapping.get(title, 'notitle')
@@ -549,6 +557,7 @@ class ContactTitleMapper(Mapper):
 class ContactPhoneMapper(Mapper):
 
     def mapPhone(self, line):
+
         phone_numbers = []
 
         phone = self.getData('CPSN_TEL1')
@@ -561,6 +570,74 @@ class ContactPhoneMapper(Mapper):
 
         return ', '.join(phone_numbers)
 
+
+class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(NotaryContactMapper, self).__init__(mysql_importer, args)
+        cpsn = self.importer.datasource.get_table('cpsn')
+        wrkdossier = self.importer.datasource.get_table(self.table)
+        k2 = self.importer.datasource.get_table('k2')
+        # import ipdb; ipdb.set_trace()
+        self.query = self.init_query(self.table)
+        self.query = self.query.join(
+            k2, wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID2']
+        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+        ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
+
+        self.query = self.query.join(
+            cpsn, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
+        ).filter(or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753,
+                     wrkdossier.columns['DOSSIER_TDOSSIERID'] == 692167, )
+        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+        ).add_column(cpsn.columns['CPSN_NOM']
+        ).add_column(cpsn.columns['CPSN_PRENOM']
+        ).add_column(cpsn.columns['CPSN_TEL1']
+        ).add_column(cpsn.columns['CPSN_GSM']
+        ).add_column(cpsn.columns['CPSN_EMAIL'])
+
+
+    def init_query(self, table):
+        datasource = self.importer.datasource
+        query = datasource.session.query(datasource.get_table(table))
+        return query
+
+    def mapNotarycontact(self,line, plone_object):
+        licence = plone_object
+        if licence.portal_type == 'NotaryLetter':
+            wrkdossier = self.importer.datasource.get_table(self.table)
+
+            lines = self.query.filter(wrkdossier.columns['WRKDOSSIER_ID'] == line[0]).all()
+
+            idNotary = idnormalizer.normalize(u"notary" + str(lines[0][36]) + str(lines[0][37]))
+            containerNotaries = api.content.get(path='/Plone/urban/notaries')
+
+            if idNotary not in containerNotaries.objectIds():
+                self.createNotary(lines[0])
+
+            item = api.content.get(path='/Plone/urban/notaries/' + idNotary)
+            return item.UID()
+
+    def createNotary(self, notary_infos):
+
+        # new_id = ('notary' + str(notary_infos[36]) + str(notary_infos[37])).lower()
+        new_id = idnormalizer.normalize(u"notary" + str(notary_infos[36]) + str(notary_infos[37]))
+
+        new_name1 = str(notary_infos[36])
+        new_name2 = str(notary_infos[37])
+        telfixe = str(notary_infos[38])
+        telgsm = str(notary_infos[39])
+        email = str(notary_infos[40])
+
+        container = api.content.get(path='/Plone/urban/notaries')
+
+        if not (new_id in container.objectIds()):
+            object_id = container.invokeFactory('Notary', id=new_id,
+                                                name1=new_name1,
+                                                name2=new_name2,
+                                                phone=telfixe,
+                                                gsm=telgsm,
+                                                email=email)
 
 #
 # PARCEL
@@ -855,3 +932,4 @@ class FirstFolderTransmittedToRwEventIdMapper(Mapper):
 
     def mapId(self, line):
         return 'first_folder_transmitted_to_rw_event'
+

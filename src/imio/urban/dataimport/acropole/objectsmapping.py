@@ -11,7 +11,8 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     LicenceToApplicantEventMapper, LicenceToApplicantEventIdMapper, LicenceToApplicantDateMapper, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
     FolderZoneTableMapper, SolicitOpinionsToMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
-    RwTransmittedMapper, FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper
+    RwTransmittedMapper, FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper, \
+    NotaryContactMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -28,6 +29,7 @@ OBJECTS_NESTING = [
             ('SEND LICENCE TO APPLICANT EVENT', []),
             ('SEND LICENCE TO FD EVENT', []),
         ],
+
     ),
 ]
 
@@ -89,6 +91,14 @@ FIELDS_MAPPINGS = {
                 'to': 'folderZone',
             },
 
+
+            NotaryContactMapper: {
+                'table': 'wrkdossier',
+                'KEYS': ('ID', 'K_ID1',),
+                'from': ('DOSSIER_TDOSSIERID',),
+                'to': 'notaryContact',
+            },
+
             SolicitOpinionsToMapper: {
                 'table': 'wrkavis',
                 'KEYS': ('WRKDOSSIER_ID', 'AVIS_DOSSIERID'),
@@ -136,7 +146,7 @@ FIELDS_MAPPINGS = {
         'mappers': {
             ApplicantMapper: {
                 'table': 'cpsn',
-                'KEYS': ('WRKDOSSIER_ID', 'CPSN_ID'),
+                'KEYS': ('WRKDOSSIER_ID', 'CPSN_ID',),
                 'mappers': {
                     SimpleStringMapper: (
                         {
@@ -171,7 +181,6 @@ FIELDS_MAPPINGS = {
                         'from': ('CPSN_TEL1', 'CPSN_GSM'),
                         'to': 'phone',
                     },
-
                 },
             },
         },
