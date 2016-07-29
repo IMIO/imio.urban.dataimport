@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding:utf-8 -*-
 
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
@@ -53,7 +53,7 @@ class PortalTypeMapper(Mapper):
         PortalTypeMapper.cpt_dossier += 1
         type_value = self.getData('DOSSIER_TDOSSIERID')
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
-        # # TODO remove this filter! Dev mode
+        # #TODO remove this filter! Dev mode
         # if portal_type != 'NotaryLetter':
         #     raise NoObjectToCreateException
         if not portal_type:
@@ -609,7 +609,7 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
 
             lines = self.query.filter(wrkdossier.columns['WRKDOSSIER_ID'] == line[0]).all()
 
-            idNotary = idnormalizer.normalize(u"notary" + str(lines[0][36]) + str(lines[0][37]))
+            idNotary = idnormalizer.normalize(self.createId("notary" + lines[0][36] + lines[0][37]))
             containerNotaries = api.content.get(path='/Plone/urban/notaries')
 
             if idNotary not in containerNotaries.objectIds():
@@ -620,11 +620,10 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
 
     def createNotary(self, notary_infos):
 
-        # new_id = ('notary' + str(notary_infos[36]) + str(notary_infos[37])).lower()
-        new_id = idnormalizer.normalize(u"notary" + str(notary_infos[36]) + str(notary_infos[37]))
+        new_id = idnormalizer.normalize(self.createId("notary" + notary_infos[36] + notary_infos[37]))
 
-        new_name1 = str(notary_infos[36])
-        new_name2 = str(notary_infos[37])
+        new_name1 = str(notary_infos[36]).decode("utf-8",errors='ignore')
+        new_name2 = str(notary_infos[37]).decode("utf-8",errors='ignore')
         telfixe = str(notary_infos[38])
         telgsm = str(notary_infos[39])
         email = str(notary_infos[40])
@@ -638,6 +637,13 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
                                                 phone=telfixe,
                                                 gsm=telgsm,
                                                 email=email)
+
+    def createId(self,new_id):
+
+        encoding = "utf-8"
+        id = new_id.replace(" ","").decode(encoding,errors='ignore')
+        return id
+
 
 #
 # PARCEL
