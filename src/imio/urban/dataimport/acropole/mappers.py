@@ -47,16 +47,16 @@ class IdMapper(Mapper):
 
 class PortalTypeMapper(Mapper):
 
-    cpt_dossier = 0
+    cpt_dossier_from_start_line = 0
 
     def mapPortal_type(self, line):
-        PortalTypeMapper.cpt_dossier += 1
+        PortalTypeMapper.cpt_dossier_from_start_line += 1
         type_value = self.getData('DOSSIER_TDOSSIERID')
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
         # #TODO remove this filter! Dev mode
         # if portal_type != 'NotaryLetter':
         #     raise NoObjectToCreateException
-        if portal_type != 'BuildLicence':
+        if portal_type != 'BuildLicence' and portal_type != 'MiscDemand':
             raise NoObjectToCreateException
 
         if not portal_type:
