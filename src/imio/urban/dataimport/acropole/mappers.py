@@ -53,9 +53,21 @@ class PortalTypeMapper(Mapper):
         PortalTypeMapper.cpt_dossier_from_start_line += 1
         type_value = self.getData('DOSSIER_TDOSSIERID')
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
-        # #TODO remove this filter! Dev mode
+
+        #TODO remove this filter zone! Dev mode
+        # *** start zone ***
+
+        # if self.getData('WRKDOSSIER_ID', line=line) == 3525889:
+        #     print PortalTypeMapper.cpt_dossier_from_start_line
+        #     import ipdb; ipdb.set_trace()
+        # else:
+        #     raise NoObjectToCreateException
+
         # if portal_type != 'NotaryLetter':
         #     raise NoObjectToCreateException
+
+        # *** end zone ***
+
         if portal_type != 'BuildLicence' and portal_type != 'MiscDemand':
             raise NoObjectToCreateException
 
@@ -889,6 +901,9 @@ class FirstFolderTransmmittedToRwMapper(SecondaryTableMapper):
         self.query = self.query.join(
             k2,
             wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+        ).join(
+            wrkdossier,
+                k2.columns['K_ID1'] == wrkdossier.columns['WRKDOSSIER_ID']
         ).filter(
             or_(wrkparam.columns['PARAM_DATATYPE'] == 'Date', wrkparam.columns['PARAM_DATATYPE'] == 'Oui/Non'
                 )
@@ -896,29 +911,55 @@ class FirstFolderTransmmittedToRwMapper(SecondaryTableMapper):
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
         ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
 
+    def map(self, line, **kwargs):
+
+        raw_externalDecision_toDictionnary = {
+            u"avis favorable": "favorable",
+            u"avis favorable conditionnel": "favorable-conditionnel",
+            u"avis favorable cond.": "favorable-conditionnel",
+            u"avis défavorable": "defavorable",
+            u"avis favorable par défaut": "favorable-defaut",
+        }
+
+        objects_args = {}
+        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
+        if lines:
+            for line in lines:
+
+                # if self.getData('PARAM_NOMFUSION', line=line) == 'Date décision FD':
+                #     import ipdb; ipdb.set_trace()
+
+                mapped_valueDecisionDate = self.mapParam(line, 'Date', 'Date décision FD', **kwargs)
+                if mapped_valueDecisionDate:
+                    import ipdb; ipdb.set_trace()
+                    objects_args.update({'decisionDate': mapped_valueDecisionDate})
+
+                if self.getData('PARAM_NOMFUSION', line=line) in raw_externalDecision_toDictionnary:
+                    mapped_valueExternalDecision = self.mapParam(line, 'Oui/Non', self.getData('PARAM_NOMFUSION', line=line), **kwargs)
+                    if mapped_valueExternalDecision and mapped_valueExternalDecision == '1':
+                        objects_args.update({'externalDecision': raw_externalDecision_toDictionnary[self.getData('PARAM_NOMFUSION', line=line)]})
+
+                mapped_valueEventDate = self.mapParam(line, 'Date', 'Date Transmis permis au FD', **kwargs)
+                if mapped_valueEventDate:
+                    objects_args.update({'eventDate': mapped_valueEventDate})
+
+        if not objects_args:
+            raise NoObjectToCreateException
+        return objects_args
+
+    def mapParam(self, line, dataType, nomFusion):
+
+        if self.getData('PARAM_DATATYPE', line=line) == dataType:
+                if self.getData('PARAM_NOMFUSION', line=line) == nomFusion:
+                    return self.getData('PARAM_VALUE', line=line)
+
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        lines = self.query.filter_by(K_ID1=licence_id).all()
-
-        # if licence_id == 3525889:
-        #     import ipdb; ipdb.set_trace()
+        lines = self.query.filter_by(WRKDOSSIER_ID=licence_id).all()
 
         if not lines:
             raise NoObjectToCreateException
 
         return lines
-
-class EventDateFirstFolderTransmmittedToRwMapper(Mapper):
-
-    def mapEventdate(self, line):
-
-        # if self.getData('WRKDOSSIER_ID', line=line) == 3525889:
-        #     import ipdb; ipdb.set_trace()
-
-        if ((self.getData('PARAM_DATATYPE', line=line) == 'Date') and
-                (self.getData('PARAM_NOMFUSION', line=line) == 'Date Transmis permis au FD')):
-            # import ipdb; ipdb.set_trace()
-            return self.getData('PARAM_VALUE', line=line)
-
 

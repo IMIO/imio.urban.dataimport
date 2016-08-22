@@ -10,7 +10,7 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     CompleteFolderEventIdMapper, CompleteFolderDateMapper, EventDateMapper, \
     LicenceToApplicantEventMapper, LicenceToApplicantEventIdMapper, LicenceToApplicantDateMapper, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
-    EventDateFirstFolderTransmmittedToRwMapper, FolderZoneTableMapper, SolicitOpinionsToMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
+    FolderZoneTableMapper, SolicitOpinionsToMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
     FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper, \
     NotaryContactMapper, FirstFolderTransmmittedToRwMapper
 
@@ -25,7 +25,7 @@ OBJECTS_NESTING = [
             ('DEPOSIT EVENT', []),
             ('COMPLETE FOLDER EVENT', []),
             ('DECISION EVENT', []),
-            # ('FIRST FOLDER TRANSMITTED TO RW EVENT', []),
+            ('FIRST FOLDER TRANSMITTED TO RW EVENT', []),
             ('SEND LICENCE TO APPLICANT EVENT', []),
             ('SEND LICENCE TO FD EVENT', []),
         ],
@@ -297,22 +297,9 @@ FIELDS_MAPPINGS = {
             FirstFolderTransmmittedToRwMapper: {
                 'table': 'wrkparam',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
-                'event_name': 'envoi du permis au FD',
-                'mappers': {
-                    EventDateFirstFolderTransmmittedToRwMapper: {
-                        'from': ('PARAM_VALUE', 'PARAM_NOMFUSION', 'PARAM_DATATYPE', 'DOSSIER_TDOSSIERID','WRKDOSSIER_ID'),
-                        'to': ('eventDate',),
-                    },
-                },
+                'event_name': '1er dossier transmis au RW',
 
             },
-
-            # RwTransmittedMapper: {
-            #     'table': 'wrkparam',
-            #     'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
-            #     'from': ('PARAM_VALUE', 'PARAM_NOMFUSION', 'PARAM_DATATYPE','DOSSIER_TDOSSIERID'),
-            #     'to': ('externalDecision', 'eventDate', 'decisionDate',),
-            # },
 
         },
     },
