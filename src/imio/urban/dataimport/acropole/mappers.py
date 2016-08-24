@@ -66,10 +66,10 @@ class PortalTypeMapper(Mapper):
         # if portal_type != 'NotaryLetter':
         #     raise NoObjectToCreateException
 
-        # *** end zone ***
+        # if portal_type != 'BuildLicence' and portal_type != 'MiscDemand':
+        #     raise NoObjectToCreateException
 
-        if portal_type != 'BuildLicence' and portal_type != 'MiscDemand':
-            raise NoObjectToCreateException
+        # *** end zone ***
 
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
@@ -546,7 +546,7 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
         self.query = self.query.join(
             cpsn, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
         ).filter(or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753,
-                     wrkdossier.columns['DOSSIER_TDOSSIERID'] == 692167, )
+                     wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766, )
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
         ).add_column(cpsn.columns['CPSN_NOM']
         ).add_column(cpsn.columns['CPSN_PRENOM']
@@ -566,8 +566,11 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
             wrkdossier = self.importer.datasource.get_table(self.table)
 
             lines = self.query.filter(wrkdossier.columns['WRKDOSSIER_ID'] == line[0]).all()
-
-            idNotary = idnormalizer.normalize(self.createId("notary" + lines[0][36] + lines[0][37]))
+            if not lines:
+                raise NoObjectToCreateException
+            firstPart = self.convertSpecialCaracter(lines[0][36])
+            secondPart = self.convertSpecialCaracter(lines[0][37])
+            idNotary = idnormalizer.normalize(self.createId(self.concatId(firstPart, secondPart)))
             containerNotaries = api.content.get(path='/Plone/urban/notaries')
 
             if idNotary not in containerNotaries.objectIds():
@@ -578,13 +581,17 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
 
     def createNotary(self, notary_infos):
 
-        new_id = idnormalizer.normalize(self.createId("notary" + notary_infos[36] + notary_infos[37]))
+        firstPart = self.convertSpecialCaracter(notary_infos[36])
+        secondPart = self.convertSpecialCaracter(notary_infos[37])
 
-        new_name1 = str(notary_infos[36]).decode("utf-8",errors='ignore')
-        new_name2 = str(notary_infos[37]).decode("utf-8",errors='ignore')
-        telfixe = str(notary_infos[38])
-        telgsm = str(notary_infos[39])
-        email = str(notary_infos[40])
+        new_id = idnormalizer.normalize(self.createId(self.concatId(firstPart,secondPart)))
+        new_name1 = firstPart if firstPart else ""
+        # new_name2 = str(notary_infos[37]).decode("utf-8",errors='ignore') if notary_infos[37] else ""
+        new_name2 = secondPart if secondPart else ""
+
+        telfixe = str(notary_infos[38]) if notary_infos[38] else ""
+        telgsm = str(notary_infos[39]) if notary_infos[39] else ""
+        email = str(notary_infos[40]) if notary_infos[40] else ""
 
         container = api.content.get(path='/Plone/urban/notaries')
 
@@ -599,8 +606,35 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
     def createId(self,new_id):
 
         encoding = "utf-8"
-        id = new_id.replace(" ","").decode(encoding,errors='ignore')
+        id = new_id.replace(" ","") #.decode(encoding,errors='ignore')
         return id
+
+    def concatId(self,name,firstName):
+
+        idToNormalize = u"notary"
+
+        if name:
+            idToNormalize += name
+        if firstName:
+            idToNormalize += firstName
+
+        return idToNormalize
+
+    def convertSpecialCaracter(self,string):
+
+        if not string:
+            return ""
+
+        # Nothing better for now : specific replace for one shot import
+        string = string.replace('\xe7', 'ç')
+        string = string.replace('\xe8', 'è')
+        string = string.replace('\xe9', 'é')
+        string = string.replace('\xeb', 'ë')
+        string = string.replace('\xee', 'î')
+        string = string.replace('\xef', 'ï')
+        string = string.replace('\xfa', 'ú')
+
+        return unicode(string,"utf-8")
 
 
 #
