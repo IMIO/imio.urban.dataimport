@@ -98,7 +98,6 @@ class StreetAndNumberMapper(Mapper):
         raw_street = self.getData('SITUATION_DES') or u''
         parsed_street = re.search('(.*?)(\d+.*)?\( (?:(?:562\d)|(?:0 FLORENNES))', raw_street)
         if parsed_street:
-            # import ipdb; ipdb.set_trace()
             street, num = parsed_street.groups()
             street_keywords = cleanAndSplitWord(street)
             brains = self.catalog(portal_type='Street', Title=street_keywords)
@@ -508,10 +507,6 @@ class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
         if raw_pca_zone in zoneDictionnary:
             return zoneDictionnary[raw_pca_zone]
         else:
-            print (raw_pca_zone)
-            import ipdb; ipdb.set_trace()
-            with open("raw_pca_zone.csv", "a") as file:
-                file.write("zone inconnue : " + raw_pca_zone.encode("ascii",errors='ignore')  + "\n")
             return "unknown"
 
 
@@ -677,7 +672,6 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
         cpsn = self.importer.datasource.get_table('cpsn')
         wrkdossier = self.importer.datasource.get_table(self.table)
         k2 = self.importer.datasource.get_table('k2')
-        # import ipdb; ipdb.set_trace()
         self.query = self.init_query(self.table)
         self.query = self.query.join(
             k2, wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID2']
