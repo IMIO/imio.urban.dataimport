@@ -12,7 +12,7 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
     FolderZoneTableMapper, SolicitOpinionsToMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
     FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper, \
-    NotaryContactMapper, FirstFolderTransmmittedToRwMapper
+    NotaryContactMapper, FirstFolderTransmmittedToRwMapper, PcaZoneTableMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -91,6 +91,12 @@ FIELDS_MAPPINGS = {
                 'to': 'folderZone',
             },
 
+            PcaZoneTableMapper: {
+                'table': 'schemaaff',
+                'KEYS': ('WRKDOSSIER_ID', 'SCA_SCHEMA_ID'),
+                'from': 'SCA_LABELFR',
+                'to': 'pcaZone',
+            },
 
             NotaryContactMapper: {
                 'table': 'wrkdossier',

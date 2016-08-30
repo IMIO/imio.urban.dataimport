@@ -189,7 +189,7 @@ class FolderZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
 
     def mapFolderzone(self, line):
         raw_folder_zone = self.getData('PRCD_AFFLABEL', line=line)
-        raw_folder_zone = raw_folder_zone.lower()
+        raw_folder_zone = raw_folder_zone.lower().strip()
         zoneDictionnary = {
             u"zone d'habitat": "zh",
             u"zone d'habitat à caractère rural": "zhcr",
@@ -261,8 +261,14 @@ class FolderZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
 class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
 
     def mapSolicitopinionsto(self, line):
+
+        if self.getData('AVIS_REQ', line=line) != 1:
+            import ipdb; ipdb.set_trace()
+            raise NoObjectToCreateException
+
         raw_solicit_opinion_to = self.getData('AVIS_NOM', line=line)
         raw_solicit_opinion_to = raw_solicit_opinion_to.lower()
+
 
         solicit_opinion_toDictionnary = {
             u"stp_eau": "stp",
@@ -306,10 +312,15 @@ class PCAInit(SecondaryTableMapper):
     raw_pca_toDictionnary = {
         u"ppa1part": "pca1",
         u"ppa1": "pca1",
-        u"ppa3": "pca3",
-        u"ppa3part": "pca3",
+        u"ppa1b": "pca1",
+        u"ppa1tflo": "pca1",
+        u"ppa1tfla": "pca1",
         u"ppa2": "pca2",
         u"ppa2part": "pca2",
+        u"ppa2b": "pca2",
+        u"ppa3": "pca3",
+        u"ppa3part": "pca3",
+        u"ppa3mod": "pca3",
     }
 
     def __init__(self, mysql_importer, args):
@@ -362,7 +373,7 @@ class PCAMapper(PCAInit):
             for line in lines:
                 mapped_value = self.mapIsinpca(line, **kwargs)
                 if mapped_value:
-                    objects_args.update({'isInPCA': mapped_value})
+                    objects_args.update({'isInPCA': True})
 
         return objects_args
 
@@ -373,6 +384,136 @@ class PCAMapper(PCAInit):
         raw_pca = raw_pca.lower()
 
         return self.raw_pca_toDictionnary.get(raw_pca, False)
+
+
+class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(PcaZoneTableMapper, self).__init__(mysql_importer, args)
+        schemaaff = self.importer.datasource.get_table('schemaaff')
+        schema = self.importer.datasource.get_table('schema')
+        prc_data = self.importer.datasource.get_table('prc_data')
+        urbcadastre = self.importer.datasource.get_table('urbcadastre')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+
+        self.query = self.query.join(
+            schema,
+            schemaaff.columns['SCA_SCHEMA_ID'] == schema.columns['SCHEMA_ID']
+        ).join(
+            prc_data,
+            schema.columns['SCHEMA_ID'] == prc_data.columns['PRCD_SCHID']
+        ).join(
+            urbcadastre,
+            prc_data.columns['PRCD_PRC'] == urbcadastre.columns['CAD_NOM']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID'] == urbcadastre.columns['CAD_DOSSIER_ID']
+        ).filter(schema.columns['SCH_FUSION'].like('PPA%'))
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        lines = self.query.filter_by(WRKDOSSIER_ID=licence_id).all()
+        return lines
+
+    def mapPcazone(self, line):
+        raw_pca_zone = self.getData('SCA_LABELFR', line=line)
+        raw_pca_zone = raw_pca_zone.lower().strip()
+        zoneDictionnary = {
+            u"aire de faible densité" : "afad",
+            u"aire de forte densité" : "afod",
+            u"aire de moyenne densité" : "amd",
+            u"dans un périmètre d'intérêt culturel, historique ou esthétique" : "dupiche",
+            u"dans un périmètre d'intérêt paysager" : "dupip",
+            u"dans un périmètre de réservation" : "dupdr",
+            u"déclaré inhabitable" : "di",
+            u"dossier en cours" : "dec",
+            u"eau" : "eau",
+            u"élevé" : "eleve",
+            u"éloignée" : "eloi",
+            u"en partie dans un périmètre de réservation" : "epdupdr",
+            u"faible" : "fai",
+            u"infraction relevée mais sans pv" : "irmspv",
+            u"moyen" : "moy",
+            u"parcs résidentiels" : "pres",
+            u"périmètre de réservation sur 75 m de profondeur à partir de l'axe de la voirie" : "pdrs75mdpapdadlv",
+            u"périmètre de zones protégées" : "pdzp",
+            u"plan d'eau" : "peau",
+            u"pv de constat d'infraction" : "pvdci",
+            u"rapprochée" : "rapp",
+            u"sans affectation" : "saffec",
+            u"travaux imposés" : "timp",
+            u"très faible" : "tfai",
+            u"voirie" : "voirie",
+            u"zone agricole" : "za",
+            u"zone agricole dans un périmètre d'intérêt paysager" : "zadupip",
+            u"zone agricole dans un périmètre d'intérêt paysager pour le surplus" : "zadupippsur",
+            u"zone agricole et zone de bâtisses agricoles" : "zaezba",
+            u"zone agricole et zone forestière" : "zaezf",
+            u"zone agricole pour le surplus" : "zaplsur",
+            u"zone agricole pour partie" : "zapp",
+            u"zone artisanale" : "zart",
+            u"zone boisée" : "zb",
+            u"zone d'activité économique industrielle" : "zaei",
+            u"zone d'activité économique mixte" : "zaem",
+            u"zone d'activités économiques et commerciales" : "zaeec",
+            u"zone d'aménagement communal concerté" : "zacc",
+            u"zone d'aménagement communal concerté mise en oeuvre" : "zaccmeo",
+            u"zone d'assainissement autonome" : "zaa",
+            u"zone d'assainissement collectif" : "zac",
+            u"zone d'entreprise commerciale de grande dimension" : "zecdgd",
+            u"zone d'équipement communautaire" : "zec",
+            u"zone d'équipements communautaires et de services publics" : "zecedsp",
+            u"zone d'espaces verts" : "zev",
+            u"zone d'ext d'industrie" : "zexti",
+            u"zone d'ext. d'habitat" : "zexth",
+            u"zone d'ext. d'habitat à caractère rural" : "zexthacr",
+            u"zone d'ext.. de parcs résidentiels" : "zextdpr",
+            u"zone d'extension pour bâtisses  espacées" : "zexpbe",
+            u"zone d'extension pour bâtisses espacées" : "zexpbe",
+            u"zone d'extraction" : "zextract",
+            u"zone d'habitat" : "zha",
+            u"zone d'habitat à caractère rural" : "zhaacr",
+            u"zone d'habitat à caractère rural sur une profondeur de 40 mètres" : "zhaacrsp40",
+            u"zone d'habitat à caractère rural sur une profondeur de 50 mètres" : "zhaacrsp50",
+            u"zone d'habitat dans un périmètre d'intérêt culturel, historique ou esthétique" : "zhadupiche",
+            u"zone d'habitat sur 50 m de profondeur" : "zhas50dp",
+            u"zone d'habitation" : "zhation",
+            u"zone d'habitation, annexes, abris" : "zhaaa",
+            u"zone de bâtisses agricoles" : "zdba",
+            u"zone de construction d'habitation fermée" : "zdchaf",
+            u"zone de construction d'habitation ouverte" : "zdchao",
+            u"zone de construction d'habitation semi-ouverte" : "zdchaso",
+            u"zone de construction en annexe" : "zdcea",
+            u"zone de cours et jardins" : "zdcej",
+            u"zone de loisirs" : "zdl",
+            u"zone de parc" : "zdparc",
+            u"zone de parc ou d'espaces verts" : "zdparcev",
+            u"zone de prévention en matière de prises d'eau souterraines, zones éloignées." : "zdpemdpeausoutze",
+            u"zone de recul" : "zdrec",
+            u"zone de recul et de voirie" : "zdrecedv",
+            u"zone de recul, zone de construction d'habitation fermée et zone de cours et jardins" : "zdreczdchafeezdcej",
+            u"zone de service" : "zdserv",
+            u"zone de voirie réservée aux piétons" : "zdvoirap",
+            u"zone de voiries et d'espaces publics" : "zdveep",
+            u"zone faiblement habitée" : "zfaiha",
+            u"zone forestière" : "zforest",
+            u"zone forestière d'intérêt paysager" : "zforestip",
+            u"zone industrielle" : "zi",
+            u"zone réservée aux annexes" : "zresaa",
+            u"zone réservée aux constructions à un étage" : "zresacaue",
+            u"zone réservée aux constructions principales" : "zresacprinc",
+            u"zone réservée aux constructions principales, en zone de cours et jardins et en voirie" : "zresacprincezcejeev",
+        }
+
+        if raw_pca_zone in zoneDictionnary:
+            return zoneDictionnary[raw_pca_zone]
+        else:
+            print (raw_pca_zone)
+            import ipdb; ipdb.set_trace()
+            with open("raw_pca_zone.csv", "a") as file:
+                file.write("zone inconnue : " + raw_pca_zone.encode("ascii",errors='ignore')  + "\n")
+            return "unknown"
+
 
 
 class InvestigationDateMapper(SecondaryTableMapper):
@@ -757,6 +898,7 @@ class DepositEventMapper(Mapper):
 class DepositDateMapper(Mapper):
 
     def mapEventdate(self, line):
+
         date = self.getData('DOSSIER_DATEDEPOT')
         if not date:
             raise NoObjectToCreateException
@@ -829,6 +971,7 @@ class DecisionEventIdMapper(Mapper):
 class DecisionEventDateMapper(Mapper):
 
     def mapEventdate(self, line):
+
         date = self.getData('DOSSIER_DATEDELIV')
         if not date:
             self.logError(self, line, 'No decision date found')
@@ -965,7 +1108,7 @@ class FirstFolderTransmmittedToRwMapper(SecondaryTableMapper):
 
                 mapped_valueDecisionDate = self.mapParam(line, 'Date', 'Date décision FD', **kwargs)
                 if mapped_valueDecisionDate:
-                    import ipdb; ipdb.set_trace()
+                    # import ipdb; ipdb.set_trace()
                     objects_args.update({'decisionDate': mapped_valueDecisionDate})
 
                 if self.getData('PARAM_NOMFUSION', line=line) in raw_externalDecision_toDictionnary:
@@ -997,3 +1140,25 @@ class FirstFolderTransmmittedToRwMapper(SecondaryTableMapper):
 
         return lines
 
+
+# *** Utils ***
+
+class Utils():
+
+    @staticmethod
+    def convertSpecialCaracter(string):
+        if not string:
+            return ""
+
+        # Nothing better for now : specific replace for one shot import
+        string = string.replace('\xc3', '')
+
+        string = string.replace('\xe7', 'ç')
+        string = string.replace('\xe8', 'è')
+        string = string.replace('\xe9', 'é')
+        string = string.replace('\xeb', 'ë')
+        string = string.replace('\xee', 'î')
+        string = string.replace('\xef', 'ï')
+        string = string.replace('\xfa', 'ú')
+
+        return unicode(string, "utf-8")
