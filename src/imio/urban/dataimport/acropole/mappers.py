@@ -3,6 +3,7 @@
 from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
 from plone import api
+from plone.api.exc import InvalidParameterError
 from sqlalchemy import or_
 from plone.i18n.normalizer import idnormalizer
 
@@ -57,8 +58,7 @@ class PortalTypeMapper(Mapper):
         #TODO remove this filter zone! Dev mode
         # *** start zone ***
 
-        # if self.getData('WRKDOSSIER_ID', line=line) == 3525889:
-        #     print PortalTypeMapper.cpt_dossier_from_start_line
+        # if self.getData('WRKDOSSIER_ID', line=line) == 2586273:
         #     import ipdb; ipdb.set_trace()
         # else:
         #     raise NoObjectToCreateException
@@ -248,6 +248,14 @@ class FolderZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
             u"dans un périmètre d''intérêt culturel, historique ou esthétique": "pche",
             u"dans un périmètre de réservation": "dpdr",
             u"dans un périmètre d'intérêt paysager": "dpip",
+            u"faible": "fai",
+            u"très faible": "tfai",
+            u"eau": "eau",
+            u"élevé": "eleve",
+            u"éloignée": "eloi",
+            u"dossier en cours": "dec",
+            u"dans un périmètre d'intérêt culturel, historique ou esthétique": "dupiche",
+            u"zone d'habitat sur 50 m de profondeur": "zhas50dp",
         }
 
         if raw_folder_zone in zoneDictionnary:
@@ -262,7 +270,6 @@ class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
     def mapSolicitopinionsto(self, line):
 
         if self.getData('AVIS_REQ', line=line) != 1:
-            import ipdb; ipdb.set_trace()
             raise NoObjectToCreateException
 
         raw_solicit_opinion_to = self.getData('AVIS_NOM', line=line)
@@ -532,18 +539,31 @@ class InvestigationDateMapper(SecondaryTableMapper):
         objects_args = {}
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
         if lines:
+            # if line[0] == 2586273:
+            #     import ipdb; ipdb.set_trace()
             for line in lines:
                 if (self.getData('PARAM_IDENT', line=line) == 'EnqDatDeb'):
                     if (self.getData('PARAM_VALUE', line=line)):
-                        objects_args.update({'investigationStart': self.getData('PARAM_VALUE', line=line)})
+                        objects_args.update({'investigationStart': self.inverseDateDayMonth(self.getData('PARAM_VALUE', line=line))})
                 elif (self.getData('PARAM_IDENT', line=line) == 'EnqDatFin'):
                     if (self.getData('PARAM_VALUE', line=line)):
-                        objects_args.update({'investigationEnd': self.getData('PARAM_VALUE', line=line)})
+                        objects_args.update({'investigationEnd': self.inverseDateDayMonth(self.getData('PARAM_VALUE', line=line))})
                 else:
                     return
 
         return objects_args
 
+    def inverseDateDayMonth(self,date):
+
+        # TODO this is a W.A, change zope/plone config to avoid this ?
+        if date and (len(date) == 10):
+            month = date[0:2]
+            day = date[3:5]
+            year = date[6:10]
+            inverseDate = u"" + day + '-' + month + '-' + year
+            return inverseDate
+
+        return date
 
 class ParcelsMapper(MultiLinesSecondaryTableMapper):
     """ """
@@ -555,7 +575,11 @@ class CompletionStateMapper(PostCreationMapper):
         state = self.getData('DOSSIER_OCTROI', line)
         transition = self.getValueMapping('state_map')[state]
         if transition:
-            api.content.transition(plone_object, transition)
+            try:
+                api.content.transition(plone_object, transition)
+            except InvalidParameterError:
+                # TODO check valid transition for Division (type -14179, id 6294300)
+                api.content.transition(plone_object, 'nonapplicable')
 
 
 class ErrorsMapper(FinalMapper):
