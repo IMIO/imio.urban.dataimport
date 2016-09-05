@@ -4,7 +4,7 @@ from DateTime import DateTime
 from Products.CMFPlone.utils import normalizeString
 from plone import api
 from plone.api.exc import InvalidParameterError
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from plone.i18n.normalizer import idnormalizer
 
 import re
@@ -57,6 +57,9 @@ class PortalTypeMapper(Mapper):
 
         #TODO remove this filter zone! Dev mode
         # *** start zone ***
+
+        # with open("sequence_dossier.csv", "a") as file:
+        #     file.write(str(PortalTypeMapper.cpt_dossier_from_start_line) + "," + str(self.getData('WRKDOSSIER_ID')) + "\n")
 
         # if self.getData('WRKDOSSIER_ID', line=line) == 2586273:
         #     import ipdb; ipdb.set_trace()
@@ -565,6 +568,34 @@ class InvestigationDateMapper(SecondaryTableMapper):
 
         return date
 
+
+class FD_SolicitOpinionMapper(SecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(FD_SolicitOpinionMapper, self).__init__(mysql_importer, args)
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        k2 = self.importer.datasource.get_table('k2')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+
+        self.query = self.query.join(
+            k2,
+            wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
+        ).filter(and_(wrkparam.columns['PARAM_VALUE'] == '1',
+                     wrkparam.columns['PARAM_NOMFUSION'].like(u'%avis préalable du FD%')))
+
+    def map(self, line, **kwargs):
+        objects_args = {}
+        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
+        if lines:
+            objects_args.update({'procedureChoice': 'FD'})
+            objects_args.update({'roadAdaptation': 'create'})
+
+        return objects_args
+
+
 class ParcelsMapper(MultiLinesSecondaryTableMapper):
     """ """
 
@@ -579,7 +610,8 @@ class CompletionStateMapper(PostCreationMapper):
                 api.content.transition(plone_object, transition)
             except InvalidParameterError:
                 # TODO check valid transition for Division (type -14179, id 6294300)
-                api.content.transition(plone_object, 'nonapplicable')
+                if plone_object.getId() == '6294300l':
+                    api.content.transition(plone_object, 'nonapplicable')
 
 
 class ErrorsMapper(FinalMapper):

@@ -10,7 +10,7 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     CompleteFolderEventIdMapper, CompleteFolderDateMapper, EventDateMapper, \
     LicenceToApplicantEventMapper, LicenceToApplicantEventIdMapper, LicenceToApplicantDateMapper, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
-    FolderZoneTableMapper, SolicitOpinionsToMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
+    FolderZoneTableMapper, SolicitOpinionsToMapper, FD_SolicitOpinionMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
     FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper, \
     NotaryContactMapper, FirstFolderTransmmittedToRwMapper, PcaZoneTableMapper
 
@@ -131,6 +131,13 @@ FIELDS_MAPPINGS = {
                 'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
                 'from': ('PARAM_VALUE', 'PARAM_VALUE',),
                 'to': ('investigationStart', 'investigationEnd',),
+            },
+
+            FD_SolicitOpinionMapper: {
+                'table': 'wrkparam',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                'from': ('PARAM_VALUE', 'PARAM_NOMFUSION',),
+                'to': ('procedureChoice', 'roadAdaptation',),
             },
 
             CompletionStateMapper: {
