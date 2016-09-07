@@ -3,11 +3,26 @@
 from zope.interface import implements
 
 from imio.urban.dataimport.acropole.interfaces import IAcropoleDataImporter
+from imio.urban.dataimport.acropole.interfaces import IAcropoleImportSource
 from imio.urban.dataimport.acropole import objectsmapping
 from imio.urban.dataimport.acropole import valuesmapping
 from imio.urban.dataimport.mapping import ObjectsMapping
 from imio.urban.dataimport.mapping import ValuesMapping
 from imio.urban.dataimport.MySQL.importer import MySQLDataImporter
+from imio.urban.dataimport.MySQL.importer import MySQLImportSource
+
+
+class AcropoleImportSource(MySQLImportSource):
+    implements(IAcropoleImportSource)
+
+    def iterdata(self):
+
+        result = self.session.query(self.main_table)
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        # records = result.filter_by(WRKDOSSIER_ID=6112664).order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).all()
+        records = result.order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).all()
+
+        return records
 
 
 class AcropoleDataImporter(MySQLDataImporter):

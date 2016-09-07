@@ -137,7 +137,7 @@ FIELDS_MAPPINGS = {
                 'table': 'wrkparam',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
                 'from': ('PARAM_VALUE', 'PARAM_NOMFUSION',),
-                'to': ('procedureChoice', 'roadAdaptation',),
+                'to': ('procedureChoice',),
             },
 
             CompletionStateMapper: {

@@ -60,16 +60,12 @@ class PortalTypeMapper(Mapper):
 
         # with open("sequence_dossier.csv", "a") as file:
         #     file.write(str(PortalTypeMapper.cpt_dossier_from_start_line) + "," + str(self.getData('WRKDOSSIER_ID')) + "\n")
-
-        # if self.getData('WRKDOSSIER_ID', line=line) == 2586273:
+        # import ipdb; ipdb.set_trace()
+        # if self.getData('WRKDOSSIER_ID', line=line) == 6112664:
         #     import ipdb; ipdb.set_trace()
-        # else:
-        #     raise NoObjectToCreateException
+
 
         # if portal_type != 'NotaryLetter':
-        #     raise NoObjectToCreateException
-
-        # if portal_type != 'BuildLicence' and portal_type != 'MiscDemand':
         #     raise NoObjectToCreateException
 
         # *** end zone ***
@@ -273,7 +269,7 @@ class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
     def mapSolicitopinionsto(self, line):
 
         if self.getData('AVIS_REQ', line=line) != 1:
-            raise NoObjectToCreateException
+            return None
 
         raw_solicit_opinion_to = self.getData('AVIS_NOM', line=line)
         raw_solicit_opinion_to = raw_solicit_opinion_to.lower()
@@ -591,7 +587,7 @@ class FD_SolicitOpinionMapper(SecondaryTableMapper):
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
         if lines:
             objects_args.update({'procedureChoice': 'FD'})
-            objects_args.update({'roadAdaptation': 'create'})
+            # objects_args.update({'roadAdaptation': 'create'}) # Removed after customer demand
 
         return objects_args
 
@@ -610,8 +606,8 @@ class CompletionStateMapper(PostCreationMapper):
                 api.content.transition(plone_object, transition)
             except InvalidParameterError:
                 # TODO check valid transition for Division (type -14179, id 6294300)
-                if plone_object.getId() == '6294300l':
-                    api.content.transition(plone_object, 'nonapplicable')
+                # if plone_object.getId() == '6294300l':
+                api.content.transition(plone_object, 'nonapplicable')
 
 
 class ErrorsMapper(FinalMapper):

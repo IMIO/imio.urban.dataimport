@@ -3,6 +3,13 @@
     xmlns:five="http://namespaces.zope.org/five"
     i18n_domain="imio.urban.dataimport">
 
+     <adapter
+         for="imio.urban.dataimport.acropole.interfaces.IAcropoleDataImporter"
+         factory=".importer.AcropoleImportSource"
+         provides="imio.urban.dataimport.interfaces.IUrbanImportSource"
+         name="data source"
+      />
+
     <adapter
         for="imio.urban.dataimport.acropole.interfaces.IAcropoleDataImporter"
         factory=".importer.AcropoleMapping"
