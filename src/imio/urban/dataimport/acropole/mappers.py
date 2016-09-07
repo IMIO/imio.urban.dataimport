@@ -739,7 +739,8 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
         ).add_column(cpsn.columns['CPSN_PRENOM']
         ).add_column(cpsn.columns['CPSN_TEL1']
         ).add_column(cpsn.columns['CPSN_GSM']
-        ).add_column(cpsn.columns['CPSN_EMAIL'])
+        ).add_column(cpsn.columns['CPSN_EMAIL']
+        ).add_column(cpsn.columns['CPSN_TYPE'])
 
 
     def init_query(self, table):
@@ -780,6 +781,10 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
         telgsm = str(notary_infos[39]) if notary_infos[39] else ""
         email = str(notary_infos[40]) if notary_infos[40] else ""
 
+        notarytitle = notary_infos[41]
+        title_mapping = self.getValueMapping('titre_map')
+        title = title_mapping.get(notarytitle, '')
+
         container = api.content.get(path='/Plone/urban/notaries')
 
         if not (new_id in container.objectIds()):
@@ -788,7 +793,8 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
                                                 name2=new_name2,
                                                 phone=telfixe,
                                                 gsm=telgsm,
-                                                email=email)
+                                                email=email,
+                                                personTitle=title)
 
     def createId(self,new_id):
 
