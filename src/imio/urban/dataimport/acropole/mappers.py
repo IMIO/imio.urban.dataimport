@@ -87,32 +87,8 @@ class LicenceSubjectMapper(SecondaryTableMapper):
     """ """
 
 
-class WorklocationMapper(SecondaryTableMapper):
+class WorklocationMapper(SubQueryMapper):
     """ """
-
-
-class StreetAndNumberMapper(Mapper):
-
-    def mapWorklocations(self, line):
-        raw_street = self.getData('SITUATION_DES') or u''
-        parsed_street = re.search('(.*?)(\d+.*)?\( (?:(?:562\d)|(?:0 FLORENNES))', raw_street)
-        if parsed_street:
-            street, num = parsed_street.groups()
-            street_keywords = cleanAndSplitWord(street)
-            brains = self.catalog(portal_type='Street', Title=street_keywords)
-            if len(brains) == 1:
-                return ({'street': brains[0].UID, 'number': num or ''},)
-            if street:
-                self.logError(self, line, 'Couldnt find street or found too much streets', {
-                    'address': '%s' % raw_street,
-                    'street': street_keywords,
-                    'search result': len(brains)
-                })
-        else:
-            self.logError(self, line, 'Couldnt parse street and number', {
-                'address': '%s' % raw_street,
-            })
-        return []
 
 
 class ArchitectMapper(PostCreationMapper):
@@ -515,6 +491,30 @@ class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
         else:
             return "unknown"
 
+class StreetAndNumberMapper(SecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(StreetAndNumberMapper, self).__init__(mysql_importer, args)
+        k2adr = self.importer.datasource.get_table('k2adr')
+        adr = self.importer.datasource.get_table('adr')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+
+        self.query = self.query.join(
+            k2adr,
+            k2adr.columns['K_ID2'] == adr.columns['ADR_ID']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID'] == k2adr.columns['K_ID1']
+        ).add_column(wrkdossier.columns['WRKDOSSIER_ID'])
+
+    def map(self, line, **kwargs):
+        objects_args = {}
+        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
+        objects_args.update({'street': Utils.convertSpecialCaracter(lines[0][1] if lines[0][1] is not None else "")})
+        objects_args.update({'zipcode': lines[0][2] if lines[0][2] is not None else ""})
+        objects_args.update({'city': Utils.convertSpecialCaracter(lines[0][3] if lines[0][3] is not None else "")})
+        objects_args.update({'number': lines[0][4] if lines[0][4] is not None else ""})
+        return objects_args
 
 
 class InvestigationDateMapper(SecondaryTableMapper):
@@ -590,6 +590,69 @@ class FD_SolicitOpinionMapper(SecondaryTableMapper):
             # objects_args.update({'roadAdaptation': 'create'}) # Removed after customer demand
 
         return objects_args
+
+class Voirie_SolicitOpinionMapper(SubQueryMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(Voirie_SolicitOpinionMapper, self).__init__(mysql_importer, args)
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        k2 = self.importer.datasource.get_table('k2')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+
+        self.query = self.query.join(
+            k2,
+            wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
+        ).filter(and_(wrkparam.columns['PARAM_VALUE'] == '1',or_(wrkparam.columns['PARAM_NOMFUSION'].like(u"%accordable à l'égout%"),
+                                                                 wrkparam.columns['PARAM_NOMFUSION'].like(u"%voirie équipée%"),
+                                                                 wrkparam.columns['PARAM_NOMFUSION'].like(u"%épuration individuelle%"))
+                      ,or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766,wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753))
+                     )
+
+    def mapRoadspecificfeatures(self, line, **kwargs):
+        objects_response = {}
+        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
+        if lines:
+            raccordable_egout = ''
+            raccordable_egout_prevision = ''
+            zone_faiblement_habitee = ''
+            voirie_suffisamment_equipee = ''
+            for line in lines:
+                voirie_eq = self.getData('PARAM_NOMFUSION', line=line)
+                if  voirie_eq == u"accordable \xe0 l'\xe9gout":
+                    raccordable_egout = '1'
+                elif voirie_eq == u"sera accordable \xe0 l'\xe9gout":
+                    raccordable_egout_prevision = '1'
+                elif voirie_eq == u"Epuration individuelle":
+                    zone_faiblement_habitee = '1'
+                elif voirie_eq == u"acc\xe8s voirie \xe9quip\xe9e" or voirie_eq == u"Voirie \xe9quip\xe9e":
+                    voirie_suffisamment_equipee = '1'
+
+            objects_response = (
+            {'check': raccordable_egout,
+              'id': 'raccordable-egout',
+              'text': "<p>est actuellement raccordable \xc3\xa0 l'\xc3\xa9gout selon les normes fix\xc3\xa9es par le Service Technique Communal;</p>",
+              'value': "Raccordable \xc3\xa0 l'\xc3\xa9gout"
+             },
+             {'check': raccordable_egout_prevision,
+              'id': 'raccordable-egout-prevision',
+              'text': "<p>sera raccordable \xc3\xa0l'\xc3\xa9gout selon les pr\xc3\xa9visions actuelles;</p>",
+              'value': "Raccordable \xc3\xa0 l'\xc3\xa9gout (pr\xc3\xa9vision),"
+              },
+             {'check': zone_faiblement_habitee,
+              'id': 'zone-faiblement-habitee',
+              'text': "<p>est situ\xc3\xa9 dans une des zones faiblement habit\xc3\xa9e qui ne seront pas pourvue d'\xc3\xa9gout et qui feront l'objet d'une \xc3\xa9puration individuelle;</p>",
+              'value': 'Zone faiblement habit\xc3\xa9e (\xc3\xa9puration individuelle),'
+              },
+             {'check': voirie_suffisamment_equipee,
+              'id': 'voirie-suffisamment-equipee',
+              'text': "<p>b\xc3\xa9n\xc3\xa9ficie d'un acc\xc3\xa8s \xc3\xa0 une voirie suffisamment \xc3\xa9quip\xc3\xa9e en eau, \xc3\xa9lectricit\xc3\xa9, pourvue d'un rev\xc3\xaatement solide et d'une largeur suffisante compte tenu de la situation des lieux;</p>",
+              'value': 'Voirie suffisamment \xc3\xa9quip\xc3\xa9e'
+              })
+
+        return objects_response
 
 
 class ParcelsMapper(MultiLinesSecondaryTableMapper):
@@ -717,18 +780,26 @@ class ContactPhoneMapper(Mapper):
         return ', '.join(phone_numbers)
 
 
-class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
+class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
 
     def __init__(self, mysql_importer, args):
         super(NotaryContactMapper, self).__init__(mysql_importer, args)
         cpsn = self.importer.datasource.get_table('cpsn')
         wrkdossier = self.importer.datasource.get_table(self.table)
+        k2adr = self.importer.datasource.get_table('k2adr')
+        adr = self.importer.datasource.get_table('adr')
         k2 = self.importer.datasource.get_table('k2')
         self.query = self.init_query(self.table)
         self.query = self.query.join(
             k2, wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID2']
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
         ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
+
+        self.query = self.query.join(
+            k2adr, wrkdossier.columns['WRKDOSSIER_ID'] == k2adr.columns['K_ID1']
+        ).join(
+            adr, adr.columns['ADR_ID'] == k2adr.columns['K_ID2']
+        )
 
         self.query = self.query.join(
             cpsn, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
@@ -740,7 +811,11 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
         ).add_column(cpsn.columns['CPSN_TEL1']
         ).add_column(cpsn.columns['CPSN_GSM']
         ).add_column(cpsn.columns['CPSN_EMAIL']
-        ).add_column(cpsn.columns['CPSN_TYPE'])
+        ).add_column(cpsn.columns['CPSN_TYPE']
+        ).add_column(adr.columns['ADR_ADRESSE']
+        ).add_column(adr.columns['ADR_ZIP']
+        ).add_column(adr.columns['ADR_LOCALITE']
+        ).add_column(adr.columns['ADR_NUM'])
 
 
     def init_query(self, table):
@@ -785,6 +860,7 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
         title_mapping = self.getValueMapping('titre_map')
         title = title_mapping.get(notarytitle, '')
 
+        society = 'ECO Groupe immobilier' if notary_infos[41] == 4314287 else ""
         container = api.content.get(path='/Plone/urban/notaries')
 
         if not (new_id in container.objectIds()):
@@ -794,7 +870,8 @@ class NotaryContactMapper(PostCreationMapper,SubQueryMapper):
                                                 phone=telfixe,
                                                 gsm=telgsm,
                                                 email=email,
-                                                personTitle=title)
+                                                personTitle=title,
+                                                society = society)
 
     def createId(self,new_id):
 
@@ -1029,6 +1106,10 @@ class DecisionEventDateMapper(Mapper):
             self.logError(self, line, 'No decision date found')
         return str(date)
 
+# class DecisionEventDecisionMapper(Mapper):
+#
+#     def mapDecision(self, line):
+#         return "favorable"
 
 #
 # UrbanEvent send licence to applicant
@@ -1155,12 +1236,8 @@ class FirstFolderTransmmittedToRwMapper(SecondaryTableMapper):
         if lines:
             for line in lines:
 
-                # if self.getData('PARAM_NOMFUSION', line=line) == 'Date décision FD':
-                #     import ipdb; ipdb.set_trace()
-
                 mapped_valueDecisionDate = self.mapParam(line, 'Date', 'Date décision FD', **kwargs)
                 if mapped_valueDecisionDate:
-                    # import ipdb; ipdb.set_trace()
                     objects_args.update({'decisionDate': mapped_valueDecisionDate})
 
                 if self.getData('PARAM_NOMFUSION', line=line) in raw_externalDecision_toDictionnary:
@@ -1205,6 +1282,9 @@ class Utils():
         # Nothing better for now : specific replace for one shot import
         string = string.replace('\xc3', '')
 
+        string = string.replace('\xea', 'ê')
+        string = string.replace('\xe0', 'à')
+        string = string.replace('\xe2', 'â')
         string = string.replace('\xe7', 'ç')
         string = string.replace('\xe8', 'è')
         string = string.replace('\xe9', 'é')
@@ -1212,5 +1292,7 @@ class Utils():
         string = string.replace('\xee', 'î')
         string = string.replace('\xef', 'ï')
         string = string.replace('\xfa', 'ú')
+        string = string.replace('\xfb', 'û')
+        string = string.replace('\xf4', 'ô')
 
         return unicode(string, "utf-8")

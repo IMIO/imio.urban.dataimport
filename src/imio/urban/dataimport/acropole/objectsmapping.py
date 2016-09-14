@@ -6,11 +6,11 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
     LicenceSubjectMapper, DepositDateMapper, CompleteFolderEventMapper, \
     DecisionEventTypeMapper, ErrorsMapper, DepositEventIdMapper, DecisionEventIdMapper, \
-    DecisionEventDateMapper, ContactTitleMapper, ApplicantMapper, ContactIdMapper, \
+    DecisionEventDateMapper, DecisionEventDecisionMapper,  ContactTitleMapper, ApplicantMapper, ContactIdMapper, \
     CompleteFolderEventIdMapper, CompleteFolderDateMapper, EventDateMapper, \
     LicenceToApplicantEventMapper, LicenceToApplicantEventIdMapper, LicenceToApplicantDateMapper, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
-    FolderZoneTableMapper, SolicitOpinionsToMapper, FD_SolicitOpinionMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
+    FolderZoneTableMapper, SolicitOpinionsToMapper, FD_SolicitOpinionMapper, Voirie_SolicitOpinionMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
     FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper, \
     NotaryContactMapper, FirstFolderTransmmittedToRwMapper, PcaZoneTableMapper
 
@@ -73,16 +73,16 @@ FIELDS_MAPPINGS = {
                 },
             },
 
-            WorklocationMapper: {
-                'table': 'finddoss_index',
-                'KEYS': ('WRKDOSSIER_ID', 'ID'),
-                'mappers': {
-                    StreetAndNumberMapper: {
-                        'from': ('SITUATION_DES',),
-                        'to': ('workLocations',)
-                    },
-                },
-            },
+            # WorklocationMapper: {
+            #     'table': 'finddoss_index',
+            #     'KEYS': ('WRKDOSSIER_ID', 'ID'),
+            #     'mappers': {
+            #         StreetAndNumberMapper: {
+            #             'from': ('SITUATION_DES',),
+            #             'to': ('workLocations',)
+            #         },
+            #     },
+            # },
 
             FolderZoneTableMapper: {
                 'table': 'prc_data',
@@ -140,6 +140,14 @@ FIELDS_MAPPINGS = {
                 'to': ('procedureChoice',),
             },
 
+            Voirie_SolicitOpinionMapper: {
+                'table': 'wrkparam',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                'from': ('PARAM_VALUE', 'PARAM_NOMFUSION',),
+                'to': ('roadSpecificFeatures'),
+                # 'to': ('raccordable-egout', 'raccordable-egout-prevision', 'zone-faiblement-habitee', 'voirie-suffisamment-equipee'),
+            },
+
             CompletionStateMapper: {
                 'from': 'DOSSIER_OCTROI',
                 'to': (),  # <- no field to fill, its the workflow state that has to be changed
@@ -195,6 +203,12 @@ FIELDS_MAPPINGS = {
                         'to': 'phone',
                     },
                 },
+            },
+            StreetAndNumberMapper: {
+                'table': 'adr',
+                'KEYS': ('WRKDOSSIER_ID', 'ADR_ID'),
+                'from': ('ADR_ADRESSE', 'ADR_ZIP', 'ADR_LOCALITE', 'ADR_NUM',),
+                'to': 'workLocations',
             },
         },
     },
@@ -287,6 +301,11 @@ FIELDS_MAPPINGS = {
             DecisionEventDateMapper: {
                 'from': ('DOSSIER_DATEDELIV'),
                 'to': 'eventDate',
+            },
+
+            DecisionEventDecisionMapper: {
+                'from': (''),
+                'to': 'decision',
             },
         },
     },
