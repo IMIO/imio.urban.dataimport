@@ -48,7 +48,7 @@ class SubQueryMapper(AccessMapper):
         return result
 
 
-class SecondaryTableMapper(SubQueryMapper):
+class SecondaryTableMapper(AccessMapper):
 
     def __init__(self, access_importer, args):
         args['from'] = args.get('from', [args['KEYS']])
@@ -58,6 +58,25 @@ class SecondaryTableMapper(SubQueryMapper):
         self.key_column = self.key[1]
         self.secondary_table = args['table']
         self.mappers = self._setMappers(args['mappers'])
+        self.lines = self._extract_by_key(self.secondary_table, self.key_column)
+
+    def _extract_by_key(self, table, key_name):
+        """
+        """
+        command_line = ['mdb-export', self.importer.db_path, table, '-d', ';']
+        csv_export = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        lines = csv.reader(csv_export.stdout, delimiter=';')
+        header = lines.next()
+        key_index = header.index(key_name)
+        lines_by_key = {}
+        for line in lines:
+            key = line[key_index]
+            if key not in lines_by_key:
+                lines_by_key[key] = [line]
+            else:
+                lines_by_key[key].append(line)
+
+        return lines_by_key
 
     def _setMappers(self, mappers_dscr):
         mappers = []
@@ -81,9 +100,7 @@ class SecondaryTableMapper(SubQueryMapper):
 
     def query_secondary_table(self, line):
         key_value = self.getData(self.key[0], line)
-        db_query = "Select * from \"%s\" Where %s = '%s'" % (self.secondary_table, self.key[1], key_value)
-        lines = self._query(db_query)
-        return lines
+        return self.lines.get(key_value, [])
 
 
 class MultiLinesSecondaryTableMapper(SecondaryTableMapper):

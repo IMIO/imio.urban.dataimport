@@ -1106,10 +1106,11 @@ class DecisionEventDateMapper(Mapper):
             self.logError(self, line, 'No decision date found')
         return str(date)
 
-# class DecisionEventDecisionMapper(Mapper):
-#
-#     def mapDecision(self, line):
-#         return "favorable"
+
+class DecisionEventDecisionMapper(Mapper):
+
+    def mapDecision(self, line):
+        return "favorable"
 
 #
 # UrbanEvent send licence to applicant
