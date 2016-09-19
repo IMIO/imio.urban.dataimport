@@ -48,16 +48,17 @@ class SubQueryMapper(AccessMapper):
         return result
 
 
-class SecondaryTableMapper(AccessMapper):
+class JoinTableMapper(AccessMapper):
+    """
+    """
 
     def __init__(self, access_importer, args):
-        args['from'] = args.get('from', [args['KEYS']])
+        args['from'] = args.get('from', [k for k in args['KEYS']])
         args['to'] = args.get('to', [])
-        super(SecondaryTableMapper, self).__init__(access_importer, args)
+        super(JoinTableMapper, self).__init__(access_importer, args)
+        self.secondary_table = args['table']
         self.key = args['KEYS']
         self.key_column = self.key[1]
-        self.secondary_table = args['table']
-        self.mappers = self._setMappers(args['mappers'])
         self.lines = self._extract_by_key(self.secondary_table, self.key_column)
 
     def _extract_by_key(self, table, key_name):
@@ -78,6 +79,38 @@ class SecondaryTableMapper(AccessMapper):
 
         return lines_by_key
 
+    def query_secondary_table(self, line):
+        key_value = self.getData(self.key[0], line)
+        return self.lines.get(key_value, [])
+
+
+class MultivaluedFieldSecondaryTableMapper(JoinTableMapper):
+    """ """
+
+    def map(self, line, **kwargs):
+        mapped = {}
+        lines = self.query_secondary_table(line)
+        for secondary_line in lines:
+            for dest in self.destinations:
+                mapping_method = 'map%s' % dest.capitalize()
+                if hasattr(self, mapping_method):
+                    result = getattr(self, mapping_method)(secondary_line)
+                    if dest in mapped:
+                        mapped[dest].extend(result)
+                    else:
+                        mapped[dest] = result
+                else:
+                    print ('%s: NO MAPPING METHOD FOUND' % self)
+                    print ('target field : %s' % dest)
+        return mapped
+
+
+class SecondaryTableMapper(JoinTableMapper):
+
+    def __init__(self, access_importer, args):
+        super(SecondaryTableMapper, self).__init__(access_importer, args)
+        self.mappers = self._setMappers(args['mappers'])
+
     def _setMappers(self, mappers_dscr):
         mappers = []
         for mapper_class, mapper_args in mappers_dscr.iteritems():
@@ -97,10 +130,6 @@ class SecondaryTableMapper(AccessMapper):
                 objects_args.update(mapper.map(secondary_line, **kwargs))
             break
         return objects_args
-
-    def query_secondary_table(self, line):
-        key_value = self.getData(self.key[0], line)
-        return self.lines.get(key_value, [])
 
 
 class MultiLinesSecondaryTableMapper(SecondaryTableMapper):
