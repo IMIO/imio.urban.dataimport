@@ -145,7 +145,12 @@ FIELDS_MAPPINGS = {
                 'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
                 'from': ('PARAM_VALUE', 'PARAM_NOMFUSION',),
                 'to': ('roadSpecificFeatures'),
-                # 'to': ('raccordable-egout', 'raccordable-egout-prevision', 'zone-faiblement-habitee', 'voirie-suffisamment-equipee'),
+            },
+            StreetAndNumberMapper: {
+                'table': 'adr',
+                'KEYS': ('WRKDOSSIER_ID', 'ADR_ID'),
+                'from': ('ADR_ADRESSE', 'ADR_ZIP', 'ADR_LOCALITE', 'ADR_NUM',),
+                'to': 'workLocations'
             },
 
             CompletionStateMapper: {
@@ -166,7 +171,7 @@ FIELDS_MAPPINGS = {
 
         'mappers': {
             ApplicantMapper: {
-                'table': 'cpsn',
+                'table': 'wrkdossier',
                 'KEYS': ('WRKDOSSIER_ID', 'CPSN_ID',),
                 'mappers': {
                     SimpleStringMapper: (
@@ -186,6 +191,18 @@ FIELDS_MAPPINGS = {
                             'from': 'CPSN_EMAIL',
                             'to': 'email',
                         },
+                        {
+                            'from': 'CLOC_ADRESSE',
+                            'to': 'street',
+                        },
+                        {
+                            'from': 'CLOC_ZIP',
+                            'to': 'zipcode',
+                        },
+                        {
+                            'from': 'CLOC_LOCALITE',
+                            'to': 'city',
+                        },
                     ),
 
                     ContactIdMapper: {
@@ -203,12 +220,6 @@ FIELDS_MAPPINGS = {
                         'to': 'phone',
                     },
                 },
-            },
-            StreetAndNumberMapper: {
-                'table': 'adr',
-                'KEYS': ('WRKDOSSIER_ID', 'ADR_ID'),
-                'from': ('ADR_ADRESSE', 'ADR_ZIP', 'ADR_LOCALITE', 'ADR_NUM',),
-                'to': 'workLocations',
             },
         },
     },

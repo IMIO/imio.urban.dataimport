@@ -5,6 +5,7 @@ from Products.CMFPlone.utils import normalizeString
 from plone import api
 from plone.api.exc import InvalidParameterError
 from sqlalchemy import or_, and_
+from sqlalchemy.orm import aliased
 from plone.i18n.normalizer import idnormalizer
 
 import re
@@ -491,7 +492,7 @@ class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
         else:
             return "unknown"
 
-class StreetAndNumberMapper(SecondaryTableMapper):
+class StreetAndNumberMapper(SubQueryMapper):
 
     def __init__(self, mysql_importer, args):
         super(StreetAndNumberMapper, self).__init__(mysql_importer, args)
@@ -505,15 +506,23 @@ class StreetAndNumberMapper(SecondaryTableMapper):
         ).join(
             wrkdossier,
             wrkdossier.columns['WRKDOSSIER_ID'] == k2adr.columns['K_ID1']
+        ).add_column(adr.columns['ADR_ID']
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID'])
 
-    def map(self, line, **kwargs):
-        objects_args = {}
+    def mapWorklocations(self, line, **kwargs):
+        objects_args = ()
+
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
-        objects_args.update({'street': Utils.convertSpecialCaracter(lines[0][1] if lines[0][1] is not None else "")})
-        objects_args.update({'zipcode': lines[0][2] if lines[0][2] is not None else ""})
-        objects_args.update({'city': Utils.convertSpecialCaracter(lines[0][3] if lines[0][3] is not None else "")})
-        objects_args.update({'number': lines[0][4] if lines[0][4] is not None else ""})
+        if lines :
+            street = Utils.convertSpecialCaracter(lines[0][1] if lines[0][1] is not None else "")
+            street_uid = ''
+            if street:
+                street_uid = Utils.searchByStreet(street)
+                if not street_uid:
+                    self.logError(self, line, 'Work Locations : Pas de rue trouvée pour cette valeur : ', {'TYPE value': street})
+
+            objects_args = ({'street': street_uid, 'number': lines[0][4] if lines[0][4] is not None else "" },)
+
         return objects_args
 
 
@@ -538,8 +547,6 @@ class InvestigationDateMapper(SecondaryTableMapper):
         objects_args = {}
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
         if lines:
-            # if line[0] == 2586273:
-            #     import ipdb; ipdb.set_trace()
             for line in lines:
                 if (self.getData('PARAM_IDENT', line=line) == 'EnqDatDeb'):
                     if (self.getData('PARAM_VALUE', line=line)):
@@ -728,18 +735,42 @@ class ApplicantMapper(SecondaryTableMapper):
         super(ApplicantMapper, self).__init__(mysql_importer, args)
         cpsn = self.importer.datasource.get_table('cpsn')
         wrkdossier = self.importer.datasource.get_table('wrkdossier')
-
+        cloc = self.importer.datasource.get_table('cloc')
         k2 = self.importer.datasource.get_table('k2')
+        k2cloctmp = self.importer.datasource.get_table('k2')
+        k2cloc = k2cloctmp.alias('k2cloc')
+
+        self.query = self.init_query(self.table)
         self.query = self.query.join(
-            k2, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
+            k2, wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID2'])
+
+        self.query = self.query.join(
+            cpsn, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
+        )
+
+        self.query = self.query.join(
+            k2cloc, cpsn.columns['CPSN_ID'] == k2cloc.columns['K_ID2']
+        ).join(
+            cloc, cloc.columns['CLOC_ID'] == k2cloc.columns['K_ID1']
+        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+        ).add_column(cpsn.columns['CPSN_NOM']
+        ).add_column(cpsn.columns['CPSN_PRENOM']
+        ).add_column(cpsn.columns['CPSN_EMAIL']
+        ).add_column(cpsn.columns['CPSN_FAX']
+        ).add_column(cpsn.columns['CPSN_TYPE']
+        ).add_column(cpsn.columns['CPSN_TEL1']
+        ).add_column(cpsn.columns['CPSN_GSM']
+        ).add_column(cloc.columns['CLOC_ADRESSE']
+        ).add_column(cloc.columns['CLOC_ZIP']
+        ).add_column(cloc.columns['CLOC_LOCALITE']
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
         ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
         applicant_type = -204
-
-        lines = self.query.filter_by(K_ID2=licence_id, K2KND_ID=applicant_type).all()
+        k2 = self.importer.datasource.get_table('k2')
+        lines = self.query.filter(k2.columns['K_ID2']==licence_id, k2.columns['K2KND_ID']==applicant_type).all()
 
         return lines
 
@@ -786,25 +817,26 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
         super(NotaryContactMapper, self).__init__(mysql_importer, args)
         cpsn = self.importer.datasource.get_table('cpsn')
         wrkdossier = self.importer.datasource.get_table(self.table)
-        k2adr = self.importer.datasource.get_table('k2adr')
-        adr = self.importer.datasource.get_table('adr')
+        cloc = self.importer.datasource.get_table('cloc')
         k2 = self.importer.datasource.get_table('k2')
+        k2cloctmp = self.importer.datasource.get_table('k2')
+        k2cloc = k2cloctmp.alias('k2cloc')
         self.query = self.init_query(self.table)
         self.query = self.query.join(
-            k2, wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID2']
-        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
-        ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
-
-        self.query = self.query.join(
-            k2adr, wrkdossier.columns['WRKDOSSIER_ID'] == k2adr.columns['K_ID1']
-        ).join(
-            adr, adr.columns['ADR_ID'] == k2adr.columns['K_ID2']
-        )
+            k2, wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID2'])
 
         self.query = self.query.join(
             cpsn, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
+        )
+
+        self.query = self.query.join(
+            k2cloc, cpsn.columns['CPSN_ID'] == k2cloc.columns['K_ID2']
+        ).join(
+            cloc, cloc.columns['CLOC_ID'] == k2cloc.columns['K_ID1']
         ).filter(or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753,
                      wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766, )
+        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+        ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID']
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
         ).add_column(cpsn.columns['CPSN_NOM']
         ).add_column(cpsn.columns['CPSN_PRENOM']
@@ -812,10 +844,10 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
         ).add_column(cpsn.columns['CPSN_GSM']
         ).add_column(cpsn.columns['CPSN_EMAIL']
         ).add_column(cpsn.columns['CPSN_TYPE']
-        ).add_column(adr.columns['ADR_ADRESSE']
-        ).add_column(adr.columns['ADR_ZIP']
-        ).add_column(adr.columns['ADR_LOCALITE']
-        ).add_column(adr.columns['ADR_NUM'])
+        ).add_column(cloc.columns['CLOC_ADRESSE']
+        ).add_column(cloc.columns['CLOC_ZIP']
+        ).add_column(cloc.columns['CLOC_LOCALITE']
+        )
 
 
     def init_query(self, table):
@@ -826,6 +858,7 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
     def mapNotarycontact(self,line, plone_object):
         licence = plone_object
         if licence.portal_type == 'NotaryLetter':
+
             wrkdossier = self.importer.datasource.get_table(self.table)
 
             lines = self.query.filter(wrkdossier.columns['WRKDOSSIER_ID'] == line[0]).all()
@@ -855,6 +888,9 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
         telfixe = str(notary_infos[38]) if notary_infos[38] else ""
         telgsm = str(notary_infos[39]) if notary_infos[39] else ""
         email = str(notary_infos[40]) if notary_infos[40] else ""
+        street = Utils.convertSpecialCaracter(str(notary_infos[42])) if notary_infos[42] else ""
+        zipcode = str(notary_infos[43]) if notary_infos[43] else ""
+        city = Utils.convertSpecialCaracter(str(notary_infos[44])) if notary_infos[44] else ""
 
         notarytitle = notary_infos[41]
         title_mapping = self.getValueMapping('titre_map')
@@ -871,6 +907,9 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
                                                 gsm=telgsm,
                                                 email=email,
                                                 personTitle=title,
+                                                street=street,
+                                                zipcode=zipcode,
+                                                city=city,
                                                 society = society)
 
     def createId(self,new_id):
@@ -1106,10 +1145,10 @@ class DecisionEventDateMapper(Mapper):
             self.logError(self, line, 'No decision date found')
         return str(date)
 
-
 class DecisionEventDecisionMapper(Mapper):
 
     def mapDecision(self, line):
+        # import ipdb; ipdb.set_trace()
         return "favorable"
 
 #
@@ -1297,3 +1336,20 @@ class Utils():
         string = string.replace('\xf4', 'ô')
 
         return unicode(string, "utf-8")
+
+    @staticmethod
+    def searchByStreet(street):
+
+        catalog = api.portal.get_tool('portal_catalog')
+        street = street.replace('(', ' ').replace(')', ' ').strip()
+        street_uids = [brain.UID for brain in catalog(portal_type='Street', Title=street)]
+        if not street_uids:
+            # second chance without street number
+            strwithoutdigits = ''.join([letter for letter in street if not letter.isdigit()]).strip()
+            street_uids = [brain.UID for brain in catalog(portal_type='Street', Title=strwithoutdigits)]
+            if not street_uids and len(strwithoutdigits.strip()) > 1:
+                # last chance : try to remove last char, for example : 1a or 36C
+                strwithoutlastchar = strwithoutdigits.strip()[:-1]
+                street_uids = [brain.UID for brain in catalog(portal_type='Street', Title=strwithoutlastchar)]
+
+        return street_uids
