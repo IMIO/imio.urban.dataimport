@@ -514,7 +514,7 @@ class StreetAndNumberMapper(SubQueryMapper):
 
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
         if lines :
-            street = Utils.convertSpecialCaracter(lines[0][1] if lines[0][1] is not None else "")
+            street = Utils.convertToUnicode(lines[0][1] if lines[0][1] is not None else "")
             street_uid = ''
             if street:
                 street_uid = Utils.searchByStreet(street)
@@ -888,9 +888,9 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
         telfixe = str(notary_infos[38]) if notary_infos[38] else ""
         telgsm = str(notary_infos[39]) if notary_infos[39] else ""
         email = str(notary_infos[40]) if notary_infos[40] else ""
-        street = Utils.convertSpecialCaracter(str(notary_infos[42])) if notary_infos[42] else ""
+        street = Utils.convertToUnicode(str(notary_infos[42])) if notary_infos[42] else ""
         zipcode = str(notary_infos[43]) if notary_infos[43] else ""
-        city = Utils.convertSpecialCaracter(str(notary_infos[44])) if notary_infos[44] else ""
+        city = Utils.convertToUnicode(str(notary_infos[44])) if notary_infos[44] else ""
 
         notarytitle = notary_infos[41]
         title_mapping = self.getValueMapping('titre_map')
@@ -1145,11 +1145,10 @@ class DecisionEventDateMapper(Mapper):
             self.logError(self, line, 'No decision date found')
         return str(date)
 
-class DecisionEventDecisionMapper(Mapper):
-
-    def mapDecision(self, line):
-        # import ipdb; ipdb.set_trace()
-        return "favorable"
+# class DecisionEventDecisionMapper(Mapper):
+#
+#     def mapDecision(self, line):
+#         return "favorable"
 
 #
 # UrbanEvent send licence to applicant
@@ -1315,27 +1314,14 @@ class FirstFolderTransmmittedToRwMapper(SecondaryTableMapper):
 class Utils():
 
     @staticmethod
-    def convertSpecialCaracter(string):
-        if not string:
-            return ""
+    def convertToUnicode(string):
 
-        # Nothing better for now : specific replace for one shot import
-        string = string.replace('\xc3', '')
+        # convert to unicode if necessary, against iso-8859-1 : iso-8859-15 add € and oe characters
+        data = ""
+        if string and type(string) is str:
+            data = unicode(string, "iso-8859-15")
+        return data
 
-        string = string.replace('\xea', 'ê')
-        string = string.replace('\xe0', 'à')
-        string = string.replace('\xe2', 'â')
-        string = string.replace('\xe7', 'ç')
-        string = string.replace('\xe8', 'è')
-        string = string.replace('\xe9', 'é')
-        string = string.replace('\xeb', 'ë')
-        string = string.replace('\xee', 'î')
-        string = string.replace('\xef', 'ï')
-        string = string.replace('\xfa', 'ú')
-        string = string.replace('\xfb', 'û')
-        string = string.replace('\xf4', 'ô')
-
-        return unicode(string, "utf-8")
 
     @staticmethod
     def searchByStreet(street):
