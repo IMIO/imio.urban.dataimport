@@ -6,13 +6,14 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
     LicenceSubjectMapper, DepositDateMapper, CompleteFolderEventMapper, \
     DecisionEventTypeMapper, ErrorsMapper, DepositEventIdMapper, DecisionEventIdMapper, \
-    DecisionEventDateMapper, DecisionEventDecisionMapper,  ContactTitleMapper, ApplicantMapper, ContactIdMapper, \
+    DecisionEventDateMapper,   ContactTitleMapper, ApplicantMapper, ContactIdMapper, \
     CompleteFolderEventIdMapper, CompleteFolderDateMapper, EventDateMapper, \
     LicenceToApplicantEventMapper, LicenceToApplicantEventIdMapper, LicenceToApplicantDateMapper, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
     FolderZoneTableMapper, SolicitOpinionsToMapper, FD_SolicitOpinionMapper, Voirie_SolicitOpinionMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
     FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper, \
-    NotaryContactMapper, FirstFolderTransmmittedToRwMapper, PcaZoneTableMapper
+    NotaryContactMapper, FirstFolderTransmmittedToRwMapper, PcaZoneTableMapper, \
+    CollegeReportEventMapper, CollegeReportEventIdMapper, DecisionEventDecisionMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -28,6 +29,7 @@ OBJECTS_NESTING = [
             ('FIRST FOLDER TRANSMITTED TO RW EVENT', []),
             ('SEND LICENCE TO APPLICANT EVENT', []),
             ('SEND LICENCE TO FD EVENT', []),
+            ('COLLEGE REPORT EVENT', []),
         ],
 
     ),
@@ -314,6 +316,18 @@ FIELDS_MAPPINGS = {
                 'to': 'eventDate',
             },
 
+            EventDateMapper: {
+                'table': 'wrketape',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
+                'event_name': 'envoi du permis au demandeur',
+                'mappers': {
+                    LicenceToApplicantDateMapper: {
+                        'from': ('ETAPE_DATEDEPART',),
+                        'to': ('eventDate'),
+                    },
+                },
+            },
+
             DecisionEventDecisionMapper: {
                 'from': (''),
                 'to': 'decision',
@@ -406,4 +420,35 @@ FIELDS_MAPPINGS = {
             },
         },
     },
+
+    'COLLEGE REPORT EVENT':
+    {
+        'factory': [UrbanEventFactory],
+        'allowed_containers': ['BuildLicence'],
+
+        'mappers': {
+            CollegeReportEventMapper: {
+                'from': (),
+                'to': 'eventtype',
+            },
+
+            CollegeReportEventIdMapper: {
+                'from': (),
+                'to': 'id',
+            },
+
+            # EventDateMapper: {
+            #     'table': 'wrketape',
+            #     'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
+            #     'event_name': 'envoi du permis au fd',
+            #     'mappers': {
+            #         LicenceToFDDateMapper: {
+            #             'from': ('ETAPE_DATEDEPART',),
+            #             'to': ('eventDate'),
+            #         },
+            #     },
+            # },
+        },
+    },
+
 }

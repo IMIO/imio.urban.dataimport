@@ -1145,10 +1145,10 @@ class DecisionEventDateMapper(Mapper):
             self.logError(self, line, 'No decision date found')
         return str(date)
 
-# class DecisionEventDecisionMapper(Mapper):
-#
-#     def mapDecision(self, line):
-#         return "favorable"
+class DecisionEventDecisionMapper(Mapper):
+
+    def mapDecision(self, line):
+        return "favorable"
 
 #
 # UrbanEvent send licence to applicant
@@ -1213,6 +1213,46 @@ class LicenceToFDDateMapper(Mapper):
 class LicenceToFDEventIdMapper(Mapper):
     def mapId(self, line):
         return 'licence_to_fd'
+
+
+#
+# UrbanEvent college report
+#
+
+# mappers
+
+
+class CollegeReportEventMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'rapport-du-college'
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+class CollegeReportDateMapper(Mapper):
+    def mapEventdate(self, line):
+        # import ipdb; ipdb.set_trace() # TODO REMOVE BREAKPOINT
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+class CollegeReportEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'rapport-du-college'
+
+
+class CollegeReportMapper(Mapper):
+
+    def mapEventdate(self, line):
+        """ """
+        # import ipdb; ipdb.set_trace() # TODO REMOVE BREAKPOINT
+
+    def mapDecision(self, line):
+        """ """
+        # import ipdb; ipdb.set_trace() # TODO REMOVE BREAKPOINT
 
 
 #
