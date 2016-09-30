@@ -766,6 +766,16 @@ class ApplicantMapper(SecondaryTableMapper):
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
         ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
 
+        # cpsn type id 89801 = notaries
+        linesNotaries = self.query.filter(k2.columns['K2KND_ID']==-204, cpsn.columns['CPSN_TYPE']==89801).all()
+        if linesNotaries:
+            Utils.createNotaries(linesNotaries)
+
+        # cpsn type id 353506 = architects
+        linesArchitects = self.query.filter(k2.columns['K2KND_ID'] == -204, cpsn.columns['CPSN_TYPE'] == 353506).all()
+        if linesArchitects:
+            Utils.createArchitects(linesArchitects)
+
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
         applicant_type = -204
@@ -856,17 +866,15 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
         return query
 
     def mapNotarycontact(self,line, plone_object):
-        licence = plone_object
-        if licence.portal_type == 'NotaryLetter':
 
-            wrkdossier = self.importer.datasource.get_table(self.table)
+        wrkdossier = self.importer.datasource.get_table(self.table)
 
-            lines = self.query.filter(wrkdossier.columns['WRKDOSSIER_ID'] == line[0]).all()
-            if not lines:
-                raise NoObjectToCreateException
-            firstPart = self.convertSpecialCaracter(lines[0][36])
-            secondPart = self.convertSpecialCaracter(lines[0][37])
-            idNotary = idnormalizer.normalize(self.createId(self.concatId(firstPart, secondPart)))
+        lines = self.query.filter(wrkdossier.columns['WRKDOSSIER_ID'] == line[0]).all()
+        if lines:
+
+            firstPart = Utils.convertToUnicode(lines[0][36])
+            secondPart = Utils.convertToUnicode(lines[0][37])
+            idNotary = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Notary').replace(" ",""))
             containerNotaries = api.content.get(path='/Plone/urban/notaries')
 
             if idNotary not in containerNotaries.objectIds():
@@ -877,12 +885,11 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
 
     def createNotary(self, notary_infos):
 
-        firstPart = self.convertSpecialCaracter(notary_infos[36])
-        secondPart = self.convertSpecialCaracter(notary_infos[37])
+        firstPart = Utils.convertToUnicode(notary_infos[36])
+        secondPart = Utils.convertToUnicode(notary_infos[37])
 
-        new_id = idnormalizer.normalize(self.createId(self.concatId(firstPart,secondPart)))
+        new_id = idnormalizer.normalize(Utils.createId(firstPart,secondPart, 'Notary').replace(" ",""))
         new_name1 = firstPart if firstPart else ""
-        # new_name2 = str(notary_infos[37]).decode("utf-8",errors='ignore') if notary_infos[37] else ""
         new_name2 = secondPart if secondPart else ""
 
         telfixe = str(notary_infos[38]) if notary_infos[38] else ""
@@ -896,7 +903,6 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
         title_mapping = self.getValueMapping('titre_map')
         title = title_mapping.get(notarytitle, '')
 
-        society = 'ECO Groupe immobilier' if notary_infos[41] == 4314287 else ""
         container = api.content.get(path='/Plone/urban/notaries')
 
         if not (new_id in container.objectIds()):
@@ -909,43 +915,67 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
                                                 personTitle=title,
                                                 street=street,
                                                 zipcode=zipcode,
-                                                city=city,
-                                                society = society)
+                                                city=city)
 
-    def createId(self,new_id):
+class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
 
-        encoding = "utf-8"
-        id = new_id.replace(" ","") #.decode(encoding,errors='ignore')
-        return id
+    def __init__(self, mysql_importer, args):
+        super(ArchitectsMapper, self).__init__(mysql_importer, args)
+        cpsn = self.importer.datasource.get_table('cpsn')
+        wrkdossier = self.importer.datasource.get_table(self.table)
+        cloc = self.importer.datasource.get_table('cloc')
+        k2 = self.importer.datasource.get_table('k2')
+        k2cloctmp = self.importer.datasource.get_table('k2')
+        k2cloc = k2cloctmp.alias('k2cloc')
+        self.query = self.init_query(self.table)
+        self.query = self.query.join(
+            k2, wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID2'])
 
-    def concatId(self,name,firstName):
+        self.query = self.query.join(
+            cpsn, cpsn.columns['CPSN_ID'] == k2.columns['K_ID1']
+        )
 
-        idToNormalize = u"notary"
+        self.query = self.query.join(
+            k2cloc, cpsn.columns['CPSN_ID'] == k2cloc.columns['K_ID2']
+        ).join(
+            cloc, cloc.columns['CLOC_ID'] == k2cloc.columns['K_ID1']
+        ).filter(or_(cpsn.columns['CPSN_TYPE'] == 353506,
+                     cpsn.columns['CPSN_TYPE'] == 4314287, )
+        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+        ).add_column(cpsn.columns['CPSN_NOM']
+        ).add_column(cpsn.columns['CPSN_PRENOM']
+        ).add_column(cpsn.columns['CPSN_EMAIL']
+        ).add_column(cpsn.columns['CPSN_FAX']
+        ).add_column(cpsn.columns['CPSN_TYPE']
+        ).add_column(cpsn.columns['CPSN_TEL1']
+        ).add_column(cpsn.columns['CPSN_GSM']
+        ).add_column(cloc.columns['CLOC_ADRESSE']
+        ).add_column(cloc.columns['CLOC_ZIP']
+        ).add_column(cloc.columns['CLOC_LOCALITE'])
 
-        if name:
-            idToNormalize += name
-        if firstName:
-            idToNormalize += firstName
+    def init_query(self, table):
+        datasource = self.importer.datasource
+        query = datasource.session.query(datasource.get_table(table))
+        return query
 
-        return idToNormalize
+    def mapArchitects(self, line, plone_object):
 
-    def convertSpecialCaracter(self,string):
+        wrkdossier = self.importer.datasource.get_table(self.table)
 
-        if not string:
-            return ""
+        lines = self.query.filter(wrkdossier.columns['WRKDOSSIER_ID'] == line[0]).all()
+        if not lines:
+            return None
+        firstPart = Utils.convertToUnicode(lines[0][34])
+        secondPart = Utils.convertToUnicode(lines[0][35])
+        idArchitect = idnormalizer.normalize(Utils.createId(firstPart, secondPart,'Architect').replace(" ", ""))
+        containerArchitects = api.content.get(path='/Plone/urban/architects')
 
-        # Nothing better for now : specific replace for one shot import
-        string = string.replace('\xe7', 'ç')
-        string = string.replace('\xe8', 'è')
-        string = string.replace('\xe9', 'é')
-        string = string.replace('\xeb', 'ë')
-        string = string.replace('\xee', 'î')
-        string = string.replace('\xef', 'ï')
-        string = string.replace('\xfa', 'ú')
+        if idArchitect not in containerArchitects.objectIds():
+            Utils.createArchitects([lines[0]])
 
-        return unicode(string,"utf-8")
-
-
+        item = api.content.get(path='/Plone/urban/architects/' + idArchitect)
+        if item:
+            return item.UID()
 #
 # PARCEL
 #
@@ -1028,9 +1058,7 @@ class EventDateMapper(SecondaryTableMapper):
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
         event_type = -207
-
         lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
-
         if not lines:
             raise NoObjectToCreateException
 
@@ -1230,9 +1258,18 @@ class CollegeReportEventMapper(Mapper):
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
-class CollegeReportDateMapper(Mapper):
+class CollegeReportEventDateMapper(Mapper):
+
     def mapEventdate(self, line):
-        # import ipdb; ipdb.set_trace() # TODO REMOVE BREAKPOINT
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+class CollegeReportEventDecisionDateMapper(Mapper):
+
+    def mapDecisiondate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
             raise NoObjectToCreateException
@@ -1242,17 +1279,6 @@ class CollegeReportDateMapper(Mapper):
 class CollegeReportEventIdMapper(Mapper):
     def mapId(self, line):
         return 'rapport-du-college'
-
-
-class CollegeReportMapper(Mapper):
-
-    def mapEventdate(self, line):
-        """ """
-        # import ipdb; ipdb.set_trace() # TODO REMOVE BREAKPOINT
-
-    def mapDecision(self, line):
-        """ """
-        # import ipdb; ipdb.set_trace() # TODO REMOVE BREAKPOINT
 
 
 #
@@ -1277,6 +1303,16 @@ class FirstFolderTransmittedToRwEventIdMapper(Mapper):
 
     def mapId(self, line):
         return 'first_folder_transmitted_to_rw_event'
+
+
+class FirstFolderTransmittedToRwDateMapper(Mapper):
+
+    def mapEventdate(self, line):
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
 
 
 class FirstFolderTransmmittedToRwMapper(SecondaryTableMapper):
@@ -1323,10 +1359,6 @@ class FirstFolderTransmmittedToRwMapper(SecondaryTableMapper):
                     mapped_valueExternalDecision = self.mapParam(line, 'Oui/Non', self.getData('PARAM_NOMFUSION', line=line), **kwargs)
                     if mapped_valueExternalDecision and mapped_valueExternalDecision == '1':
                         objects_args.update({'externalDecision': raw_externalDecision_toDictionnary[self.getData('PARAM_NOMFUSION', line=line)]})
-
-                mapped_valueEventDate = self.mapParam(line, 'Date', 'Date Transmis permis au FD', **kwargs)
-                if mapped_valueEventDate:
-                    objects_args.update({'eventDate': mapped_valueEventDate})
 
         if not objects_args:
             raise NoObjectToCreateException
@@ -1377,5 +1409,97 @@ class Utils():
                 # last chance : try to remove last char, for example : 1a or 36C
                 strwithoutlastchar = strwithoutdigits.strip()[:-1]
                 street_uids = [brain.UID for brain in catalog(portal_type='Street', Title=strwithoutlastchar)]
+                if not street_uids:
+                    # log the address issue infos
+                    with open("matchBestAddressError.csv", "a") as file:
+                        file.write(Utils.convertToUnicode(strwithoutlastchar) + "\n")
 
         return street_uids
+
+    @staticmethod
+    def createId(name, firstName, type):
+        idToNormalize = u"" + type
+
+        if name:
+            idToNormalize += name
+        if firstName:
+            idToNormalize += firstName
+
+        return idToNormalize
+
+    @staticmethod
+    def createNotaries(notaryInfos):
+
+        for notaryInfo in notaryInfos:
+
+            firstPart = Utils.convertToUnicode(notaryInfo[34])
+            secondPart = Utils.convertToUnicode(notaryInfo[35])
+
+            idNotary = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Notary').replace(" ", ""))
+            containerNotaries = api.content.get(path='/Plone/urban/notaries')
+
+            if idNotary not in containerNotaries.objectIds():
+
+                new_id = idNotary
+                new_name1 = firstPart if firstPart else ""
+                new_name2 = secondPart if secondPart else ""
+
+                telfixe = str(notaryInfo[39]) if notaryInfo[39] else ""
+                telgsm = str(notaryInfo[40]) if notaryInfo[40] else ""
+                email = str(notaryInfo[36]) if notaryInfo[36] else ""
+                street = Utils.convertToUnicode(str(notaryInfo[41])) if notaryInfo[41] else ""
+                zipcode = str(notaryInfo[42]) if notaryInfo[42] else ""
+                city = Utils.convertToUnicode(str(notaryInfo[43])) if notaryInfo[43] else ""
+
+                title = 'master'
+
+                container = api.content.get(path='/Plone/urban/notaries')
+
+                if not (new_id in container.objectIds()):
+                    object_id = container.invokeFactory('Notary', id=new_id,
+                                                        name1=new_name1,
+                                                        name2=new_name2,
+                                                        phone=telfixe,
+                                                        gsm=telgsm,
+                                                        email=email,
+                                                        personTitle=title,
+                                                        street=street,
+                                                        zipcode=zipcode,
+                                                        city=city)
+
+    @staticmethod
+    def createArchitects(architectsInfos):
+
+        for architectsInfo in architectsInfos:
+
+            firstPart = Utils.convertToUnicode(architectsInfo[34])
+            secondPart = Utils.convertToUnicode(architectsInfo[35])
+
+            idArchitect = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Architect').replace(" ", ""))
+            containerArchitects = api.content.get(path='/Plone/urban/architects')
+
+            if idArchitect not in containerArchitects.objectIds():
+
+                new_id = idArchitect
+                new_name1 = firstPart if firstPart else ""
+                new_name2 = secondPart if secondPart else ""
+
+                telfixe = str(architectsInfo[39]) if architectsInfo[39] else ""
+                telgsm = str(architectsInfo[40]) if architectsInfo[40] else ""
+                email = str(architectsInfo[36]) if architectsInfo[36] else ""
+                street = Utils.convertToUnicode(str(architectsInfo[41])) if architectsInfo[41] else ""
+                zipcode = str(architectsInfo[42]) if architectsInfo[42] else ""
+                city = Utils.convertToUnicode(str(architectsInfo[43])) if architectsInfo[43] else ""
+
+                container = api.content.get(path='/Plone/urban/architects')
+
+                if not (new_id in container.objectIds()):
+                    object_id = container.invokeFactory('Architect', id=new_id,
+                                                        name1=new_name1,
+                                                        name2=new_name2,
+                                                        phone=telfixe,
+                                                        gsm=telgsm,
+                                                        email=email,
+                                                        street=street,
+                                                        zipcode=zipcode,
+                                                        city=city)

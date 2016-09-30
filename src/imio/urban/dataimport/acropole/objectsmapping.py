@@ -12,8 +12,9 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
     FolderZoneTableMapper, SolicitOpinionsToMapper, FD_SolicitOpinionMapper, Voirie_SolicitOpinionMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
     FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper, \
-    NotaryContactMapper, FirstFolderTransmmittedToRwMapper, PcaZoneTableMapper, \
-    CollegeReportEventMapper, CollegeReportEventIdMapper, DecisionEventDecisionMapper
+    NotaryContactMapper, FirstFolderTransmmittedToRwMapper, PcaZoneTableMapper, FirstFolderTransmittedToRwDateMapper, \
+    CollegeReportEventMapper, CollegeReportEventIdMapper, DecisionEventDecisionMapper, CollegeReportEventDateMapper, \
+    CollegeReportEventDecisionDateMapper, ArchitectsMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -25,11 +26,11 @@ OBJECTS_NESTING = [
             ('PARCEL', []),
             ('DEPOSIT EVENT', []),
             ('COMPLETE FOLDER EVENT', []),
-            ('DECISION EVENT', []),
             ('FIRST FOLDER TRANSMITTED TO RW EVENT', []),
             ('SEND LICENCE TO APPLICANT EVENT', []),
             ('SEND LICENCE TO FD EVENT', []),
             ('COLLEGE REPORT EVENT', []),
+            ('DECISION EVENT', []),
         ],
 
     ),
@@ -105,6 +106,13 @@ FIELDS_MAPPINGS = {
                 'KEYS': ('ID', 'K_ID1',),
                 'from': ('DOSSIER_TDOSSIERID',),
                 'to': 'notaryContact',
+            },
+
+            ArchitectsMapper: {
+                'table': 'wrkdossier',
+                'KEYS': ('ID', 'K_ID1',),
+                'from': ('DOSSIER_TDOSSIERID',),
+                'to': 'architects',
             },
 
             SolicitOpinionsToMapper: {
@@ -351,6 +359,18 @@ FIELDS_MAPPINGS = {
                 'to': 'id',
             },
 
+            EventDateMapper: {
+                'table': 'wrketape',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
+                'event_name': 'envoi du primo dossier au FD',
+                'mappers': {
+                    FirstFolderTransmittedToRwDateMapper: {
+                        'from': ('ETAPE_DATEDEPART',),
+                        'to': ('eventDate'),
+                    },
+                },
+            },
+
             FirstFolderTransmmittedToRwMapper: {
                 'table': 'wrkparam',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
@@ -437,17 +457,29 @@ FIELDS_MAPPINGS = {
                 'to': 'id',
             },
 
-            # EventDateMapper: {
-            #     'table': 'wrketape',
-            #     'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-            #     'event_name': 'envoi du permis au fd',
-            #     'mappers': {
-            #         LicenceToFDDateMapper: {
-            #             'from': ('ETAPE_DATEDEPART',),
-            #             'to': ('eventDate'),
-            #         },
-            #     },
-            # },
+            EventDateMapper: {
+                'table': 'wrketape',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
+                'event_name': u'Rapport du collège',
+                'mappers': {
+                    CollegeReportEventDateMapper: {
+                        'from': ('ETAPE_DATEDEPART',),
+                        'to': ('eventDate'),
+                    },
+                },
+            },
+
+            EventDateMapper: {
+                'table': 'wrketape',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
+                'event_name': u'décision finale du Collège',
+                'mappers': {
+                    CollegeReportEventDecisionDateMapper: {
+                        'from': ('ETAPE_DATEDEPART',),
+                        'to': ('decisionDate'),
+                    },
+                },
+            },
         },
     },
 
