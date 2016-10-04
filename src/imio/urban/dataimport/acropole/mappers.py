@@ -1057,7 +1057,50 @@ class EventDateMapper(SecondaryTableMapper):
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        event_type = -207
+        event_type = -207 # etape
+        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
+        if not lines:
+            raise NoObjectToCreateException
+
+        return lines
+
+
+class EventDecisionMapper(SecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(EventDecisionMapper, self).__init__(mysql_importer, args)
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        k2 = self.importer.datasource.get_table('k2')
+        self.query = self.query.filter_by(
+            PARAM_NOMFUSION=args['event_name'],
+        ).join(
+            k2, wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+        )
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        event_type = -208 # param
+        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
+        if not lines:
+            raise NoObjectToCreateException
+
+        return lines
+
+class EventDecisionAlternativeMapper(SecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(EventDecisionAlternativeMapper, self).__init__(mysql_importer, args)
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        k2 = self.importer.datasource.get_table('k2')
+        self.query = self.query.filter_by(
+            PARAM_NOMFUSION=args['event_name'],
+        ).join(
+            k2, wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+        )
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        event_type = -208 # param
         lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
         if not lines:
             raise NoObjectToCreateException
@@ -1176,8 +1219,21 @@ class DecisionEventDateMapper(Mapper):
 class DecisionEventDecisionMapper(Mapper):
 
     def mapDecision(self, line):
-        return "favorable"
+        decision = self.getData('PARAM_VALUE')
 
+        if decision and decision == u'1':
+            return u'Octroyé'
+        else:
+            return u'Refusé'
+
+class DecisionEventDecisionDateMapper(Mapper):
+
+    def mapDecisiondate(self, line):
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
 #
 # UrbanEvent send licence to applicant
 #
@@ -1258,6 +1314,7 @@ class CollegeReportEventMapper(Mapper):
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
+
 class CollegeReportEventDateMapper(Mapper):
 
     def mapEventdate(self, line):
@@ -1267,6 +1324,7 @@ class CollegeReportEventDateMapper(Mapper):
         date = date and DateTime(date) or None
         return date
 
+
 class CollegeReportEventDecisionDateMapper(Mapper):
 
     def mapDecisiondate(self, line):
@@ -1275,6 +1333,17 @@ class CollegeReportEventDecisionDateMapper(Mapper):
             raise NoObjectToCreateException
         date = date and DateTime(date) or None
         return date
+
+
+class CollegeReportEventDecisionMapper(Mapper):
+
+    def mapDecision(self, line):
+        decision = self.getData('PARAM_VALUE')
+        if not decision:
+            return None
+
+        return decision
+
 
 class CollegeReportEventIdMapper(Mapper):
     def mapId(self, line):
@@ -1302,73 +1371,31 @@ class FirstFolderTransmittedToRwEventTypeMapper(Mapper):
 class FirstFolderTransmittedToRwEventIdMapper(Mapper):
 
     def mapId(self, line):
-        return 'first_folder_transmitted_to_rw_event'
+        return 'transmis-1er-dossier-rw'
 
-
-class FirstFolderTransmittedToRwDateMapper(Mapper):
+class FirstFolderTransmmittedToRwEventDateMapper(Mapper):
 
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
-            raise NoObjectToCreateException
-        date = date and DateTime(date) or None
+            return None
         return date
 
+class FirstFolderTransmmittedToRwDecisionDateMapper(Mapper):
 
-class FirstFolderTransmmittedToRwMapper(SecondaryTableMapper):
+    def mapDecisiondate(self, line):
+        decisionDate = self.getData('PARAM_VALUE')
+        if not decisionDate:
+            return None
+        return decisionDate
 
-    def __init__(self, mysql_importer, args):
-        super(FirstFolderTransmmittedToRwMapper, self).__init__(mysql_importer, args)
-        wrkparam = self.importer.datasource.get_table('wrkparam')
-        wrkdossier = self.importer.datasource.get_table('wrkdossier')
-        k2 = self.importer.datasource.get_table('k2')
+class FirstFolderTransmmittedToRwDecisionMapper(Mapper):
 
-        self.query = self.query.join(
-            k2,
-            wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
-        ).join(
-            wrkdossier,
-                k2.columns['K_ID1'] == wrkdossier.columns['WRKDOSSIER_ID']
-        ).filter(
-            or_(wrkparam.columns['PARAM_DATATYPE'] == 'Date', wrkparam.columns['PARAM_DATATYPE'] == 'Oui/Non'
-                )
-        ).filter(wrkparam.columns['PARAM_VALUE'].isnot(None)
-        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
-        ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
-
-    def map(self, line, **kwargs):
-
-        raw_externalDecision_toDictionnary = {
-            u"avis favorable": "favorable",
-            u"avis favorable conditionnel": "favorable-conditionnel",
-            u"avis favorable cond.": "favorable-conditionnel",
-            u"avis défavorable": "defavorable",
-            u"avis favorable par défaut": "favorable-defaut",
-        }
-
-        objects_args = {}
-        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
-        if lines:
-            for line in lines:
-
-                mapped_valueDecisionDate = self.mapParam(line, 'Date', 'Date décision FD', **kwargs)
-                if mapped_valueDecisionDate:
-                    objects_args.update({'decisionDate': mapped_valueDecisionDate})
-
-                if self.getData('PARAM_NOMFUSION', line=line) in raw_externalDecision_toDictionnary:
-                    mapped_valueExternalDecision = self.mapParam(line, 'Oui/Non', self.getData('PARAM_NOMFUSION', line=line), **kwargs)
-                    if mapped_valueExternalDecision and mapped_valueExternalDecision == '1':
-                        objects_args.update({'externalDecision': raw_externalDecision_toDictionnary[self.getData('PARAM_NOMFUSION', line=line)]})
-
-        if not objects_args:
-            raise NoObjectToCreateException
-        return objects_args
-
-    def mapParam(self, line, dataType, nomFusion):
-
-        if self.getData('PARAM_DATATYPE', line=line) == dataType:
-                if self.getData('PARAM_NOMFUSION', line=line) == nomFusion:
-                    return self.getData('PARAM_VALUE', line=line)
+    def mapExternaldecision(self, line):
+        decision = self.getData('PARAM_VALUE')
+        if not decision:
+            return None
+        return decision
 
 
     def query_secondary_table(self, line):

@@ -12,9 +12,12 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
     FolderZoneTableMapper, SolicitOpinionsToMapper, FD_SolicitOpinionMapper, Voirie_SolicitOpinionMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
     FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper, \
-    NotaryContactMapper, FirstFolderTransmmittedToRwMapper, PcaZoneTableMapper, FirstFolderTransmittedToRwDateMapper, \
+    NotaryContactMapper, PcaZoneTableMapper, \
     CollegeReportEventMapper, CollegeReportEventIdMapper, DecisionEventDecisionMapper, CollegeReportEventDateMapper, \
-    CollegeReportEventDecisionDateMapper, ArchitectsMapper
+    CollegeReportEventDecisionDateMapper, ArchitectsMapper, EventDecisionMapper, CollegeReportEventDecisionMapper, \
+    DecisionEventDecisionDateMapper, FirstFolderTransmmittedToRwDecisionMapper, \
+    FirstFolderTransmmittedToRwDecisionDateMapper, FirstFolderTransmmittedToRwEventDateMapper, \
+    EventDecisionAlternativeMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -327,19 +330,27 @@ FIELDS_MAPPINGS = {
             EventDateMapper: {
                 'table': 'wrketape',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                'event_name': 'envoi du permis au demandeur',
+                'event_name': u'délivrance permis',
                 'mappers': {
-                    LicenceToApplicantDateMapper: {
+                    DecisionEventDecisionDateMapper: { # get ETAPE_DATEDEPART
                         'from': ('ETAPE_DATEDEPART',),
-                        'to': ('eventDate'),
+                        'to': ('decisionDate'),
                     },
                 },
             },
 
-            DecisionEventDecisionMapper: {
-                'from': (''),
-                'to': 'decision',
+            EventDecisionMapper: {
+                'table': 'wrkparam',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                'event_name': u'Octroi du permis',
+                'mappers': {
+                    DecisionEventDecisionMapper: {
+                        'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
+                        'to': ('decision'),
+                    },
+                },
             },
+
         },
     },
 
@@ -364,18 +375,35 @@ FIELDS_MAPPINGS = {
                 'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
                 'event_name': 'envoi du primo dossier au FD',
                 'mappers': {
-                    FirstFolderTransmittedToRwDateMapper: {
+                    FirstFolderTransmmittedToRwEventDateMapper: {
                         'from': ('ETAPE_DATEDEPART',),
                         'to': ('eventDate'),
                     },
                 },
             },
 
-            FirstFolderTransmmittedToRwMapper: {
+            EventDecisionAlternativeMapper: {
                 'table': 'wrkparam',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
-                'event_name': '1er dossier transmis au RW',
+                'event_name': u'Date décision urbanisme',
+                'mappers': {
+                    FirstFolderTransmmittedToRwDecisionDateMapper: {
+                        'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
+                        'to': ('decisionDate'),
+                    },
+                },
+            },
 
+            EventDecisionMapper: {
+                'table': 'wrkparam',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                'event_name': u'avis FD',
+                'mappers': {
+                    FirstFolderTransmmittedToRwDecisionMapper: {
+                        'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
+                        'to': ('externalDecision'),
+                    },
+                },
             },
 
         },
@@ -477,6 +505,18 @@ FIELDS_MAPPINGS = {
                     CollegeReportEventDecisionDateMapper: {
                         'from': ('ETAPE_DATEDEPART',),
                         'to': ('decisionDate'),
+                    },
+                },
+            },
+
+            EventDecisionMapper: {
+                'table': 'wrkparam',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                'event_name': u'décision finale du Collège',
+                'mappers': {
+                    CollegeReportEventDecisionMapper: {
+                        'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
+                        'to': ('decision'),
                     },
                 },
             },
