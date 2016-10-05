@@ -1340,7 +1340,7 @@ class CollegeReportEventDecisionMapper(Mapper):
     def mapDecision(self, line):
         decision = self.getData('PARAM_VALUE')
         if not decision:
-            return None
+            raise NoObjectToCreateException
 
         return decision
 
@@ -1378,7 +1378,7 @@ class FirstFolderTransmmittedToRwEventDateMapper(Mapper):
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
-            return None
+            raise NoObjectToCreateException
         return date
 
 class FirstFolderTransmmittedToRwDecisionDateMapper(Mapper):
@@ -1386,7 +1386,7 @@ class FirstFolderTransmmittedToRwDecisionDateMapper(Mapper):
     def mapDecisiondate(self, line):
         decisionDate = self.getData('PARAM_VALUE')
         if not decisionDate:
-            return None
+            raise NoObjectToCreateException
         return decisionDate
 
 class FirstFolderTransmmittedToRwDecisionMapper(Mapper):
@@ -1394,7 +1394,7 @@ class FirstFolderTransmmittedToRwDecisionMapper(Mapper):
     def mapExternaldecision(self, line):
         decision = self.getData('PARAM_VALUE')
         if not decision:
-            return None
+            raise NoObjectToCreateException
         return decision
 
 
