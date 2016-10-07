@@ -89,6 +89,7 @@ class MultivaluedFieldSecondaryTableMapper(JoinTableMapper):
 
     def map(self, line, **kwargs):
         mapped = {}
+        self.main_line = line
         lines = self.query_secondary_table(line)
         for secondary_line in lines:
             for dest in self.destinations:
