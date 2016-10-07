@@ -296,7 +296,7 @@ FIELDS_MAPPINGS = {
             EventDateMapper: {
                 'table': 'wrketape',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                'event_name': 'dossier complet',
+                'event_name': u'accusé de réception',
                 'mappers': {
                     CompleteFolderDateMapper: {
                         'from': ('ETAPE_DATEDEPART',),
