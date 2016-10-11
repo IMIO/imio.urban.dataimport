@@ -780,8 +780,9 @@ class ApplicantMapper(SecondaryTableMapper):
         licence_id = self.getData('WRKDOSSIER_ID', line)
         applicant_type = -204
         k2 = self.importer.datasource.get_table('k2')
-        lines = self.query.filter(k2.columns['K_ID2']==licence_id, k2.columns['K2KND_ID']==applicant_type).all()
-
+        cpsn = self.importer.datasource.get_table('cpsn')
+        # remove notaries (89801)
+        lines = self.query.filter(k2.columns['K_ID2']==licence_id, k2.columns['K2KND_ID']==applicant_type,cpsn.columns['CPSN_TYPE']!=89801).all()
         return lines
 
 
@@ -843,8 +844,9 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
             k2cloc, cpsn.columns['CPSN_ID'] == k2cloc.columns['K_ID2']
         ).join(
             cloc, cloc.columns['CLOC_ID'] == k2cloc.columns['K_ID1']
-        ).filter(or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753,
-                     wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766, )
+        # ).filter(or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753,
+        #              wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766, )
+        ).filter(cpsn.columns['CPSN_TYPE'] == 89801
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
         ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID']
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
@@ -1040,13 +1042,35 @@ class ParcelDataMapper(Mapper):
 
 
 #
-# UrbanEvent deposit
+# UrbanEventDate
 #
 
 class EventDateMapper(SecondaryTableMapper):
 
     def __init__(self, mysql_importer, args):
         super(EventDateMapper, self).__init__(mysql_importer, args)
+        wrketape = self.importer.datasource.get_table('wrketape')
+        k2 = self.importer.datasource.get_table('k2')
+        self.query = self.query.filter_by(
+            ETAPE_NOMFR=args['event_name'],
+        ).join(
+            k2, wrketape.columns['WRKETAPE_ID'] == k2.columns['K_ID2']
+        )
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        event_type = -207 # etape
+        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
+        if not lines:
+            raise NoObjectToCreateException
+
+        return lines
+
+
+class EventDateAlternativeMapper(SecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(EventDateAlternativeMapper, self).__init__(mysql_importer, args)
         wrketape = self.importer.datasource.get_table('wrketape')
         k2 = self.importer.datasource.get_table('k2')
         self.query = self.query.filter_by(
@@ -1137,8 +1161,7 @@ class DepositEventMapper(Mapper):
 class DepositDateMapper(Mapper):
 
     def mapEventdate(self, line):
-
-        date = self.getData('DOSSIER_DATEDEPOT')
+        date = self.getData('ETAPE_DATEDEPART')
         if not date:
             raise NoObjectToCreateException
         date = date and DateTime(date) or None
@@ -1182,6 +1205,38 @@ class CompleteFolderEventIdMapper(Mapper):
 
     def mapId(self, line):
         return 'complete_folder'
+
+#
+# UrbanEvent incomplete Folder
+#
+
+# mappers
+
+
+class IncompleteFolderEventMapper(Mapper):
+
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = ('dossier-incomplet')
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
+class IncompleteFolderDateMapper(Mapper):
+
+    def mapEventdate(self, line):
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+
+class IncompleteFolderEventIdMapper(Mapper):
+
+    def mapId(self, line):
+        return 'incomplete_folder'
 
 
 #
@@ -1306,6 +1361,12 @@ class LicenceToFDEventIdMapper(Mapper):
 # mappers
 
 
+
+class CollegeReportEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'rapport-du-college'
+
+
 class CollegeReportEventMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
@@ -1344,11 +1405,55 @@ class CollegeReportEventDecisionMapper(Mapper):
 
         return decision
 
+#
+# UrbanEvent college report before fd
+#
 
-class CollegeReportEventIdMapper(Mapper):
+# mappers
+
+
+
+class CollegeReportBeforeFDDecisionEventIdMapper(Mapper):
     def mapId(self, line):
-        return 'rapport-du-college'
+        return 'college-report-before-FD-decision'
 
+class CollegeReportBeforeFDDecisionEventMapper(Mapper):
+
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'college-report-before-FD-decision'
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+class CollegeReportBeforeFDDecisionEventDateMapper(Mapper):
+
+    def mapEventdate(self, line):
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+
+class CollegeReportBeforeFDEventDecisionDateMapper(Mapper):
+
+    def mapDecisiondate(self, line):
+        date = self.getData('ETAPE_DATEDEPART')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+
+class CollegeReportBeforeFDEventDecisionMapper(Mapper):
+
+    def mapDecision(self, line):
+        decision = self.getData('PARAM_VALUE')
+        if not decision:
+            raise NoObjectToCreateException
+
+        return decision
 
 #
 # UrbanEvent complete Folder
