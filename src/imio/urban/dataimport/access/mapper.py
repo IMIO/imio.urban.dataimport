@@ -2,6 +2,7 @@
 
 from imio.urban.dataimport.mapper import BaseMapper, Mapper, SimpleMapper,\
     PostCreationMapper, FinalMapper
+from imio.urban.dataimport.exceptions import NoObjectToCreateException
 from imio.urban.dataimport.access.interfaces import IAccessMapper
 
 from zope.interface import implements
@@ -140,8 +141,14 @@ class MultiLinesSecondaryTableMapper(SecondaryTableMapper):
         lines = self.query_secondary_table(line)
         for secondary_line in lines:
             object_args = {}
+            skip = False
             for mapper in self.mappers:
                 mapper.line = secondary_line
-                object_args.update(mapper.map(secondary_line, **kwargs))
-            objects_args.append(object_args)
+                try:
+                    object_args.update(mapper.map(secondary_line, **kwargs))
+                except NoObjectToCreateException:
+                    skip = True
+                    break
+            if not skip:
+                objects_args.append(object_args)
         return objects_args
