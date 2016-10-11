@@ -11,16 +11,16 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     LicenceToApplicantEventMapper, LicenceToApplicantEventIdMapper, LicenceToApplicantDateMapper, \
     LicenceToFDEventMapper, LicenceToFDEventIdMapper, LicenceToFDDateMapper, \
     FolderZoneTableMapper, SolicitOpinionsToMapper, FD_SolicitOpinionMapper, Voirie_SolicitOpinionMapper, PCATypeMapper, PCAMapper, InvestigationDateMapper, \
-    FirstFolderTransmittedToRwEventIdMapper, FirstFolderTransmittedToRwEventTypeMapper, \
+    CollegeReportTransmittedToRWEventTypeMapper, \
     NotaryContactMapper, PcaZoneTableMapper, \
     CollegeReportEventMapper, CollegeReportEventIdMapper, DecisionEventDecisionMapper, CollegeReportEventDateMapper, \
     CollegeReportEventDecisionDateMapper, ArchitectsMapper, EventDecisionMapper, CollegeReportEventDecisionMapper, \
-    DecisionEventDecisionDateMapper, FirstFolderTransmmittedToRwDecisionMapper, \
-    FirstFolderTransmmittedToRwDecisionDateMapper, FirstFolderTransmmittedToRwEventDateMapper, \
+    DecisionEventDecisionDateMapper, \
     EventDecisionAlternativeMapper, CollegeReportBeforeFDDecisionEventMapper, CollegeReportBeforeFDDecisionEventIdMapper, \
     CollegeReportBeforeFDDecisionEventDateMapper, CollegeReportBeforeFDEventDecisionDateMapper, \
     CollegeReportBeforeFDEventDecisionMapper, EventDateAlternativeMapper, IncompleteFolderEventMapper, \
-    IncompleteFolderEventIdMapper, IncompleteFolderDateMapper
+    IncompleteFolderEventIdMapper, IncompleteFolderDateMapper, CollegeReportTransmittedToRwEventDateMapper, \
+    CollegeReportTransmittedToRwDecisionDateMapper, CollegeReportTransmittedToRwDecisionMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -33,7 +33,7 @@ OBJECTS_NESTING = [
             ('DEPOSIT EVENT', []),
             ('INCOMPLETE FOLDER EVENT', []),
             ('COMPLETE FOLDER EVENT', []),
-            ('FIRST FOLDER TRANSMITTED TO RW EVENT', []),
+            ('COLLEGE REPORT TRANSMITTED TO RW EVENT', []),
             ('SEND LICENCE TO APPLICANT EVENT', []),
             ('SEND LICENCE TO FD EVENT', []),
             ('COLLEGE REPORT BEFORE FD DECISION EVENT', []),
@@ -411,28 +411,23 @@ FIELDS_MAPPINGS = {
         },
     },
 
-    'FIRST FOLDER TRANSMITTED TO RW EVENT':
+    'COLLEGE REPORT TRANSMITTED TO RW EVENT':
     {
         'factory': [UrbanEventFactory],
         'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
 
         'mappers': {
-            FirstFolderTransmittedToRwEventTypeMapper: {
+            CollegeReportTransmittedToRWEventTypeMapper: {
                 'from': (),
                 'to': 'eventtype',
-            },
-
-            FirstFolderTransmittedToRwEventIdMapper: {
-                'from': (),
-                'to': 'id',
             },
 
             EventDateMapper: {
                 'table': 'wrketape',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                'event_name': 'envoi du primo dossier au FD',
+                'event_name': u'envoi du dossier et rapport au FD',
                 'mappers': {
-                    FirstFolderTransmmittedToRwEventDateMapper: {
+                    CollegeReportTransmittedToRwEventDateMapper: {
                         'from': ('ETAPE_DATEDEPART',),
                         'to': ('eventDate'),
                     },
@@ -444,7 +439,7 @@ FIELDS_MAPPINGS = {
                 'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
                 'event_name': u'Date décision urbanisme',
                 'mappers': {
-                    FirstFolderTransmmittedToRwDecisionDateMapper: {
+                    CollegeReportTransmittedToRwDecisionDateMapper: {
                         'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
                         'to': ('decisionDate'),
                     },
@@ -456,7 +451,7 @@ FIELDS_MAPPINGS = {
                 'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
                 'event_name': u'avis FD',
                 'mappers': {
-                    FirstFolderTransmmittedToRwDecisionMapper: {
+                    CollegeReportTransmittedToRwDecisionMapper: {
                         'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
                         'to': ('externalDecision'),
                     },

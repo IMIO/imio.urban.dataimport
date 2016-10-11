@@ -1456,29 +1456,28 @@ class CollegeReportBeforeFDEventDecisionMapper(Mapper):
         return decision
 
 #
-# UrbanEvent complete Folder
+# UrbanEvent CollegeReportToRw
 #
 
 # mappers
 
 
-class FirstFolderTransmittedToRwEventTypeMapper(Mapper):
+class CollegeReportTransmittedToRWEventTypeMapper(Mapper):
 
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
-        eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type][
-            'first_folder_transmitted_to_rw_event']
+        eventtype_id = 'college-report-transmitted-to-rw'
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
-class FirstFolderTransmittedToRwEventIdMapper(Mapper):
+class CollegeReportTransmittedToRwEventIdMapper(Mapper):
 
     def mapId(self, line):
-        return 'transmis-1er-dossier-rw'
+        return 'college-report-transmitted-to-rw'
 
-class FirstFolderTransmmittedToRwEventDateMapper(Mapper):
+class CollegeReportTransmittedToRwEventDateMapper(Mapper):
 
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
@@ -1486,7 +1485,7 @@ class FirstFolderTransmmittedToRwEventDateMapper(Mapper):
             raise NoObjectToCreateException
         return date
 
-class FirstFolderTransmmittedToRwDecisionDateMapper(Mapper):
+class CollegeReportTransmittedToRwDecisionDateMapper(Mapper):
 
     def mapDecisiondate(self, line):
         decisionDate = self.getData('PARAM_VALUE')
@@ -1494,7 +1493,7 @@ class FirstFolderTransmmittedToRwDecisionDateMapper(Mapper):
             raise NoObjectToCreateException
         return decisionDate
 
-class FirstFolderTransmmittedToRwDecisionMapper(Mapper):
+class CollegeReportTransmittedToRwDecisionMapper(Mapper):
 
     def mapExternaldecision(self, line):
         decision = self.getData('PARAM_VALUE')
