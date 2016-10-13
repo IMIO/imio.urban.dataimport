@@ -165,74 +165,8 @@ class FolderZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
     def mapFolderzone(self, line):
         raw_folder_zone = self.getData('PRCD_AFFLABEL', line=line)
         raw_folder_zone = raw_folder_zone.lower().strip()
-        zoneDictionnary = {
-            u"zone d'habitat": "zh",
-            u"zone d'habitat à caractère rural": "zhcr",
-            u"zone d'habitat à caractère rural sur +/- 50 m et le surplus en zone agricole": "zhcrza",
-            u"zone de services publics et d'équipements communautaires": "zspec",
-            u"zone de centre d'enfouissement technique": "zcet",
-            u"zone de loisirs": "zl",
-            u"zones d'activité économique mixte": "zaem",
-            u"zones d'activité économique industrielle": "zaei",
-            u"zones d'activité économique spécifique agro-économique": "zaesae",
-            u"zones d'activité économique spécifique grande distribution": "zaesgd",
-            u"zone d'aménagement différé à caractère industriel": "zadci",
-            u"zone agricole": "za",
-            u"zone forestière": "zf",
-            u"zone d'espaces verts": "zev",
-            u"zone naturelle": "zn",
-            u"zone de parc": "zp",
-            u"zone natura 2000": "znatura2000",
-            u"zone d'assainissement collectif": "zac",
-            u"zone de construction d'habitation fermée": "zchf",
-            u"zone de cours et jardins": "zcj",
-            u"zone de recul": "zr",
-            u"zone forestière d'intérêt paysager": "zfip",
-            u"zone faiblement habitée": "zfh",
-            u"zone de construction en annexe": "zca",
-            u"zone de construction d'habitation semi-ouverte": "zcso",
-            u"zone de construction d'habitation ouverte": "zcho",
-            u"zone de bâtisses agricoles": "zba",
-            u"zone d'habitat dans un périmètre d'intérêt culturel, historique ou esthétique": "zhche",
-            u"zone d'habitat à caractère rural sur une profondeur de 50 mètres": "zhcr50",
-            u"zone d'habitat à caractère rural sur une profondeur de 40 mètres": "zhcr40",
-            u"zone d'extraction": "ze",
-            u"zone d'ext. d'habitat": "zeh",
-            u"zone d'équipements communautaires et de services publics": "zspec",
-            u"zone d'équipement communautaire": "zec",
-            u"zone d'assainissement autonome": "zaa",
-            u"zone d'aménagement communal concerté mise en oeuvre": "zaccmeo",
-            u"zone d'aménagement communal concerté": "zacc",
-            u"zone boisée": "zb",
-            u"zone artisanale": "zart",
-            u"zone agricole pour partie": "zapp",
-            u"zone agricole pour le surplus": "zapls",
-            u"zone agricole et zone forestière": "zaezf",
-            u"zone agricole dans un périmètre d'intérêt paysager pour le surplus": "zapippls",
-            u"zone agricole dans un périmètre d'intérêt paysager": "zapip",
-            u"voirie": "zv",
-            u"sans affectation": "sa",
-            u"pv de constat d'infraction": "pvci",
-            u"plan d'eau": "pe",
-            u"périmètre de réservation sur 75 m de profondeur à partir de l'axe de la voirie": "pr75padlv",
-            u"infraction relevée mais sans PV": "pr75irspvpadlv",
-            u"aire de faible densité": "afd",
-            u"aire de moyenne densité": "amd",
-            u"aire de forte densité": "afod",
-            u"en partie dans un périmètre de réservation": "eppdr",
-            u"déclaré inhabitable": "di",
-            u"dans un périmètre d''intérêt culturel, historique ou esthétique": "pche",
-            u"dans un périmètre de réservation": "dpdr",
-            u"dans un périmètre d'intérêt paysager": "dpip",
-            u"faible": "fai",
-            u"très faible": "tfai",
-            u"eau": "eau",
-            u"élevé": "eleve",
-            u"éloignée": "eloi",
-            u"dossier en cours": "dec",
-            u"dans un périmètre d'intérêt culturel, historique ou esthétique": "dupiche",
-            u"zone d'habitat sur 50 m de profondeur": "zhas50dp",
-        }
+
+        zoneDictionnary = self.getValueMapping('zoneDictionary')
 
         if raw_folder_zone in zoneDictionnary:
             return zoneDictionnary[raw_folder_zone]
@@ -251,59 +185,16 @@ class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
         raw_solicit_opinion_to = self.getData('AVIS_NOM', line=line)
         raw_solicit_opinion_to = raw_solicit_opinion_to.lower()
 
+        solicitOpinionDictionary = self.getValueMapping('solicitOpinionDictionary')
 
-        solicit_opinion_toDictionnary = {
-            u"stp_eau": "stp",
-            u"stp": "stp",
-            u"stp_voirie": "stp",
-            u"base aérienne": "ba",
-            u"ddr": "ddr",
-            u"sri": "sri",
-            u"direction des routes": "spw-dgo1",
-            u"x4": "x4",
-            u"défense": "defense",
-            u"fluxys": "fluxys",
-            u"asbl bois du roi": "asblbdr",
-            u"cwedd": "cwedd",  # Conseil wallon de l'Environnement pour le Développement durable
-            u"elia": "elia",
-            u"police": "Police",
-            u"tec": "tec",
-            u"égouts": "egouts",
-            u"ores": "ores",
-            u"inasep": "inasep",
-            u"dnf": "dnf",
-            u"sncb": "sncb",
-            u"ccatm": "ccatm",
-            u"dgrne": "dgrne",
-            u"belgacom": "belgacom",
-            u"autres": "autres",
-        }
-
-        if raw_solicit_opinion_to in solicit_opinion_toDictionnary:
-            print (raw_solicit_opinion_to)
-            return solicit_opinion_toDictionnary[raw_solicit_opinion_to]
+        if raw_solicit_opinion_to in solicitOpinionDictionary:
+            return solicitOpinionDictionary[raw_solicit_opinion_to]
         else:
             print (raw_solicit_opinion_to)
             return "unknown"
 
-        return solicit_opinion_toDictionnary[raw_solicit_opinion_to]
-
 
 class PCAInit(SecondaryTableMapper):
-
-    raw_pca_toDictionnary = {
-        u"ppa1part": "pca1",
-        u"ppa1": "pca1",
-        u"ppa1b": "pca1",
-        u"ppa1tflo": "pca1",
-        u"ppa1tfla": "pca1",
-        u"ppa2": "pca2",
-        u"ppa2part": "pca2",
-        u"ppa2b": "pca2",
-        u"ppa3": "pca3",
-        u"ppa3part": "pca3",
-        u"ppa3mod": "pca3",
-    }
 
     def __init__(self, mysql_importer, args):
         super(PCAInit, self).__init__(mysql_importer, args)
@@ -342,8 +233,12 @@ class PCATypeMapper(PCAInit):
         if raw_pca is None:
             return
         raw_pca = raw_pca.lower()
+        raw_pca_Dictionary = self.getValueMapping('raw_pca_Dictionary')
 
-        return self.raw_pca_toDictionnary.get(raw_pca, None)
+        if raw_pca in raw_pca_Dictionary:
+            return raw_pca_Dictionary[raw_pca]
+        else:
+            return None
 
 
 class PCAMapper(PCAInit):
@@ -364,8 +259,12 @@ class PCAMapper(PCAInit):
         if raw_pca is None:
             return
         raw_pca = raw_pca.lower()
+        raw_pca_Dictionary = self.getValueMapping('raw_pca_Dictionary')
 
-        return self.raw_pca_toDictionnary.get(raw_pca, False)
+        if raw_pca in raw_pca_Dictionary:
+            return raw_pca_Dictionary[raw_pca]
+        else:
+            return False
 
 
 class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
