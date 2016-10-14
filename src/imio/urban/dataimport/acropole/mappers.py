@@ -418,6 +418,7 @@ class StreetAndNumberMapper(SubQueryMapper):
             if street:
                 street_uid = Utils.searchByStreet(street)
                 if not street_uid:
+
                     self.logError(self, line, 'Work Locations : Pas de rue trouvée pour cette valeur : ', {'TYPE value': street})
 
             objects_args = ({'street': street_uid, 'number': lines[0][4] if lines[0][4] is not None else "" },)
@@ -681,7 +682,8 @@ class ApplicantMapper(SecondaryTableMapper):
         k2 = self.importer.datasource.get_table('k2')
         cpsn = self.importer.datasource.get_table('cpsn')
         # remove notaries (89801)
-        lines = self.query.filter(k2.columns['K_ID2']==licence_id, k2.columns['K2KND_ID']==applicant_type,cpsn.columns['CPSN_TYPE']!=89801).all()
+        lines = self.query.filter(k2.columns['K_ID2']==licence_id, k2.columns['K2KND_ID']==applicant_type, or_(cpsn.columns['CPSN_TYPE']!=89801,cpsn.columns['CPSN_TYPE'] == None)).all()
+
         return lines
 
 
@@ -1418,9 +1420,12 @@ class Utils():
     @staticmethod
     def convertToUnicode(string):
 
+        if isinstance(string,unicode):
+            return string
+
         # convert to unicode if necessary, against iso-8859-1 : iso-8859-15 add € and oe characters
         data = ""
-        if string and type(string) is str:
+        if string and isinstance(string,str):
             data = unicode(string, "iso-8859-15")
         return data
 
