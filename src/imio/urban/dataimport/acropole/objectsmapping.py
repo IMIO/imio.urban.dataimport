@@ -20,7 +20,9 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     CollegeReportBeforeFDDecisionEventDateMapper, CollegeReportBeforeFDEventDecisionDateMapper, \
     CollegeReportBeforeFDEventDecisionMapper, EventDateAlternativeMapper, IncompleteFolderEventMapper, \
     IncompleteFolderEventIdMapper, IncompleteFolderDateMapper, CollegeReportTransmittedToRwEventDateMapper, \
-    CollegeReportTransmittedToRwDecisionDateMapper, CollegeReportTransmittedToRwDecisionMapper
+    CollegeReportTransmittedToRwDecisionDateMapper, CollegeReportTransmittedToRwDecisionMapper, DepositEventDateMapper, \
+    DecisionDecisionEventDateMapper, EventParamDateMapper, CollegeReportDeclarationEventMapper, \
+    CollegeReportDeclarationEventIdMapper
 
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
@@ -37,6 +39,7 @@ OBJECTS_NESTING = [
             ('SEND LICENCE TO APPLICANT EVENT', []),
             ('SEND LICENCE TO FD EVENT', []),
             ('COLLEGE REPORT BEFORE FD DECISION EVENT', []),
+            ('COLLEGE REPORT DECLARATION EVENT', []),
             ('COLLEGE REPORT EVENT', []),
             ('DECISION EVENT', []),
         ],
@@ -275,11 +278,10 @@ FIELDS_MAPPINGS = {
                 'to': 'id',
             },
 
-            EventDateMapper: {
-                'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+            DepositEventDateMapper: {
+                'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'Article127', 'NotaryLetters'],
                 'table': 'wrketape',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                'event_name': u'récépissé',
                 'mappers': {
                     DepositDateMapper: {
                         'from': ('ETAPE_DATEDEPART',),
@@ -379,15 +381,14 @@ FIELDS_MAPPINGS = {
                 'to': 'id',
             },
 
-            DecisionEventDateMapper: {
+            DecisionDecisionEventDateMapper: {
                 'from': ('DOSSIER_DATEDELIV'),
                 'to': 'eventDate',
             },
 
-            EventDateMapper: {
+            DecisionEventDateMapper: {
                 'table': 'wrketape',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                'event_name': u'délivrance permis',
                 'mappers': {
                     DecisionEventDecisionDateMapper: { # get ETAPE_DATEDEPART
                         'from': ('ETAPE_DATEDEPART',),
@@ -540,7 +541,7 @@ FIELDS_MAPPINGS = {
             EventDateAlternativeMapper: {
                 'table': 'wrketape',
                 'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                'event_name': u'Rapport du collège',
+                'event_name': u'rapport Collège',
                 'mappers': {
                     CollegeReportEventDateMapper: {
                         'from': ('ETAPE_DATEDEPART',),
@@ -549,13 +550,13 @@ FIELDS_MAPPINGS = {
                 },
             },
 
-            EventDateMapper: {
-                'table': 'wrketape',
-                'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                'event_name': u'décision finale du Collège',
+            EventParamDateMapper: {
+                'table': 'wrkparam',
+                'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                'event_name': u'Date décision finale du Collège',
                 'mappers': {
                     CollegeReportEventDecisionDateMapper: {
-                        'from': ('ETAPE_DATEDEPART',),
+                        'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
                         'to': ('decisionDate'),
                     },
                 },
@@ -574,6 +575,60 @@ FIELDS_MAPPINGS = {
             },
         },
     },
+
+    'COLLEGE REPORT DECLARATION EVENT':
+        {
+            'factory': [UrbanEventFactory],
+            'allowed_containers': ['Declaration'],
+
+            'mappers': {
+                CollegeReportDeclarationEventMapper: {
+                    'from': (),
+                    'to': 'eventtype',
+                },
+
+                CollegeReportDeclarationEventIdMapper: {
+                    'from': (),
+                    'to': 'id',
+                },
+
+                EventDateAlternativeMapper: {
+                    'table': 'wrketape',
+                    'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
+                    'event_name': u'rapport collège',
+                    'mappers': {
+                        CollegeReportEventDateMapper: {
+                            'from': ('ETAPE_DATEDEPART',),
+                            'to': ('eventDate'),
+                        },
+                    },
+                },
+
+                # EventParamDateMapper: {
+                #     'table': 'wrkparam',
+                #     'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                #     'event_name': u'Date décision finale du Collège',
+                #     'mappers': {
+                #         CollegeReportEventDecisionDateMapper: {
+                #             'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
+                #             'to': ('decisionDate'),
+                #         },
+                #     },
+                # },
+                #
+                # EventDecisionMapper: {
+                #     'table': 'wrkparam',
+                #     'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                #     'event_name': u'décision finale du Collège',
+                #     'mappers': {
+                #         CollegeReportEventDecisionMapper: {
+                #             'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
+                #             'to': ('decision'),
+                #         },
+                #     },
+                # },
+            },
+        },
 
     'COLLEGE REPORT BEFORE FD DECISION EVENT':
         {

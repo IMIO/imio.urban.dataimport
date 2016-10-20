@@ -413,15 +413,25 @@ class StreetAndNumberMapper(SubQueryMapper):
 
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
         if lines :
-            street = Utils.convertToUnicode(lines[0][1] if lines[0][1] is not None else "")
-            street_uid = ''
-            if street:
-                street_uid = Utils.searchByStreet(street)
-                if not street_uid:
+            for line in lines:
+                street = Utils.convertToUnicode(line[1] if line[1] is not None else "")
+                street_uid = ''
+                if street:
+                    # get street number if not exist in ADR_NUM field
+                    number = ''
+                    if not line[4]:
+                        regex = '(.*?)\s*,?\s*(\d.*)\s*\Z'
+                        match = re.search(regex, street.encode('ascii','ignore'))
+                        if match and match.group(2): number = match.group(2)
+                    else:
+                        number = line[4]
 
-                    self.logError(self, line, 'Work Locations : Pas de rue trouvée pour cette valeur : ', {'TYPE value': street})
+                    # get street existing reference
+                    street_uid = Utils.searchByStreet(street)
+                    if not street_uid:
+                        self.logError(self, line, 'Work Locations / streets : Pas de rue trouvée pour cette valeur : ', {'TYPE value': street, 'address': street})
 
-            objects_args = ({'street': street_uid, 'number': lines[0][4] if lines[0][4] is not None else "" },)
+                    objects_args = objects_args + ({'street': street_uid, 'number': number},)
 
         return objects_args
 
@@ -621,7 +631,7 @@ class ErrorsMapper(FinalMapper):
 class ContactFactory(BaseFactory):
 
     def getPortalType(self, container, **kwargs):
-        if container.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo', 'NotaryLetter', 'Division']:
+        if container.portal_type in [ 'UrbanCertificateTwo', 'Division']:
             return 'Proprietary'
         return 'Applicant'
 
@@ -681,8 +691,15 @@ class ApplicantMapper(SecondaryTableMapper):
         applicant_type = -204
         k2 = self.importer.datasource.get_table('k2')
         cpsn = self.importer.datasource.get_table('cpsn')
-        # remove notaries (89801)
-        lines = self.query.filter(k2.columns['K_ID2']==licence_id, k2.columns['K2KND_ID']==applicant_type, or_(cpsn.columns['CPSN_TYPE']!=89801,cpsn.columns['CPSN_TYPE'] == None)).all()
+        type_value = self.getData('DOSSIER_TDOSSIERID',line)
+        portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
+
+        # if portal_type != 'UrbanCertificateOne':
+        #     # remove notaries (89801)
+        #     lines = self.query.filter(k2.columns['K_ID2'] == licence_id, k2.columns['K2KND_ID'] == applicant_type, or_(cpsn.columns['CPSN_TYPE'] != 89801,cpsn.columns['CPSN_TYPE'] == None)).all()
+        # else:
+        # get notaries as Applicant possibility for CU1
+        lines = self.query.filter(k2.columns['K_ID2'] == licence_id, k2.columns['K2KND_ID'] == applicant_type).all()
 
         return lines
 
@@ -951,12 +968,13 @@ class EventDateMapper(SecondaryTableMapper):
     def __init__(self, mysql_importer, args):
         super(EventDateMapper, self).__init__(mysql_importer, args)
         wrketape = self.importer.datasource.get_table('wrketape')
+        event_name = args['event_name']
         k2 = self.importer.datasource.get_table('k2')
         self.query = self.query.filter_by(
-            ETAPE_NOMFR=args['event_name'],
+            ETAPE_NOMFR=event_name,
         ).join(
             k2, wrketape.columns['WRKETAPE_ID'] == k2.columns['K_ID2']
-        )
+        ).add_column(wrketape.columns['ETAPE_NOMFR'])
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
@@ -990,6 +1008,73 @@ class EventDateAlternativeMapper(SecondaryTableMapper):
         return lines
 
 
+class EventParamDateMapper(SecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(EventParamDateMapper, self).__init__(mysql_importer, args)
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        k2 = self.importer.datasource.get_table('k2')
+        self.query = self.query.filter_by(
+            PARAM_NOMFUSION=args['event_name'],
+        ).join(
+            k2, wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+        )
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        event_type = -208 # param
+        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
+        if not lines:
+            raise NoObjectToCreateException
+
+        return lines
+
+class DepositEventDateMapper(SecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(DepositEventDateMapper, self).__init__(mysql_importer, args)
+        wrketape = self.importer.datasource.get_table('wrketape')
+        k2 = self.importer.datasource.get_table('k2')
+        self.query = self.query.join(
+            k2, wrketape.columns['WRKETAPE_ID'] == k2.columns['K_ID2']
+        ).add_column(wrketape.columns['ETAPE_NOMFR'])
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        event_type = -207 # etape
+        wrketape = self.importer.datasource.get_table('wrketape')
+        licence = self.importer.current_containers_stack[-1]
+        depositKey = self.getValueMapping('event_deposit_name_map')[licence.portal_type]
+        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(wrketape.columns['ETAPE_NOMFR'] == depositKey).all()
+        if not lines:
+            raise NoObjectToCreateException
+
+        return lines
+
+
+class DecisionEventDateMapper(SecondaryTableMapper):
+
+    def __init__(self, mysql_importer, args):
+        super(DecisionEventDateMapper, self).__init__(mysql_importer, args)
+        wrketape = self.importer.datasource.get_table('wrketape')
+        k2 = self.importer.datasource.get_table('k2')
+        self.query = self.query.join(
+            k2, wrketape.columns['WRKETAPE_ID'] == k2.columns['K_ID2']
+        ).add_column(wrketape.columns['ETAPE_NOMFR'])
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        event_type = -207 # etape
+        wrketape = self.importer.datasource.get_table('wrketape')
+        licence = self.importer.current_containers_stack[-1]
+        depositKey = self.getValueMapping('event_decision_name_map')[licence.portal_type]
+        lines = None
+        if depositKey:
+            lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(wrketape.columns['ETAPE_NOMFR'] == depositKey).all()
+
+        return lines
+
+
 class EventDecisionMapper(SecondaryTableMapper):
 
     def __init__(self, mysql_importer, args):
@@ -1006,8 +1091,8 @@ class EventDecisionMapper(SecondaryTableMapper):
         licence_id = self.getData('WRKDOSSIER_ID', line)
         event_type = -208 # param
         lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
-        if not lines:
-            raise NoObjectToCreateException
+        # if not lines:
+        #     raise NoObjectToCreateException
 
         return lines
 
@@ -1163,20 +1248,19 @@ class DecisionEventIdMapper(Mapper):
         return 'decision-event'
 
 
-class DecisionEventDateMapper(Mapper):
+class DecisionDecisionEventDateMapper(Mapper):
 
     def mapEventdate(self, line):
-
         date = self.getData('DOSSIER_DATEDELIV')
         if not date:
             self.logError(self, line, 'No decision date found')
-        return str(date)
+        return date
 
 class DecisionEventDecisionMapper(Mapper):
 
     def mapDecision(self, line):
-        decision = self.getData('PARAM_VALUE')
 
+        decision = self.getData('PARAM_VALUE')
         if decision and decision == u'1':
             return u'Octroyé'
         else:
@@ -1187,7 +1271,8 @@ class DecisionEventDecisionDateMapper(Mapper):
     def mapDecisiondate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
-            raise NoObjectToCreateException
+            self.logError(self, line, 'No decision date found')
+            return None
         date = date and DateTime(date) or None
         return date
 #
@@ -1264,11 +1349,13 @@ class LicenceToFDEventIdMapper(Mapper):
 
 
 class CollegeReportEventIdMapper(Mapper):
+
     def mapId(self, line):
         return 'rapport-du-college'
 
 
 class CollegeReportEventMapper(Mapper):
+
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1305,6 +1392,28 @@ class CollegeReportEventDecisionMapper(Mapper):
             raise NoObjectToCreateException
 
         return decision
+
+#
+# UrbanEvent declaration college report
+#
+
+# mappers
+
+
+
+class CollegeReportDeclarationEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'deliberation-college'
+
+class CollegeReportDeclarationEventMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'deliberation-college'
+        config = urban_tool.getUrbanConfig(licence)
+        return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+
 
 #
 # UrbanEvent college report before fd
@@ -1429,6 +1538,14 @@ class Utils():
             data = unicode(string, "iso-8859-15")
         return data
 
+    @staticmethod
+    def convertToAscii(unicodeString, mode):
+
+        if not isinstance(unicodeString, unicode) or mode != 'replace' and mode != 'ignore':
+            raise ValueError
+
+        # convert to ascii, unknown characters are set to '?'/replace mode, ''/ignore mode
+        return unicodeString.encode('ascii', mode)
 
     @staticmethod
     def searchByStreet(street):
@@ -1447,7 +1564,7 @@ class Utils():
                 if not street_uids:
                     # log the address issue infos
                     with open("matchBestAddressError.csv", "a") as file:
-                        file.write(Utils.convertToUnicode(strwithoutlastchar) + "\n")
+                        file.write(Utils.convertToAscii(strwithoutlastchar, 'replace') + "\n")
 
         return street_uids
 
