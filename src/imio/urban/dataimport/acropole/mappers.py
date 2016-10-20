@@ -1564,7 +1564,7 @@ class Utils():
                 if not street_uids:
                     # log the address issue infos
                     with open("matchBestAddressError.csv", "a") as file:
-                        file.write(Utils.convertToAscii(strwithoutlastchar, 'replace') + "\n")
+                        file.write(Utils.convertToAscii(street, 'replace') + "\n")
 
         return street_uids
 
