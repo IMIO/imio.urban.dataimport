@@ -42,13 +42,11 @@ class LicenceFactory(BaseFactory):
 
 
 class IdMapper(Mapper):
-
     def mapId(self, line):
         return normalizeString(self.getData('WRKDOSSIER_ID'))
 
 
 class PortalTypeMapper(Mapper):
-
     cpt_dossier_from_start_line = 0
 
     def mapPortal_type(self, line):
@@ -56,7 +54,7 @@ class PortalTypeMapper(Mapper):
         type_value = self.getData('DOSSIER_TDOSSIERID')
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
 
-        #TODO remove this filter zone! Dev mode
+        # TODO remove this filter zone! Dev mode
         # *** start zone ***
 
         # with open("sequence_dossier.csv", "a") as file:
@@ -93,7 +91,6 @@ class WorklocationMapper(SubQueryMapper):
 
 
 class ArchitectMapper(PostCreationMapper):
-
     def mapArchitects(self, line, plone_object):
         archi_name = self.getData('NomArchitecte')
         fullname = cleanAndSplitWord(archi_name)
@@ -114,7 +111,6 @@ class ArchitectMapper(PostCreationMapper):
 
 
 class GeometricianMapper(PostCreationMapper):
-
     def mapGeometricians(self, line, plone_object):
         title_words = [word for word in self.getData('Titre').lower().split()]
         for word in title_words:
@@ -143,7 +139,6 @@ class GeometricianMapper(PostCreationMapper):
 
 
 class FolderZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(FolderZoneTableMapper, self).__init__(mysql_importer, args)
         prc_data = self.importer.datasource.get_table('prc_data')
@@ -176,7 +171,6 @@ class FolderZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
 
 
 class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
-
     def mapSolicitopinionsto(self, line):
 
         if self.getData('AVIS_REQ', line=line) != 1:
@@ -195,7 +189,6 @@ class SolicitOpinionsToMapper(FieldMultiLinesSecondaryTableMapper):
 
 
 class PCAInit(SecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(PCAInit, self).__init__(mysql_importer, args)
         schema = self.importer.datasource.get_table('schema')
@@ -216,7 +209,6 @@ class PCAInit(SecondaryTableMapper):
 
 
 class PCATypeMapper(PCAInit):
-
     def map(self, line, **kwargs):
         objects_args = {}
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
@@ -242,7 +234,6 @@ class PCATypeMapper(PCAInit):
 
 
 class PCAMapper(PCAInit):
-
     def map(self, line, **kwargs):
         objects_args = {}
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
@@ -268,7 +259,6 @@ class PCAMapper(PCAInit):
 
 
 class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(PcaZoneTableMapper, self).__init__(mysql_importer, args)
         schemaaff = self.importer.datasource.get_table('schemaaff')
@@ -300,90 +290,90 @@ class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
         raw_pca_zone = self.getData('SCA_LABELFR', line=line)
         raw_pca_zone = raw_pca_zone.lower().strip()
         zoneDictionnary = {
-            u"aire de faible densité" : "afad",
-            u"aire de forte densité" : "afod",
-            u"aire de moyenne densité" : "amd",
-            u"dans un périmètre d'intérêt culturel, historique ou esthétique" : "dupiche",
-            u"dans un périmètre d'intérêt paysager" : "dupip",
-            u"dans un périmètre de réservation" : "dupdr",
-            u"déclaré inhabitable" : "di",
-            u"dossier en cours" : "dec",
-            u"eau" : "eau",
-            u"élevé" : "eleve",
-            u"éloignée" : "eloi",
-            u"en partie dans un périmètre de réservation" : "epdupdr",
-            u"faible" : "fai",
-            u"infraction relevée mais sans pv" : "irmspv",
-            u"moyen" : "moy",
-            u"parcs résidentiels" : "pres",
-            u"périmètre de réservation sur 75 m de profondeur à partir de l'axe de la voirie" : "pdrs75mdpapdadlv",
-            u"périmètre de zones protégées" : "pdzp",
-            u"plan d'eau" : "peau",
-            u"pv de constat d'infraction" : "pvdci",
-            u"rapprochée" : "rapp",
-            u"sans affectation" : "saffec",
-            u"travaux imposés" : "timp",
-            u"très faible" : "tfai",
-            u"voirie" : "voirie",
-            u"zone agricole" : "za",
-            u"zone agricole dans un périmètre d'intérêt paysager" : "zadupip",
-            u"zone agricole dans un périmètre d'intérêt paysager pour le surplus" : "zadupippsur",
-            u"zone agricole et zone de bâtisses agricoles" : "zaezba",
-            u"zone agricole et zone forestière" : "zaezf",
-            u"zone agricole pour le surplus" : "zaplsur",
-            u"zone agricole pour partie" : "zapp",
-            u"zone artisanale" : "zart",
-            u"zone boisée" : "zb",
-            u"zone d'activité économique industrielle" : "zaei",
-            u"zone d'activité économique mixte" : "zaem",
-            u"zone d'activités économiques et commerciales" : "zaeec",
-            u"zone d'aménagement communal concerté" : "zacc",
-            u"zone d'aménagement communal concerté mise en oeuvre" : "zaccmeo",
-            u"zone d'assainissement autonome" : "zaa",
-            u"zone d'assainissement collectif" : "zac",
-            u"zone d'entreprise commerciale de grande dimension" : "zecdgd",
-            u"zone d'équipement communautaire" : "zec",
-            u"zone d'équipements communautaires et de services publics" : "zecedsp",
-            u"zone d'espaces verts" : "zev",
-            u"zone d'ext d'industrie" : "zexti",
-            u"zone d'ext. d'habitat" : "zexth",
-            u"zone d'ext. d'habitat à caractère rural" : "zexthacr",
-            u"zone d'ext.. de parcs résidentiels" : "zextdpr",
-            u"zone d'extension pour bâtisses  espacées" : "zexpbe",
-            u"zone d'extension pour bâtisses espacées" : "zexpbe",
-            u"zone d'extraction" : "zextract",
-            u"zone d'habitat" : "zha",
-            u"zone d'habitat à caractère rural" : "zhaacr",
-            u"zone d'habitat à caractère rural sur une profondeur de 40 mètres" : "zhaacrsp40",
-            u"zone d'habitat à caractère rural sur une profondeur de 50 mètres" : "zhaacrsp50",
-            u"zone d'habitat dans un périmètre d'intérêt culturel, historique ou esthétique" : "zhadupiche",
-            u"zone d'habitat sur 50 m de profondeur" : "zhas50dp",
-            u"zone d'habitation" : "zhation",
-            u"zone d'habitation, annexes, abris" : "zhaaa",
-            u"zone de bâtisses agricoles" : "zdba",
-            u"zone de construction d'habitation fermée" : "zdchaf",
-            u"zone de construction d'habitation ouverte" : "zdchao",
-            u"zone de construction d'habitation semi-ouverte" : "zdchaso",
-            u"zone de construction en annexe" : "zdcea",
-            u"zone de cours et jardins" : "zdcej",
-            u"zone de loisirs" : "zdl",
-            u"zone de parc" : "zdparc",
-            u"zone de parc ou d'espaces verts" : "zdparcev",
-            u"zone de prévention en matière de prises d'eau souterraines, zones éloignées." : "zdpemdpeausoutze",
-            u"zone de recul" : "zdrec",
-            u"zone de recul et de voirie" : "zdrecedv",
-            u"zone de recul, zone de construction d'habitation fermée et zone de cours et jardins" : "zdreczdchafeezdcej",
-            u"zone de service" : "zdserv",
-            u"zone de voirie réservée aux piétons" : "zdvoirap",
-            u"zone de voiries et d'espaces publics" : "zdveep",
-            u"zone faiblement habitée" : "zfaiha",
-            u"zone forestière" : "zforest",
-            u"zone forestière d'intérêt paysager" : "zforestip",
-            u"zone industrielle" : "zi",
-            u"zone réservée aux annexes" : "zresaa",
-            u"zone réservée aux constructions à un étage" : "zresacaue",
-            u"zone réservée aux constructions principales" : "zresacprinc",
-            u"zone réservée aux constructions principales, en zone de cours et jardins et en voirie" : "zresacprincezcejeev",
+            u"aire de faible densité": "afad",
+            u"aire de forte densité": "afod",
+            u"aire de moyenne densité": "amd",
+            u"dans un périmètre d'intérêt culturel, historique ou esthétique": "dupiche",
+            u"dans un périmètre d'intérêt paysager": "dupip",
+            u"dans un périmètre de réservation": "dupdr",
+            u"déclaré inhabitable": "di",
+            u"dossier en cours": "dec",
+            u"eau": "eau",
+            u"élevé": "eleve",
+            u"éloignée": "eloi",
+            u"en partie dans un périmètre de réservation": "epdupdr",
+            u"faible": "fai",
+            u"infraction relevée mais sans pv": "irmspv",
+            u"moyen": "moy",
+            u"parcs résidentiels": "pres",
+            u"périmètre de réservation sur 75 m de profondeur à partir de l'axe de la voirie": "pdrs75mdpapdadlv",
+            u"périmètre de zones protégées": "pdzp",
+            u"plan d'eau": "peau",
+            u"pv de constat d'infraction": "pvdci",
+            u"rapprochée": "rapp",
+            u"sans affectation": "saffec",
+            u"travaux imposés": "timp",
+            u"très faible": "tfai",
+            u"voirie": "voirie",
+            u"zone agricole": "za",
+            u"zone agricole dans un périmètre d'intérêt paysager": "zadupip",
+            u"zone agricole dans un périmètre d'intérêt paysager pour le surplus": "zadupippsur",
+            u"zone agricole et zone de bâtisses agricoles": "zaezba",
+            u"zone agricole et zone forestière": "zaezf",
+            u"zone agricole pour le surplus": "zaplsur",
+            u"zone agricole pour partie": "zapp",
+            u"zone artisanale": "zart",
+            u"zone boisée": "zb",
+            u"zone d'activité économique industrielle": "zaei",
+            u"zone d'activité économique mixte": "zaem",
+            u"zone d'activités économiques et commerciales": "zaeec",
+            u"zone d'aménagement communal concerté": "zacc",
+            u"zone d'aménagement communal concerté mise en oeuvre": "zaccmeo",
+            u"zone d'assainissement autonome": "zaa",
+            u"zone d'assainissement collectif": "zac",
+            u"zone d'entreprise commerciale de grande dimension": "zecdgd",
+            u"zone d'équipement communautaire": "zec",
+            u"zone d'équipements communautaires et de services publics": "zecedsp",
+            u"zone d'espaces verts": "zev",
+            u"zone d'ext d'industrie": "zexti",
+            u"zone d'ext. d'habitat": "zexth",
+            u"zone d'ext. d'habitat à caractère rural": "zexthacr",
+            u"zone d'ext.. de parcs résidentiels": "zextdpr",
+            u"zone d'extension pour bâtisses  espacées": "zexpbe",
+            u"zone d'extension pour bâtisses espacées": "zexpbe",
+            u"zone d'extraction": "zextract",
+            u"zone d'habitat": "zha",
+            u"zone d'habitat à caractère rural": "zhaacr",
+            u"zone d'habitat à caractère rural sur une profondeur de 40 mètres": "zhaacrsp40",
+            u"zone d'habitat à caractère rural sur une profondeur de 50 mètres": "zhaacrsp50",
+            u"zone d'habitat dans un périmètre d'intérêt culturel, historique ou esthétique": "zhadupiche",
+            u"zone d'habitat sur 50 m de profondeur": "zhas50dp",
+            u"zone d'habitation": "zhation",
+            u"zone d'habitation, annexes, abris": "zhaaa",
+            u"zone de bâtisses agricoles": "zdba",
+            u"zone de construction d'habitation fermée": "zdchaf",
+            u"zone de construction d'habitation ouverte": "zdchao",
+            u"zone de construction d'habitation semi-ouverte": "zdchaso",
+            u"zone de construction en annexe": "zdcea",
+            u"zone de cours et jardins": "zdcej",
+            u"zone de loisirs": "zdl",
+            u"zone de parc": "zdparc",
+            u"zone de parc ou d'espaces verts": "zdparcev",
+            u"zone de prévention en matière de prises d'eau souterraines, zones éloignées.": "zdpemdpeausoutze",
+            u"zone de recul": "zdrec",
+            u"zone de recul et de voirie": "zdrecedv",
+            u"zone de recul, zone de construction d'habitation fermée et zone de cours et jardins": "zdreczdchafeezdcej",
+            u"zone de service": "zdserv",
+            u"zone de voirie réservée aux piétons": "zdvoirap",
+            u"zone de voiries et d'espaces publics": "zdveep",
+            u"zone faiblement habitée": "zfaiha",
+            u"zone forestière": "zforest",
+            u"zone forestière d'intérêt paysager": "zforestip",
+            u"zone industrielle": "zi",
+            u"zone réservée aux annexes": "zresaa",
+            u"zone réservée aux constructions à un étage": "zresacaue",
+            u"zone réservée aux constructions principales": "zresacprinc",
+            u"zone réservée aux constructions principales, en zone de cours et jardins et en voirie": "zresacprincezcejeev",
         }
 
         if raw_pca_zone in zoneDictionnary:
@@ -391,8 +381,8 @@ class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
         else:
             return "unknown"
 
-class StreetAndNumberMapper(SubQueryMapper):
 
+class StreetAndNumberMapper(SubQueryMapper):
     def __init__(self, mysql_importer, args):
         super(StreetAndNumberMapper, self).__init__(mysql_importer, args)
         k2adr = self.importer.datasource.get_table('k2adr')
@@ -406,13 +396,13 @@ class StreetAndNumberMapper(SubQueryMapper):
             wrkdossier,
             wrkdossier.columns['WRKDOSSIER_ID'] == k2adr.columns['K_ID1']
         ).add_column(adr.columns['ADR_ID']
-        ).add_column(wrkdossier.columns['WRKDOSSIER_ID'])
+                     ).add_column(wrkdossier.columns['WRKDOSSIER_ID'])
 
     def mapWorklocations(self, line, **kwargs):
         objects_args = ()
 
         lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
-        if lines :
+        if lines:
             for line in lines:
                 street = Utils.convertToUnicode(line[1] if line[1] is not None else "")
                 street_uid = ''
@@ -421,7 +411,7 @@ class StreetAndNumberMapper(SubQueryMapper):
                     number = ''
                     if not line[4]:
                         regex = '(.*?)\s*,?\s*(\d.*)\s*\Z'
-                        match = re.search(regex, street.encode('ascii','ignore'))
+                        match = re.search(regex, street.encode('ascii', 'ignore'))
                         if match and match.group(2): number = match.group(2)
                     else:
                         number = line[4]
@@ -429,7 +419,8 @@ class StreetAndNumberMapper(SubQueryMapper):
                     # get street existing reference
                     street_uid = Utils.searchByStreet(street)
                     if not street_uid:
-                        self.logError(self, line, 'Work Locations / streets : Pas de rue trouvée pour cette valeur : ', {'TYPE value': street, 'address': street})
+                        self.logError(self, line, 'Work Locations / streets : Pas de rue trouvée pour cette valeur : ',
+                                      {'TYPE value': street, 'address': street})
 
                     objects_args = objects_args + ({'street': street_uid, 'number': number},)
 
@@ -437,7 +428,6 @@ class StreetAndNumberMapper(SubQueryMapper):
 
 
 class InvestigationDateMapper(SecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(InvestigationDateMapper, self).__init__(mysql_importer, args)
         wrkparam = self.importer.datasource.get_table('wrkparam')
@@ -460,16 +450,18 @@ class InvestigationDateMapper(SecondaryTableMapper):
             for line in lines:
                 if (self.getData('PARAM_IDENT', line=line) == 'EnqDatDeb'):
                     if (self.getData('PARAM_VALUE', line=line)):
-                        objects_args.update({'investigationStart': self.inverseDateDayMonth(self.getData('PARAM_VALUE', line=line))})
+                        objects_args.update(
+                            {'investigationStart': self.inverseDateDayMonth(self.getData('PARAM_VALUE', line=line))})
                 elif (self.getData('PARAM_IDENT', line=line) == 'EnqDatFin'):
                     if (self.getData('PARAM_VALUE', line=line)):
-                        objects_args.update({'investigationEnd': self.inverseDateDayMonth(self.getData('PARAM_VALUE', line=line))})
+                        objects_args.update(
+                            {'investigationEnd': self.inverseDateDayMonth(self.getData('PARAM_VALUE', line=line))})
                 else:
                     return
 
         return objects_args
 
-    def inverseDateDayMonth(self,date):
+    def inverseDateDayMonth(self, date):
 
         # TODO this is a W.A, change zope/plone config to avoid this ?
         if date and (len(date) == 10):
@@ -483,7 +475,6 @@ class InvestigationDateMapper(SecondaryTableMapper):
 
 
 class FD_SolicitOpinionMapper(SecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(FD_SolicitOpinionMapper, self).__init__(mysql_importer, args)
         wrkparam = self.importer.datasource.get_table('wrkparam')
@@ -497,7 +488,7 @@ class FD_SolicitOpinionMapper(SecondaryTableMapper):
             wrkdossier,
             wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
         ).filter(and_(wrkparam.columns['PARAM_VALUE'] == '1',
-                     wrkparam.columns['PARAM_NOMFUSION'].like(u'%avis préalable du FD%')))
+                      wrkparam.columns['PARAM_NOMFUSION'].like(u'%avis préalable du FD%')))
 
     def map(self, line, **kwargs):
         objects_args = {}
@@ -508,8 +499,8 @@ class FD_SolicitOpinionMapper(SecondaryTableMapper):
 
         return objects_args
 
-class Voirie_SolicitOpinionMapper(SubQueryMapper):
 
+class Voirie_SolicitOpinionMapper(SubQueryMapper):
     def __init__(self, mysql_importer, args):
         super(Voirie_SolicitOpinionMapper, self).__init__(mysql_importer, args)
         wrkparam = self.importer.datasource.get_table('wrkparam')
@@ -522,11 +513,13 @@ class Voirie_SolicitOpinionMapper(SubQueryMapper):
         ).join(
             wrkdossier,
             wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
-        ).filter(and_(wrkparam.columns['PARAM_VALUE'] == '1',or_(wrkparam.columns['PARAM_NOMFUSION'].like(u"%accordable à l'égout%"),
-                                                                 wrkparam.columns['PARAM_NOMFUSION'].like(u"%voirie équipée%"),
-                                                                 wrkparam.columns['PARAM_NOMFUSION'].like(u"%épuration individuelle%"))
-                      ,or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766,wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753))
-                     )
+        ).filter(and_(wrkparam.columns['PARAM_VALUE'] == '1',
+                      or_(wrkparam.columns['PARAM_NOMFUSION'].like(u"%accordable à l'égout%"),
+                          wrkparam.columns['PARAM_NOMFUSION'].like(u"%voirie équipée%"),
+                          wrkparam.columns['PARAM_NOMFUSION'].like(u"%épuration individuelle%"))
+                      , or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766,
+                            wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753))
+                 )
 
     def mapRoadspecificfeatures(self, line, **kwargs):
         objects_response = {}
@@ -538,7 +531,7 @@ class Voirie_SolicitOpinionMapper(SubQueryMapper):
             voirie_suffisamment_equipee = ''
             for line in lines:
                 voirie_eq = self.getData('PARAM_NOMFUSION', line=line)
-                if  voirie_eq == u"accordable \xe0 l'\xe9gout":
+                if voirie_eq == u"accordable \xe0 l'\xe9gout":
                     raccordable_egout = '1'
                 elif voirie_eq == u"sera accordable \xe0 l'\xe9gout":
                     raccordable_egout_prevision = '1'
@@ -548,26 +541,26 @@ class Voirie_SolicitOpinionMapper(SubQueryMapper):
                     voirie_suffisamment_equipee = '1'
 
             objects_response = (
-            {'check': raccordable_egout,
-              'id': 'raccordable-egout',
-              'text': "<p>est actuellement raccordable \xc3\xa0 l'\xc3\xa9gout selon les normes fix\xc3\xa9es par le Service Technique Communal;</p>",
-              'value': "Raccordable \xc3\xa0 l'\xc3\xa9gout"
-             },
-             {'check': raccordable_egout_prevision,
-              'id': 'raccordable-egout-prevision',
-              'text': "<p>sera raccordable \xc3\xa0l'\xc3\xa9gout selon les pr\xc3\xa9visions actuelles;</p>",
-              'value': "Raccordable \xc3\xa0 l'\xc3\xa9gout (pr\xc3\xa9vision),"
-              },
-             {'check': zone_faiblement_habitee,
-              'id': 'zone-faiblement-habitee',
-              'text': "<p>est situ\xc3\xa9 dans une des zones faiblement habit\xc3\xa9e qui ne seront pas pourvue d'\xc3\xa9gout et qui feront l'objet d'une \xc3\xa9puration individuelle;</p>",
-              'value': 'Zone faiblement habit\xc3\xa9e (\xc3\xa9puration individuelle),'
-              },
-             {'check': voirie_suffisamment_equipee,
-              'id': 'voirie-suffisamment-equipee',
-              'text': "<p>b\xc3\xa9n\xc3\xa9ficie d'un acc\xc3\xa8s \xc3\xa0 une voirie suffisamment \xc3\xa9quip\xc3\xa9e en eau, \xc3\xa9lectricit\xc3\xa9, pourvue d'un rev\xc3\xaatement solide et d'une largeur suffisante compte tenu de la situation des lieux;</p>",
-              'value': 'Voirie suffisamment \xc3\xa9quip\xc3\xa9e'
-              })
+                {'check': raccordable_egout,
+                 'id': 'raccordable-egout',
+                 'text': "<p>est actuellement raccordable \xc3\xa0 l'\xc3\xa9gout selon les normes fix\xc3\xa9es par le Service Technique Communal;</p>",
+                 'value': "Raccordable \xc3\xa0 l'\xc3\xa9gout"
+                 },
+                {'check': raccordable_egout_prevision,
+                 'id': 'raccordable-egout-prevision',
+                 'text': "<p>sera raccordable \xc3\xa0l'\xc3\xa9gout selon les pr\xc3\xa9visions actuelles;</p>",
+                 'value': "Raccordable \xc3\xa0 l'\xc3\xa9gout (pr\xc3\xa9vision),"
+                 },
+                {'check': zone_faiblement_habitee,
+                 'id': 'zone-faiblement-habitee',
+                 'text': "<p>est situ\xc3\xa9 dans une des zones faiblement habit\xc3\xa9e qui ne seront pas pourvue d'\xc3\xa9gout et qui feront l'objet d'une \xc3\xa9puration individuelle;</p>",
+                 'value': 'Zone faiblement habit\xc3\xa9e (\xc3\xa9puration individuelle),'
+                 },
+                {'check': voirie_suffisamment_equipee,
+                 'id': 'voirie-suffisamment-equipee',
+                 'text': "<p>b\xc3\xa9n\xc3\xa9ficie d'un acc\xc3\xa8s \xc3\xa0 une voirie suffisamment \xc3\xa9quip\xc3\xa9e en eau, \xc3\xa9lectricit\xc3\xa9, pourvue d'un rev\xc3\xaatement solide et d'une largeur suffisante compte tenu de la situation des lieux;</p>",
+                 'value': 'Voirie suffisamment \xc3\xa9quip\xc3\xa9e'
+                 })
 
         return objects_response
 
@@ -577,7 +570,6 @@ class ParcelsMapper(MultiLinesSecondaryTableMapper):
 
 
 class CompletionStateMapper(PostCreationMapper):
-
     def map(self, line, plone_object):
         state = self.getData('DOSSIER_OCTROI', line)
         transition = self.getValueMapping('state_map')[state]
@@ -591,7 +583,6 @@ class CompletionStateMapper(PostCreationMapper):
 
 
 class ErrorsMapper(FinalMapper):
-
     def mapDescription(self, line, plone_object):
 
         line_number = self.importer.current_line
@@ -613,7 +604,7 @@ class ErrorsMapper(FinalMapper):
                     error_trace.append('<p>géomètre : %s</p>' % data['raw_name'])
                 elif 'parcelling' in error.message:
                     error_trace.append('<p>lotissement : %s %s, autorisé le %s</p>' % (
-                    data['approval date'], data['city'], data['auth_date']))
+                        data['approval date'], data['city'], data['auth_date']))
                 elif 'article' in error.message.lower():
                     error_trace.append('<p>Articles de l\'enquête : %s</p>' % (data['articles']))
         error_trace = ''.join(error_trace)
@@ -629,9 +620,8 @@ class ErrorsMapper(FinalMapper):
 
 
 class ContactFactory(BaseFactory):
-
     def getPortalType(self, container, **kwargs):
-        if container.portal_type in [ 'UrbanCertificateTwo', 'Division']:
+        if container.portal_type in ['UrbanCertificateTwo', 'Division']:
             return 'Proprietary'
         return 'Applicant'
 
@@ -640,7 +630,6 @@ class ContactFactory(BaseFactory):
 
 
 class ApplicantMapper(SecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(ApplicantMapper, self).__init__(mysql_importer, args)
         cpsn = self.importer.datasource.get_table('cpsn')
@@ -663,21 +652,23 @@ class ApplicantMapper(SecondaryTableMapper):
         ).join(
             cloc, cloc.columns['CLOC_ID'] == k2cloc.columns['K_ID1']
         ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
-        ).add_column(cpsn.columns['CPSN_NOM']
-        ).add_column(cpsn.columns['CPSN_PRENOM']
-        ).add_column(cpsn.columns['CPSN_EMAIL']
-        ).add_column(cpsn.columns['CPSN_FAX']
-        ).add_column(cpsn.columns['CPSN_TYPE']
-        ).add_column(cpsn.columns['CPSN_TEL1']
-        ).add_column(cpsn.columns['CPSN_GSM']
-        ).add_column(cloc.columns['CLOC_ADRESSE']
-        ).add_column(cloc.columns['CLOC_ZIP']
-        ).add_column(cloc.columns['CLOC_LOCALITE']
-        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
-        ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID'])
+                     ).add_column(cpsn.columns['CPSN_NOM']
+                                  ).add_column(cpsn.columns['CPSN_PRENOM']
+                                               ).add_column(cpsn.columns['CPSN_EMAIL']
+                                                            ).add_column(cpsn.columns['CPSN_FAX']
+                                                                         ).add_column(cpsn.columns['CPSN_TYPE']
+                                                                                      ).add_column(
+            cpsn.columns['CPSN_TEL1']
+            ).add_column(cpsn.columns['CPSN_GSM']
+                         ).add_column(cloc.columns['CLOC_ADRESSE']
+                                      ).add_column(cloc.columns['CLOC_ZIP']
+                                                   ).add_column(cloc.columns['CLOC_LOCALITE']
+                                                                ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+                                                                             ).add_column(
+            wrkdossier.columns['DOSSIER_TDOSSIERID'])
 
         # cpsn type id 89801 = notaries
-        linesNotaries = self.query.filter(k2.columns['K2KND_ID']==-204, cpsn.columns['CPSN_TYPE']==89801).all()
+        linesNotaries = self.query.filter(k2.columns['K2KND_ID'] == -204, cpsn.columns['CPSN_TYPE'] == 89801).all()
         if linesNotaries:
             Utils.createNotaries(linesNotaries)
 
@@ -691,7 +682,7 @@ class ApplicantMapper(SecondaryTableMapper):
         applicant_type = -204
         k2 = self.importer.datasource.get_table('k2')
         cpsn = self.importer.datasource.get_table('cpsn')
-        type_value = self.getData('DOSSIER_TDOSSIERID',line)
+        type_value = self.getData('DOSSIER_TDOSSIERID', line)
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
 
         # if portal_type != 'UrbanCertificateOne':
@@ -705,9 +696,7 @@ class ApplicantMapper(SecondaryTableMapper):
 
 
 class ContactIdMapper(Mapper):
-
     def mapId(self, line):
-
         name = '%s%s' % (self.getData('CPSN_NOM'), self.getData('CPSN_PRENOM'))
         name = name.replace(' ', '').replace('-', '')
         contact_id = normalizeString(self.site.portal_urban.generateUniqueId(name))
@@ -715,16 +704,13 @@ class ContactIdMapper(Mapper):
 
 
 class ContactTitleMapper(Mapper):
-
     def mapPersontitle(self, line):
-
         title = self.getData('CPSN_TYPE')
         title_mapping = self.getValueMapping('titre_map')
         return title_mapping.get(title, 'notitle')
 
 
 class ContactPhoneMapper(Mapper):
-
     def mapPhone(self, line):
 
         phone_numbers = []
@@ -741,7 +727,6 @@ class ContactPhoneMapper(Mapper):
 
 
 class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
-
     def __init__(self, mysql_importer, args):
         super(NotaryContactMapper, self).__init__(mysql_importer, args)
         cpsn = self.importer.datasource.get_table('cpsn')
@@ -762,30 +747,30 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
             k2cloc, cpsn.columns['CPSN_ID'] == k2cloc.columns['K_ID2']
         ).join(
             cloc, cloc.columns['CLOC_ID'] == k2cloc.columns['K_ID1']
-        # ).filter(or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753,
-        #              wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766, )
+            # ).filter(or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753,
+            #              wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766, )
         ).filter(cpsn.columns['CPSN_TYPE'] == 89801
-        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
-        ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID']
-        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
-        ).add_column(cpsn.columns['CPSN_NOM']
-        ).add_column(cpsn.columns['CPSN_PRENOM']
-        ).add_column(cpsn.columns['CPSN_TEL1']
-        ).add_column(cpsn.columns['CPSN_GSM']
-        ).add_column(cpsn.columns['CPSN_EMAIL']
-        ).add_column(cpsn.columns['CPSN_TYPE']
-        ).add_column(cloc.columns['CLOC_ADRESSE']
-        ).add_column(cloc.columns['CLOC_ZIP']
-        ).add_column(cloc.columns['CLOC_LOCALITE']
-        )
-
+                 ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+                              ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID']
+                                           ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+                                                        ).add_column(cpsn.columns['CPSN_NOM']
+                                                                     ).add_column(cpsn.columns['CPSN_PRENOM']
+                                                                                  ).add_column(cpsn.columns['CPSN_TEL1']
+                                                                                               ).add_column(
+            cpsn.columns['CPSN_GSM']
+            ).add_column(cpsn.columns['CPSN_EMAIL']
+                         ).add_column(cpsn.columns['CPSN_TYPE']
+                                      ).add_column(cloc.columns['CLOC_ADRESSE']
+                                                   ).add_column(cloc.columns['CLOC_ZIP']
+                                                                ).add_column(cloc.columns['CLOC_LOCALITE']
+                                                                             )
 
     def init_query(self, table):
         datasource = self.importer.datasource
         query = datasource.session.query(datasource.get_table(table))
         return query
 
-    def mapNotarycontact(self,line, plone_object):
+    def mapNotarycontact(self, line, plone_object):
 
         wrkdossier = self.importer.datasource.get_table(self.table)
 
@@ -794,7 +779,7 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
 
             firstPart = Utils.convertToUnicode(lines[0][36])
             secondPart = Utils.convertToUnicode(lines[0][37])
-            idNotary = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Notary').replace(" ",""))
+            idNotary = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Notary').replace(" ", ""))
             containerNotaries = api.content.get(path='/Plone/urban/notaries')
 
             if idNotary not in containerNotaries.objectIds():
@@ -808,7 +793,7 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
         firstPart = Utils.convertToUnicode(notary_infos[36])
         secondPart = Utils.convertToUnicode(notary_infos[37])
 
-        new_id = idnormalizer.normalize(Utils.createId(firstPart,secondPart, 'Notary').replace(" ",""))
+        new_id = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Notary').replace(" ", ""))
         new_name1 = firstPart if firstPart else ""
         new_name2 = secondPart if secondPart else ""
 
@@ -837,8 +822,8 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
                                                 zipcode=zipcode,
                                                 city=city)
 
-class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
 
+class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
     def __init__(self, mysql_importer, args):
         super(ArchitectsMapper, self).__init__(mysql_importer, args)
         cpsn = self.importer.datasource.get_table('cpsn')
@@ -861,17 +846,18 @@ class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
             cloc, cloc.columns['CLOC_ID'] == k2cloc.columns['K_ID1']
         ).filter(or_(cpsn.columns['CPSN_TYPE'] == 353506,
                      cpsn.columns['CPSN_TYPE'] == 4314287, )
-        ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
-        ).add_column(cpsn.columns['CPSN_NOM']
-        ).add_column(cpsn.columns['CPSN_PRENOM']
-        ).add_column(cpsn.columns['CPSN_EMAIL']
-        ).add_column(cpsn.columns['CPSN_FAX']
-        ).add_column(cpsn.columns['CPSN_TYPE']
-        ).add_column(cpsn.columns['CPSN_TEL1']
-        ).add_column(cpsn.columns['CPSN_GSM']
-        ).add_column(cloc.columns['CLOC_ADRESSE']
-        ).add_column(cloc.columns['CLOC_ZIP']
-        ).add_column(cloc.columns['CLOC_LOCALITE'])
+                 ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+                              ).add_column(cpsn.columns['CPSN_NOM']
+                                           ).add_column(cpsn.columns['CPSN_PRENOM']
+                                                        ).add_column(cpsn.columns['CPSN_EMAIL']
+                                                                     ).add_column(cpsn.columns['CPSN_FAX']
+                                                                                  ).add_column(cpsn.columns['CPSN_TYPE']
+                                                                                               ).add_column(
+            cpsn.columns['CPSN_TEL1']
+            ).add_column(cpsn.columns['CPSN_GSM']
+                         ).add_column(cloc.columns['CLOC_ADRESSE']
+                                      ).add_column(cloc.columns['CLOC_ZIP']
+                                                   ).add_column(cloc.columns['CLOC_LOCALITE'])
 
     def init_query(self, table):
         datasource = self.importer.datasource
@@ -887,7 +873,7 @@ class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
             return None
         firstPart = Utils.convertToUnicode(lines[0][34])
         secondPart = Utils.convertToUnicode(lines[0][35])
-        idArchitect = idnormalizer.normalize(Utils.createId(firstPart, secondPart,'Architect').replace(" ", ""))
+        idArchitect = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Architect').replace(" ", ""))
         containerArchitects = api.content.get(path='/Plone/urban/architects')
 
         if idArchitect not in containerArchitects.objectIds():
@@ -896,6 +882,8 @@ class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
         item = api.content.get(path='/Plone/urban/architects/' + idArchitect)
         if item:
             return item.UID()
+
+
 #
 # PARCEL
 #
@@ -904,7 +892,6 @@ class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
 
 
 class ParcelFactory(BaseFactory):
-
     def create(self, parcel, container=None, line=None):
         searchview = self.site.restrictedTraverse('searchparcels')
 
@@ -946,7 +933,6 @@ class ParcelFactory(BaseFactory):
 
 
 class ParcelDataMapper(Mapper):
-
     def map(self, line, **kwargs):
         raw_reference = self.getData('CAD_NOM')
         reference = parse_cadastral_reference(raw_reference)
@@ -964,7 +950,6 @@ class ParcelDataMapper(Mapper):
 #
 
 class EventDateMapper(SecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(EventDateMapper, self).__init__(mysql_importer, args)
         wrketape = self.importer.datasource.get_table('wrketape')
@@ -978,7 +963,7 @@ class EventDateMapper(SecondaryTableMapper):
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        event_type = -207 # etape
+        event_type = -207  # etape
         lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
         if not lines:
             raise NoObjectToCreateException
@@ -987,7 +972,6 @@ class EventDateMapper(SecondaryTableMapper):
 
 
 class EventDateAlternativeMapper(SecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(EventDateAlternativeMapper, self).__init__(mysql_importer, args)
         wrketape = self.importer.datasource.get_table('wrketape')
@@ -1000,7 +984,7 @@ class EventDateAlternativeMapper(SecondaryTableMapper):
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        event_type = -207 # etape
+        event_type = -207  # etape
         lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
         if not lines:
             raise NoObjectToCreateException
@@ -1009,7 +993,6 @@ class EventDateAlternativeMapper(SecondaryTableMapper):
 
 
 class EventParamDateMapper(SecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(EventParamDateMapper, self).__init__(mysql_importer, args)
         wrkparam = self.importer.datasource.get_table('wrkparam')
@@ -1022,15 +1005,15 @@ class EventParamDateMapper(SecondaryTableMapper):
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        event_type = -208 # param
+        event_type = -208  # param
         lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
         if not lines:
             raise NoObjectToCreateException
 
         return lines
 
-class DepositEventDateMapper(SecondaryTableMapper):
 
+class DepositEventDateMapper(SecondaryTableMapper):
     def __init__(self, mysql_importer, args):
         super(DepositEventDateMapper, self).__init__(mysql_importer, args)
         wrketape = self.importer.datasource.get_table('wrketape')
@@ -1041,11 +1024,12 @@ class DepositEventDateMapper(SecondaryTableMapper):
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        event_type = -207 # etape
+        event_type = -207  # etape
         wrketape = self.importer.datasource.get_table('wrketape')
         licence = self.importer.current_containers_stack[-1]
         depositKey = self.getValueMapping('event_deposit_name_map')[licence.portal_type]
-        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(wrketape.columns['ETAPE_NOMFR'] == depositKey).all()
+        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
+            wrketape.columns['ETAPE_NOMFR'] == depositKey).all()
         if not lines:
             raise NoObjectToCreateException
 
@@ -1053,7 +1037,6 @@ class DepositEventDateMapper(SecondaryTableMapper):
 
 
 class DecisionEventDateMapper(SecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(DecisionEventDateMapper, self).__init__(mysql_importer, args)
         wrketape = self.importer.datasource.get_table('wrketape')
@@ -1064,19 +1047,19 @@ class DecisionEventDateMapper(SecondaryTableMapper):
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        event_type = -207 # etape
+        event_type = -207  # etape
         wrketape = self.importer.datasource.get_table('wrketape')
         licence = self.importer.current_containers_stack[-1]
         depositKey = self.getValueMapping('event_decision_name_map')[licence.portal_type]
         lines = None
         if depositKey:
-            lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(wrketape.columns['ETAPE_NOMFR'] == depositKey).all()
+            lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
+                wrketape.columns['ETAPE_NOMFR'] == depositKey).all()
 
         return lines
 
 
 class EventDecisionMapper(SecondaryTableMapper):
-
     def __init__(self, mysql_importer, args):
         super(EventDecisionMapper, self).__init__(mysql_importer, args)
         wrkparam = self.importer.datasource.get_table('wrkparam')
@@ -1089,15 +1072,15 @@ class EventDecisionMapper(SecondaryTableMapper):
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        event_type = -208 # param
+        event_type = -208  # param
         lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
         # if not lines:
         #     raise NoObjectToCreateException
 
         return lines
 
-class EventDecisionAlternativeMapper(SecondaryTableMapper):
 
+class EventDecisionAlternativeMapper(SecondaryTableMapper):
     def __init__(self, mysql_importer, args):
         super(EventDecisionAlternativeMapper, self).__init__(mysql_importer, args)
         wrkparam = self.importer.datasource.get_table('wrkparam')
@@ -1110,16 +1093,16 @@ class EventDecisionAlternativeMapper(SecondaryTableMapper):
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        event_type = -208 # param
+        event_type = -208  # param
         lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
         if not lines:
             raise NoObjectToCreateException
 
         return lines
 
+
 # factory
 class UrbanEventFactory(BaseFactory):
-
     def getPortalType(self, **kwargs):
         return 'UrbanEvent'
 
@@ -1135,7 +1118,6 @@ class UrbanEventFactory(BaseFactory):
 
 
 class DepositEventMapper(Mapper):
-
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1145,7 +1127,6 @@ class DepositEventMapper(Mapper):
 
 
 class DepositDateMapper(Mapper):
-
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1155,7 +1136,6 @@ class DepositDateMapper(Mapper):
 
 
 class DepositEventIdMapper(Mapper):
-
     def mapId(self, line):
         return 'deposit'
 
@@ -1168,7 +1148,6 @@ class DepositEventIdMapper(Mapper):
 
 
 class CompleteFolderEventMapper(Mapper):
-
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1178,7 +1157,6 @@ class CompleteFolderEventMapper(Mapper):
 
 
 class CompleteFolderDateMapper(Mapper):
-
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1188,9 +1166,9 @@ class CompleteFolderDateMapper(Mapper):
 
 
 class CompleteFolderEventIdMapper(Mapper):
-
     def mapId(self, line):
         return 'complete_folder'
+
 
 #
 # UrbanEvent incomplete Folder
@@ -1200,7 +1178,6 @@ class CompleteFolderEventIdMapper(Mapper):
 
 
 class IncompleteFolderEventMapper(Mapper):
-
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1210,7 +1187,6 @@ class IncompleteFolderEventMapper(Mapper):
 
 
 class IncompleteFolderDateMapper(Mapper):
-
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1220,7 +1196,6 @@ class IncompleteFolderDateMapper(Mapper):
 
 
 class IncompleteFolderEventIdMapper(Mapper):
-
     def mapId(self, line):
         return 'incomplete_folder'
 
@@ -1233,7 +1208,6 @@ class IncompleteFolderEventIdMapper(Mapper):
 
 
 class DecisionEventTypeMapper(Mapper):
-
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1243,21 +1217,19 @@ class DecisionEventTypeMapper(Mapper):
 
 
 class DecisionEventIdMapper(Mapper):
-
     def mapId(self, line):
         return 'decision-event'
 
 
 class DecisionDecisionEventDateMapper(Mapper):
-
     def mapEventdate(self, line):
         date = self.getData('DOSSIER_DATEDELIV')
         if not date:
             self.logError(self, line, 'No decision date found')
         return date
 
-class DecisionEventDecisionMapper(Mapper):
 
+class DecisionEventDecisionMapper(Mapper):
     def mapDecision(self, line):
 
         decision = self.getData('PARAM_VALUE')
@@ -1266,8 +1238,8 @@ class DecisionEventDecisionMapper(Mapper):
         else:
             return u'Refusé'
 
-class DecisionEventDecisionDateMapper(Mapper):
 
+class DecisionEventDecisionDateMapper(Mapper):
     def mapDecisiondate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1275,6 +1247,8 @@ class DecisionEventDecisionDateMapper(Mapper):
             return None
         date = date and DateTime(date) or None
         return date
+
+
 #
 # UrbanEvent send licence to applicant
 #
@@ -1283,7 +1257,6 @@ class DecisionEventDecisionDateMapper(Mapper):
 
 
 class LicenceToApplicantEventMapper(Mapper):
-
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1293,7 +1266,6 @@ class LicenceToApplicantEventMapper(Mapper):
 
 
 class LicenceToApplicantDateMapper(Mapper):
-
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1303,7 +1275,6 @@ class LicenceToApplicantDateMapper(Mapper):
 
 
 class LicenceToApplicantEventIdMapper(Mapper):
-
     def mapId(self, line):
         return 'licence_to_applicant'
 
@@ -1316,7 +1287,6 @@ class LicenceToApplicantEventIdMapper(Mapper):
 
 
 class LicenceToFDEventMapper(Mapper):
-
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1326,7 +1296,6 @@ class LicenceToFDEventMapper(Mapper):
 
 
 class LicenceToFDDateMapper(Mapper):
-
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1349,13 +1318,11 @@ class LicenceToFDEventIdMapper(Mapper):
 
 
 class CollegeReportEventIdMapper(Mapper):
-
     def mapId(self, line):
         return 'rapport-du-college'
 
 
 class CollegeReportEventMapper(Mapper):
-
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1365,7 +1332,6 @@ class CollegeReportEventMapper(Mapper):
 
 
 class CollegeReportEventDateMapper(Mapper):
-
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1375,7 +1341,6 @@ class CollegeReportEventDateMapper(Mapper):
 
 
 class CollegeReportEventDecisionDateMapper(Mapper):
-
     def mapDecisiondate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1385,13 +1350,13 @@ class CollegeReportEventDecisionDateMapper(Mapper):
 
 
 class CollegeReportEventDecisionMapper(Mapper):
-
     def mapDecision(self, line):
         decision = self.getData('PARAM_VALUE')
         if not decision:
             raise NoObjectToCreateException
 
         return decision
+
 
 #
 # UrbanEvent declaration college report
@@ -1405,6 +1370,7 @@ class CollegeReportDeclarationEventIdMapper(Mapper):
     def mapId(self, line):
         return 'deliberation-college'
 
+
 class CollegeReportDeclarationEventMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
@@ -1412,7 +1378,6 @@ class CollegeReportDeclarationEventMapper(Mapper):
         eventtype_id = 'deliberation-college'
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
-
 
 
 #
@@ -1427,8 +1392,8 @@ class CollegeReportBeforeFDDecisionEventIdMapper(Mapper):
     def mapId(self, line):
         return 'college-report-before-FD-decision'
 
-class CollegeReportBeforeFDDecisionEventMapper(Mapper):
 
+class CollegeReportBeforeFDDecisionEventMapper(Mapper):
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1436,8 +1401,8 @@ class CollegeReportBeforeFDDecisionEventMapper(Mapper):
         config = urban_tool.getUrbanConfig(licence)
         return getattr(config.urbaneventtypes, eventtype_id).UID()
 
-class CollegeReportBeforeFDDecisionEventDateMapper(Mapper):
 
+class CollegeReportBeforeFDDecisionEventDateMapper(Mapper):
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1447,7 +1412,6 @@ class CollegeReportBeforeFDDecisionEventDateMapper(Mapper):
 
 
 class CollegeReportBeforeFDEventDecisionDateMapper(Mapper):
-
     def mapDecisiondate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
@@ -1457,13 +1421,13 @@ class CollegeReportBeforeFDEventDecisionDateMapper(Mapper):
 
 
 class CollegeReportBeforeFDEventDecisionMapper(Mapper):
-
     def mapDecision(self, line):
         decision = self.getData('PARAM_VALUE')
         if not decision:
             raise NoObjectToCreateException
 
         return decision
+
 
 #
 # UrbanEvent CollegeReportToRw
@@ -1473,7 +1437,6 @@ class CollegeReportBeforeFDEventDecisionMapper(Mapper):
 
 
 class CollegeReportTransmittedToRWEventTypeMapper(Mapper):
-
     def mapEventtype(self, line):
         licence = self.importer.current_containers_stack[-1]
         urban_tool = api.portal.get_tool('portal_urban')
@@ -1483,34 +1446,32 @@ class CollegeReportTransmittedToRWEventTypeMapper(Mapper):
 
 
 class CollegeReportTransmittedToRwEventIdMapper(Mapper):
-
     def mapId(self, line):
         return 'college-report-transmitted-to-rw'
 
-class CollegeReportTransmittedToRwEventDateMapper(Mapper):
 
+class CollegeReportTransmittedToRwEventDateMapper(Mapper):
     def mapEventdate(self, line):
         date = self.getData('ETAPE_DATEDEPART')
         if not date:
             raise NoObjectToCreateException
         return date
 
-class CollegeReportTransmittedToRwDecisionDateMapper(Mapper):
 
+class CollegeReportTransmittedToRwDecisionDateMapper(Mapper):
     def mapDecisiondate(self, line):
         decisionDate = self.getData('PARAM_VALUE')
         if not decisionDate:
             raise NoObjectToCreateException
         return decisionDate
 
-class CollegeReportTransmittedToRwDecisionMapper(Mapper):
 
+class CollegeReportTransmittedToRwDecisionMapper(Mapper):
     def mapExternaldecision(self, line):
         decision = self.getData('PARAM_VALUE')
         if not decision:
             raise NoObjectToCreateException
         return decision
-
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
@@ -1525,16 +1486,15 @@ class CollegeReportTransmittedToRwDecisionMapper(Mapper):
 # *** Utils ***
 
 class Utils():
-
     @staticmethod
     def convertToUnicode(string):
 
-        if isinstance(string,unicode):
+        if isinstance(string, unicode):
             return string
 
         # convert to unicode if necessary, against iso-8859-1 : iso-8859-15 add € and oe characters
         data = ""
-        if string and isinstance(string,str):
+        if string and isinstance(string, str):
             data = unicode(string, "iso-8859-15")
         return data
 
@@ -1555,11 +1515,11 @@ class Utils():
         street_uids = [brain.UID for brain in catalog(portal_type='Street', Title=street)]
         if not street_uids:
             # second chance without street number
-            strwithoutdigits = ''.join([letter for letter in street if not letter.isdigit()]).strip()
-            street_uids = [brain.UID for brain in catalog(portal_type='Street', Title=strwithoutdigits)]
-            if not street_uids and len(strwithoutdigits.strip()) > 1:
+            strWithoutDigits = ''.join([letter for letter in street if not letter.isdigit()]).strip()
+            street_uids = [brain.UID for brain in catalog(portal_type='Street', Title=strWithoutDigits)]
+            if not street_uids and len(strWithoutDigits.strip()) > 1:
                 # last chance : try to remove last char, for example : 1a or 36C
-                strwithoutlastchar = strwithoutdigits.strip()[:-1]
+                strwithoutlastchar = strWithoutDigits.strip()[:-1]
                 street_uids = [brain.UID for brain in catalog(portal_type='Street', Title=strwithoutlastchar)]
                 if not street_uids:
                     # log the address issue infos
