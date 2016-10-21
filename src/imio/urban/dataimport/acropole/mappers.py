@@ -1,14 +1,11 @@
 # -*- coding:utf-8 -*-
 
-from DateTime import DateTime
-from Products.CMFPlone.utils import normalizeString
-from plone import api
-from plone.api.exc import InvalidParameterError
-from sqlalchemy import or_, and_
-from sqlalchemy.orm import aliased
-from plone.i18n.normalizer import idnormalizer
-
 import re
+
+from DateTime import DateTime
+from plone.api.exc import InvalidParameterError
+from plone import api
+from Products.CMFPlone.utils import normalizeString
 from imio.urban.dataimport.MySQL.mapper import FieldMultiLinesSecondaryTableMapper, SubQueryMapper
 from imio.urban.dataimport.MySQL.mapper import MultiLinesSecondaryTableMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLFinalMapper as FinalMapper
@@ -20,6 +17,8 @@ from imio.urban.dataimport.factory import BaseFactory
 from imio.urban.dataimport.utils import CadastralReference
 from imio.urban.dataimport.utils import cleanAndSplitWord
 from imio.urban.dataimport.utils import parse_cadastral_reference
+from plone.i18n.normalizer import idnormalizer
+from sqlalchemy import or_, and_
 
 
 #

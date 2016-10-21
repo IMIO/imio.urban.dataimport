@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
+from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
 from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
-    PortalTypeMapper, IdMapper, WorklocationMapper, ParcelsMapper, \
+    PortalTypeMapper, IdMapper, ParcelsMapper, \
     CompletionStateMapper, ContactFactory, ContactPhoneMapper, StreetAndNumberMapper, \
     ParcelFactory, ParcelDataMapper, UrbanEventFactory, DepositEventMapper, \
     LicenceSubjectMapper, DepositDateMapper, CompleteFolderEventMapper, \
@@ -25,9 +27,6 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     CollegeReportTransmittedToRwDecisionDateMapper, CollegeReportTransmittedToRwDecisionMapper, DepositEventDateMapper, \
     DecisionDecisionEventDateMapper, EventParamDateMapper, CollegeReportDeclarationEventMapper, \
     CollegeReportDeclarationEventIdMapper
-
-from imio.urban.dataimport.MySQL.mapper import MySQLSimpleMapper as SimpleMapper
-from imio.urban.dataimport.MySQL.mapper import MySQLSimpleStringMapper as SimpleStringMapper
 
 OBJECTS_NESTING = [
     (
