@@ -401,7 +401,6 @@ FIELDS_MAPPINGS = {
                 EventDecisionMapper: {
                     'table': 'wrkparam',
                     'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
-                    'event_name': u'Octroi du permis',
                     'mappers': {
                         DecisionEventDecisionMapper: {
                             'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),

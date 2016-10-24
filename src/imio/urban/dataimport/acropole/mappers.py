@@ -658,12 +658,12 @@ class ApplicantMapper(SecondaryTableMapper):
                                                                          ).add_column(cpsn.columns['CPSN_TYPE']
                                                                                       ).add_column(
             cpsn.columns['CPSN_TEL1']
-            ).add_column(cpsn.columns['CPSN_GSM']
-                         ).add_column(cloc.columns['CLOC_ADRESSE']
-                                      ).add_column(cloc.columns['CLOC_ZIP']
-                                                   ).add_column(cloc.columns['CLOC_LOCALITE']
-                                                                ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
-                                                                             ).add_column(
+        ).add_column(cpsn.columns['CPSN_GSM']
+                     ).add_column(cloc.columns['CLOC_ADRESSE']
+                                  ).add_column(cloc.columns['CLOC_ZIP']
+                                               ).add_column(cloc.columns['CLOC_LOCALITE']
+                                                            ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
+                                                                         ).add_column(
             wrkdossier.columns['DOSSIER_TDOSSIERID'])
 
         # cpsn type id 89801 = notaries
@@ -757,12 +757,12 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
                                                                                   ).add_column(cpsn.columns['CPSN_TEL1']
                                                                                                ).add_column(
             cpsn.columns['CPSN_GSM']
-            ).add_column(cpsn.columns['CPSN_EMAIL']
-                         ).add_column(cpsn.columns['CPSN_TYPE']
-                                      ).add_column(cloc.columns['CLOC_ADRESSE']
-                                                   ).add_column(cloc.columns['CLOC_ZIP']
-                                                                ).add_column(cloc.columns['CLOC_LOCALITE']
-                                                                             )
+        ).add_column(cpsn.columns['CPSN_EMAIL']
+                     ).add_column(cpsn.columns['CPSN_TYPE']
+                                  ).add_column(cloc.columns['CLOC_ADRESSE']
+                                               ).add_column(cloc.columns['CLOC_ZIP']
+                                                            ).add_column(cloc.columns['CLOC_LOCALITE']
+                                                                         )
 
     def init_query(self, table):
         datasource = self.importer.datasource
@@ -853,10 +853,10 @@ class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
                                                                                   ).add_column(cpsn.columns['CPSN_TYPE']
                                                                                                ).add_column(
             cpsn.columns['CPSN_TEL1']
-            ).add_column(cpsn.columns['CPSN_GSM']
-                         ).add_column(cloc.columns['CLOC_ADRESSE']
-                                      ).add_column(cloc.columns['CLOC_ZIP']
-                                                   ).add_column(cloc.columns['CLOC_LOCALITE'])
+        ).add_column(cpsn.columns['CPSN_GSM']
+                     ).add_column(cloc.columns['CLOC_ADRESSE']
+                                  ).add_column(cloc.columns['CLOC_ZIP']
+                                               ).add_column(cloc.columns['CLOC_LOCALITE'])
 
     def init_query(self, table):
         datasource = self.importer.datasource
@@ -1049,11 +1049,17 @@ class DecisionEventDateMapper(SecondaryTableMapper):
         event_type = -207  # etape
         wrketape = self.importer.datasource.get_table('wrketape')
         licence = self.importer.current_containers_stack[-1]
-        depositKey = self.getValueMapping('event_decision_name_map')[licence.portal_type]
+        depositKey = self.getValueMapping('event_decision_date_map')[licence.portal_type][0]
+        depositKeyAlt = self.getValueMapping('event_decision_date_map')[licence.portal_type][1]
         lines = None
-        if depositKey:
+        # TODO use list, loop and break if lines : get the first map value
+        if not depositKeyAlt:
             lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
                 wrketape.columns['ETAPE_NOMFR'] == depositKey).all()
+        elif depositKey:
+            lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
+                or_(wrketape.columns['ETAPE_NOMFR'] == depositKey, wrketape.columns['ETAPE_NOMFR'] == depositKeyAlt)
+                ).all()
 
         return lines
 
@@ -1063,16 +1069,18 @@ class EventDecisionMapper(SecondaryTableMapper):
         super(EventDecisionMapper, self).__init__(mysql_importer, args)
         wrkparam = self.importer.datasource.get_table('wrkparam')
         k2 = self.importer.datasource.get_table('k2')
-        self.query = self.query.filter_by(
-            PARAM_NOMFUSION=args['event_name'],
-        ).join(
+        self.query = self.query.join(
             k2, wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
         )
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
         event_type = -208  # param
-        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        licence = self.importer.current_containers_stack[-1]
+        decisionKey = self.getValueMapping('event_decision_map')[licence.portal_type]
+        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
+            wrkparam.columns['PARAM_NOMFUSION'] == decisionKey).all()
         # if not lines:
         #     raise NoObjectToCreateException
 
@@ -1230,7 +1238,6 @@ class DecisionDecisionEventDateMapper(Mapper):
 
 class DecisionEventDecisionMapper(Mapper):
     def mapDecision(self, line):
-
         decision = self.getData('PARAM_VALUE')
         if decision and decision == u'1':
             return u'Octroyé'
