@@ -3,6 +3,7 @@
 import re
 
 from DateTime import DateTime
+
 from plone.api.exc import InvalidParameterError
 from plone import api
 from Products.CMFPlone.utils import normalizeString
@@ -450,27 +451,15 @@ class InvestigationDateMapper(SecondaryTableMapper):
                 if (self.getData('PARAM_IDENT', line=line) == 'EnqDatDeb'):
                     if (self.getData('PARAM_VALUE', line=line)):
                         objects_args.update(
-                            {'investigationStart': self.inverseDateDayMonth(self.getData('PARAM_VALUE', line=line))})
+                            {'investigationStart': Utils.toZopeDateTime(self.getData('PARAM_VALUE', line=line))})
                 elif (self.getData('PARAM_IDENT', line=line) == 'EnqDatFin'):
                     if (self.getData('PARAM_VALUE', line=line)):
                         objects_args.update(
-                            {'investigationEnd': self.inverseDateDayMonth(self.getData('PARAM_VALUE', line=line))})
+                            {'investigationEnd': Utils.toZopeDateTime(self.getData('PARAM_VALUE', line=line))})
                 else:
                     return
 
         return objects_args
-
-    def inverseDateDayMonth(self, date):
-
-        # TODO this is a W.A, change zope/plone config to avoid this ?
-        if date and (len(date) == 10):
-            month = date[0:2]
-            day = date[3:5]
-            year = date[6:10]
-            inverseDate = u"" + day + '-' + month + '-' + year
-            return inverseDate
-
-        return date
 
 
 class FD_SolicitOpinionMapper(SecondaryTableMapper):
@@ -970,21 +959,30 @@ class EventDateMapper(SecondaryTableMapper):
         return lines
 
 
-class EventDateAlternativeMapper(SecondaryTableMapper):
+class EventDateCollegeReportMapper(SecondaryTableMapper):
     def __init__(self, mysql_importer, args):
-        super(EventDateAlternativeMapper, self).__init__(mysql_importer, args)
+        super(EventDateCollegeReportMapper, self).__init__(mysql_importer, args)
         wrketape = self.importer.datasource.get_table('wrketape')
         k2 = self.importer.datasource.get_table('k2')
-        self.query = self.query.filter_by(
-            ETAPE_NOMFR=args['event_name'],
-        ).join(
+        self.query = self.query.join(
             k2, wrketape.columns['WRKETAPE_ID'] == k2.columns['K_ID2']
-        )
+        ).add_column(wrketape.columns['ETAPE_NOMFR'])
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
+        wrketape = self.importer.datasource.get_table('wrketape')
         event_type = -207  # etape
-        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).all()
+        licence = self.importer.current_containers_stack[-1]
+
+        collegeReportKeys = self.getValueMapping('event_college_report_date_map')[licence.portal_type]
+        lines = None
+        if collegeReportKeys:
+            for key in collegeReportKeys:
+                lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
+                    wrketape.columns['ETAPE_NOMFR'] == key).all()
+                if lines:
+                    break
+
         if not lines:
             raise NoObjectToCreateException
 
@@ -1026,11 +1024,16 @@ class DepositEventDateMapper(SecondaryTableMapper):
         event_type = -207  # etape
         wrketape = self.importer.datasource.get_table('wrketape')
         licence = self.importer.current_containers_stack[-1]
-        depositKey = self.getValueMapping('event_deposit_name_map')[licence.portal_type]
-        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
-            wrketape.columns['ETAPE_NOMFR'] == depositKey).all()
-        if not lines:
-            raise NoObjectToCreateException
+
+        depositKeys = self.getValueMapping('event_deposit_name_map')[licence.portal_type]
+        lines = None
+        if  depositKeys:
+            for key in depositKeys:
+                lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
+                    wrketape.columns['ETAPE_NOMFR'] == key).all()
+                if lines:
+                    break
+
 
         return lines
 
@@ -1049,17 +1052,14 @@ class DecisionEventDateMapper(SecondaryTableMapper):
         event_type = -207  # etape
         wrketape = self.importer.datasource.get_table('wrketape')
         licence = self.importer.current_containers_stack[-1]
-        depositKey = self.getValueMapping('event_decision_date_map')[licence.portal_type][0]
-        depositKeyAlt = self.getValueMapping('event_decision_date_map')[licence.portal_type][1]
+        decisionDateKeys = self.getValueMapping('event_decision_date_map')[licence.portal_type]
         lines = None
-        # TODO use list, loop and break if lines : get the first map value
-        if not depositKeyAlt:
-            lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
-                wrketape.columns['ETAPE_NOMFR'] == depositKey).all()
-        elif depositKey:
-            lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
-                or_(wrketape.columns['ETAPE_NOMFR'] == depositKey, wrketape.columns['ETAPE_NOMFR'] == depositKeyAlt)
-                ).all()
+        if  decisionDateKeys:
+            for key in decisionDateKeys:
+                lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
+                    wrketape.columns['ETAPE_NOMFR'] == key).all()
+                if lines:
+                    break
 
         return lines
 
@@ -1071,16 +1071,22 @@ class EventDecisionMapper(SecondaryTableMapper):
         k2 = self.importer.datasource.get_table('k2')
         self.query = self.query.join(
             k2, wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
-        )
+        ).add_column(wrkparam.columns['PARAM_NOMFUSION'])
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
         event_type = -208  # param
         wrkparam = self.importer.datasource.get_table('wrkparam')
         licence = self.importer.current_containers_stack[-1]
-        decisionKey = self.getValueMapping('event_decision_map')[licence.portal_type]
-        lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
-            wrkparam.columns['PARAM_NOMFUSION'] == decisionKey).all()
+        decisionKeys = self.getValueMapping('event_decision_map')[licence.portal_type]
+        lines = None
+        if  decisionKeys:
+            for key in decisionKeys:
+                lines = self.query.filter_by(K_ID1=licence_id, K2KND_ID=event_type).filter(
+                    wrkparam.columns['PARAM_NOMFUSION'] == key).all()
+                if lines:
+                    break
+
         # if not lines:
         #     raise NoObjectToCreateException
 
@@ -1467,9 +1473,10 @@ class CollegeReportTransmittedToRwEventDateMapper(Mapper):
 class CollegeReportTransmittedToRwDecisionDateMapper(Mapper):
     def mapDecisiondate(self, line):
         decisionDate = self.getData('PARAM_VALUE')
-        if not decisionDate:
+        date = decisionDate and Utils.toZopeDateTime(decisionDate) or None
+        if not date:
             raise NoObjectToCreateException
-        return decisionDate
+        return date
 
 
 class CollegeReportTransmittedToRwDecisionMapper(Mapper):
@@ -1621,3 +1628,12 @@ class Utils():
                                                         street=street,
                                                         zipcode=zipcode,
                                                         city=city)
+
+    @staticmethod
+    def toZopeDateTime(date):
+
+        # Date from string mysql column must be convert with datefmt param! (No need to use this with date mysql column)
+        if date and (len(date) == 10):
+            return DateTime(date, datefmt='international')
+        else:
+            raise ValueError()

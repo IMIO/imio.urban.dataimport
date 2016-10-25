@@ -22,7 +22,7 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     EventDecisionAlternativeMapper, CollegeReportBeforeFDDecisionEventMapper, \
     CollegeReportBeforeFDDecisionEventIdMapper, \
     CollegeReportBeforeFDDecisionEventDateMapper, CollegeReportBeforeFDEventDecisionDateMapper, \
-    CollegeReportBeforeFDEventDecisionMapper, EventDateAlternativeMapper, IncompleteFolderEventMapper, \
+    CollegeReportBeforeFDEventDecisionMapper, EventDateCollegeReportMapper, IncompleteFolderEventMapper, \
     IncompleteFolderEventIdMapper, IncompleteFolderDateMapper, CollegeReportTransmittedToRwEventDateMapper, \
     CollegeReportTransmittedToRwDecisionDateMapper, CollegeReportTransmittedToRwDecisionMapper, DepositEventDateMapper, \
     DecisionDecisionEventDateMapper, EventParamDateMapper, CollegeReportDeclarationEventMapper, \
@@ -391,7 +391,7 @@ FIELDS_MAPPINGS = {
                     'table': 'wrketape',
                     'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
                     'mappers': {
-                        DecisionEventDecisionDateMapper: {  # get ETAPE_DATEDEPART
+                        DecisionEventDecisionDateMapper: {
                             'from': ('ETAPE_DATEDEPART',),
                             'to': ('decisionDate'),
                         },
@@ -538,10 +538,9 @@ FIELDS_MAPPINGS = {
                     'to': 'id',
                 },
 
-                EventDateAlternativeMapper: {
+                EventDateCollegeReportMapper: {
                     'table': 'wrketape',
                     'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                    'event_name': u'rapport Collège',
                     'mappers': {
                         CollegeReportEventDateMapper: {
                             'from': ('ETAPE_DATEDEPART',),
@@ -579,7 +578,7 @@ FIELDS_MAPPINGS = {
     'COLLEGE REPORT DECLARATION EVENT':
         {
             'factory': [UrbanEventFactory],
-            'allowed_containers': ['Declaration'],
+            'allowed_containers': ['Declaration','MiscDemand'],
 
             'mappers': {
                 CollegeReportDeclarationEventMapper: {
@@ -592,10 +591,9 @@ FIELDS_MAPPINGS = {
                     'to': 'id',
                 },
 
-                EventDateAlternativeMapper: {
+                EventDateCollegeReportMapper: {
                     'table': 'wrketape',
                     'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                    'event_name': u'rapport collège',
                     'mappers': {
                         CollegeReportEventDateMapper: {
                             'from': ('ETAPE_DATEDEPART',),
@@ -646,10 +644,9 @@ FIELDS_MAPPINGS = {
                     'to': 'id',
                 },
 
-                EventDateAlternativeMapper: {
+                EventDateCollegeReportMapper: {
                     'table': 'wrketape',
                     'KEYS': ('WRKDOSSIER_ID', 'WRKETAPE_ID'),
-                    'event_name': u'rapport Collège avant décision du FD',
                     'mappers': {
                         CollegeReportBeforeFDDecisionEventDateMapper: {
                             'from': ('ETAPE_DATEDEPART',),
