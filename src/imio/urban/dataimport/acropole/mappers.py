@@ -1632,8 +1632,12 @@ class Utils():
     @staticmethod
     def toZopeDateTime(date):
 
-        # Date from string mysql column must be convert with datefmt param! (No need to use this with date mysql column)
+        # Date from mysql varchar column must be convert with datefmt param! (No need to use this with mysql date column)
         if date and (len(date) == 10):
-            return DateTime(date, datefmt='international')
+            try:
+                return DateTime(date, datefmt='international')
+            except SyntaxError:
+                return
+
         else:
             raise ValueError()
