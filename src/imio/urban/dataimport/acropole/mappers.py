@@ -2,10 +2,11 @@
 
 import re
 
+from plone import api
+
 from DateTime import DateTime
 
 from plone.api.exc import InvalidParameterError
-from plone import api
 from Products.CMFPlone.utils import normalizeString
 from imio.urban.dataimport.MySQL.mapper import FieldMultiLinesSecondaryTableMapper, SubQueryMapper
 from imio.urban.dataimport.MySQL.mapper import MultiLinesSecondaryTableMapper
@@ -55,19 +56,9 @@ class PortalTypeMapper(Mapper):
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
 
         # TODO remove this filter zone! Dev mode
-        # *** start zone ***
+        # *** filter start zone ***
 
-        # with open("sequence_dossier.csv", "a") as file:
-        #     file.write(str(PortalTypeMapper.cpt_dossier_from_start_line) + "," + str(self.getData('WRKDOSSIER_ID')) + "\n")
-        # import ipdb; ipdb.set_trace()
-        # if self.getData('WRKDOSSIER_ID', line=line) == 6112664:
-        #     import ipdb; ipdb.set_trace()
-
-
-        # if portal_type != 'NotaryLetter':
-        #     raise NoObjectToCreateException
-
-        # *** end zone ***
+        # *** filter end zone ***
 
         if not portal_type:
             self.logError(self, line, 'No portal type found for this type value', {'TYPE value': type_value})
@@ -1633,11 +1624,6 @@ class Utils():
     def toZopeDateTime(date):
 
         # Date from mysql varchar column must be convert with datefmt param! (No need to use this with mysql date column)
-        if date and (len(date) == 10):
-            try:
-                return DateTime(date, datefmt='international')
-            except SyntaxError:
-                return
-
-        else:
-            raise ValueError()
+        # Expected valid date is greater than year 1800
+        if date and (len(date) == 10) and int(date[-4:]) > 1800:
+            return DateTime(date, datefmt='international')
