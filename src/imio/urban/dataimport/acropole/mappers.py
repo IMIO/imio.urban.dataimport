@@ -600,7 +600,7 @@ class ErrorsMapper(FinalMapper):
 
 class ContactFactory(BaseFactory):
     def getPortalType(self, container, **kwargs):
-        if container.portal_type in ['UrbanCertificateTwo', 'Division']:
+        if container.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo', 'Division']:
             return 'Proprietary'
         return 'Applicant'
 
@@ -655,6 +655,10 @@ class ApplicantMapper(SecondaryTableMapper):
         linesArchitects = self.query.filter(k2.columns['K2KND_ID'] == -204, cpsn.columns['CPSN_TYPE'] == 353506).all()
         if linesArchitects:
             Utils.createArchitects(linesArchitects)
+
+        # delete address file content
+        with open("matchBestAddressError.csv", "w"):
+            pass
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
