@@ -495,7 +495,7 @@ FIELDS_MAPPINGS = {
     'SEND LICENCE TO FD EVENT':
         {
             'factory': [UrbanEventFactory],
-            'allowed_containers': ['BuildLicence', 'ParcelOutLicence'],
+            'allowed_containers': ['BuildLicence'],
 
             'mappers': {
                 LicenceToFDEventMapper: {
