@@ -19,25 +19,9 @@ class AcropoleImportSource(MySQLImportSource):
         result = self.session.query(self.main_table)
         wrkdossier = self.importer.datasource.get_table('wrkdossier')
 
-        # *** SQL Alchemy Example ***
-
-        # records = result.filter_by(DOSSIER_REFCOM='2005/05-04').order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).all()
-        # records = result.filter_by(DOSSIER_REFCOM='11-80').order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).all()
-        # records = result.filter(wrkdossier.columns['WRKDOSSIER_ID'].in_([6495709, 2856052])).order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).all()
-        # records = result.filter_by(WRKDOSSIER_ID=6539386).order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).all()
-        # records = result.order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).slice(0, 200).all()
-        # records = result.filter_by(DOSSIER_TDOSSIERID=-42575).order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).slice(0, 30).all()
-        # records = result.filter_by(DOSSIER_TDOSSIERID=-49306).order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).slice(0, 5).all()
-        # records = result.filter_by(DOSSIER_TDOSSIERID=-34766).order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).slice(0, 10).all()
-        # records = result.filter_by(DOSSIER_TDOSSIERID=-15200).order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).slice(0, 10).all()
-        # records = result.filter_by(DOSSIER_TDOSSIERID=-2982).order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).slice(0, 10).all()
-        # records = result.filter_by(WRKDOSSIER_ID=6816823).order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).all()
-        # records = result.order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).slice(0, 1000).all()
-
         # default:
         records = result.order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).all()
         return records
-
 
 class AcropoleDataImporter(MySQLDataImporter):
     """ """

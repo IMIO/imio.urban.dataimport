@@ -1,13 +1,15 @@
 # -*- coding:utf-8 -*-
 
 import re
-
-from plone import api
+import unicodedata
 
 from DateTime import DateTime
-
-from plone.api.exc import InvalidParameterError
 from Products.CMFPlone.utils import normalizeString
+from plone import api
+from plone.api.exc import InvalidParameterError
+from plone.i18n.normalizer import idnormalizer
+import sqlalchemy
+
 from imio.urban.dataimport.MySQL.mapper import FieldMultiLinesSecondaryTableMapper, SubQueryMapper
 from imio.urban.dataimport.MySQL.mapper import MultiLinesSecondaryTableMapper
 from imio.urban.dataimport.MySQL.mapper import MySQLFinalMapper as FinalMapper
@@ -19,8 +21,6 @@ from imio.urban.dataimport.factory import BaseFactory
 from imio.urban.dataimport.utils import CadastralReference
 from imio.urban.dataimport.utils import cleanAndSplitWord
 from imio.urban.dataimport.utils import parse_cadastral_reference
-from plone.i18n.normalizer import idnormalizer
-from sqlalchemy import or_, and_
 
 
 #
@@ -28,7 +28,6 @@ from sqlalchemy import or_, and_
 #
 
 # factory
-
 
 class LicenceFactory(BaseFactory):
     def getCreationPlace(self, factory_args):
@@ -57,7 +56,6 @@ class PortalTypeMapper(Mapper):
 
         # TODO remove this filter zone! Dev mode
         # *** filter start zone ***
-
         # *** filter end zone ***
 
         if not portal_type:
@@ -216,10 +214,10 @@ class PCATypeMapper(PCAInit):
         if raw_pca is None:
             return
         raw_pca = raw_pca.lower()
-        raw_pca_Dictionary = self.getValueMapping('raw_pca_Dictionary')
+        raw_pca_List = self.getValueMapping('raw_pca_List')
 
-        if raw_pca in raw_pca_Dictionary:
-            return raw_pca_Dictionary[raw_pca]
+        if raw_pca in raw_pca_List:
+            return raw_pca
         else:
             return None
 
@@ -241,10 +239,10 @@ class PCAMapper(PCAInit):
         if raw_pca is None:
             return
         raw_pca = raw_pca.lower()
-        raw_pca_Dictionary = self.getValueMapping('raw_pca_Dictionary')
+        raw_pca_List = self.getValueMapping('raw_pca_List')
 
-        if raw_pca in raw_pca_Dictionary:
-            return raw_pca_Dictionary[raw_pca]
+        if raw_pca in raw_pca_List:
+            return raw_pca
         else:
             return False
 
@@ -270,7 +268,7 @@ class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
         ).join(
             wrkdossier,
             wrkdossier.columns['WRKDOSSIER_ID'] == urbcadastre.columns['CAD_DOSSIER_ID']
-        ).filter(schema.columns['SCH_FUSION'].like('PPA%'))
+        ).filter(schema.columns['SCH_FUSION'].like(self.getValueMapping('pcaLikeType')))
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
@@ -280,95 +278,11 @@ class PcaZoneTableMapper(FieldMultiLinesSecondaryTableMapper):
     def mapPcazone(self, line):
         raw_pca_zone = self.getData('SCA_LABELFR', line=line)
         raw_pca_zone = raw_pca_zone.lower().strip()
-        zoneDictionnary = {
-            u"aire de faible densité": "afad",
-            u"aire de forte densité": "afod",
-            u"aire de moyenne densité": "amd",
-            u"dans un périmètre d'intérêt culturel, historique ou esthétique": "dupiche",
-            u"dans un périmètre d'intérêt paysager": "dupip",
-            u"dans un périmètre de réservation": "dupdr",
-            u"déclaré inhabitable": "di",
-            u"dossier en cours": "dec",
-            u"eau": "eau",
-            u"élevé": "eleve",
-            u"éloignée": "eloi",
-            u"en partie dans un périmètre de réservation": "epdupdr",
-            u"faible": "fai",
-            u"infraction relevée mais sans pv": "irmspv",
-            u"moyen": "moy",
-            u"parcs résidentiels": "pres",
-            u"périmètre de réservation sur 75 m de profondeur à partir de l'axe de la voirie": "pdrs75mdpapdadlv",
-            u"périmètre de zones protégées": "pdzp",
-            u"plan d'eau": "peau",
-            u"pv de constat d'infraction": "pvdci",
-            u"rapprochée": "rapp",
-            u"sans affectation": "saffec",
-            u"travaux imposés": "timp",
-            u"très faible": "tfai",
-            u"voirie": "voirie",
-            u"zone agricole": "za",
-            u"zone agricole dans un périmètre d'intérêt paysager": "zadupip",
-            u"zone agricole dans un périmètre d'intérêt paysager pour le surplus": "zadupippsur",
-            u"zone agricole et zone de bâtisses agricoles": "zaezba",
-            u"zone agricole et zone forestière": "zaezf",
-            u"zone agricole pour le surplus": "zaplsur",
-            u"zone agricole pour partie": "zapp",
-            u"zone artisanale": "zart",
-            u"zone boisée": "zb",
-            u"zone d'activité économique industrielle": "zaei",
-            u"zone d'activité économique mixte": "zaem",
-            u"zone d'activités économiques et commerciales": "zaeec",
-            u"zone d'aménagement communal concerté": "zacc",
-            u"zone d'aménagement communal concerté mise en oeuvre": "zaccmeo",
-            u"zone d'assainissement autonome": "zaa",
-            u"zone d'assainissement collectif": "zac",
-            u"zone d'entreprise commerciale de grande dimension": "zecdgd",
-            u"zone d'équipement communautaire": "zec",
-            u"zone d'équipements communautaires et de services publics": "zecedsp",
-            u"zone d'espaces verts": "zev",
-            u"zone d'ext d'industrie": "zexti",
-            u"zone d'ext. d'habitat": "zexth",
-            u"zone d'ext. d'habitat à caractère rural": "zexthacr",
-            u"zone d'ext.. de parcs résidentiels": "zextdpr",
-            u"zone d'extension pour bâtisses  espacées": "zexpbe",
-            u"zone d'extension pour bâtisses espacées": "zexpbe",
-            u"zone d'extraction": "zextract",
-            u"zone d'habitat": "zha",
-            u"zone d'habitat à caractère rural": "zhaacr",
-            u"zone d'habitat à caractère rural sur une profondeur de 40 mètres": "zhaacrsp40",
-            u"zone d'habitat à caractère rural sur une profondeur de 50 mètres": "zhaacrsp50",
-            u"zone d'habitat dans un périmètre d'intérêt culturel, historique ou esthétique": "zhadupiche",
-            u"zone d'habitat sur 50 m de profondeur": "zhas50dp",
-            u"zone d'habitation": "zhation",
-            u"zone d'habitation, annexes, abris": "zhaaa",
-            u"zone de bâtisses agricoles": "zdba",
-            u"zone de construction d'habitation fermée": "zdchaf",
-            u"zone de construction d'habitation ouverte": "zdchao",
-            u"zone de construction d'habitation semi-ouverte": "zdchaso",
-            u"zone de construction en annexe": "zdcea",
-            u"zone de cours et jardins": "zdcej",
-            u"zone de loisirs": "zdl",
-            u"zone de parc": "zdparc",
-            u"zone de parc ou d'espaces verts": "zdparcev",
-            u"zone de prévention en matière de prises d'eau souterraines, zones éloignées.": "zdpemdpeausoutze",
-            u"zone de recul": "zdrec",
-            u"zone de recul et de voirie": "zdrecedv",
-            u"zone de recul, zone de construction d'habitation fermée et zone de cours et jardins": "zdreczdchafeezdcej",
-            u"zone de service": "zdserv",
-            u"zone de voirie réservée aux piétons": "zdvoirap",
-            u"zone de voiries et d'espaces publics": "zdveep",
-            u"zone faiblement habitée": "zfaiha",
-            u"zone forestière": "zforest",
-            u"zone forestière d'intérêt paysager": "zforestip",
-            u"zone industrielle": "zi",
-            u"zone réservée aux annexes": "zresaa",
-            u"zone réservée aux constructions à un étage": "zresacaue",
-            u"zone réservée aux constructions principales": "zresacprinc",
-            u"zone réservée aux constructions principales, en zone de cours et jardins et en voirie": "zresacprincezcejeev",
-        }
 
-        if raw_pca_zone in zoneDictionnary:
-            return zoneDictionnary[raw_pca_zone]
+        pcaZoneDictionary = self.getValueMapping('pcaZoneDictionary')
+
+        if raw_pca_zone in pcaZoneDictionary:
+            return pcaZoneDictionary[raw_pca_zone]
         else:
             return "unknown"
 
@@ -431,8 +345,8 @@ class InvestigationDateMapper(SecondaryTableMapper):
         ).join(
             wrkdossier,
             wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
-        ).filter(or_(wrkparam.columns['PARAM_IDENT'] == 'EnqDatDeb',
-                     wrkparam.columns['PARAM_IDENT'] == 'EnqDatFin', ))
+        ).filter(sqlalchemy.or_(wrkparam.columns['PARAM_IDENT'] == 'EnqDatDeb',
+                                wrkparam.columns['PARAM_IDENT'] == 'EnqDatFin', ))
 
     def map(self, line, **kwargs):
         objects_args = {}
@@ -466,8 +380,8 @@ class FD_SolicitOpinionMapper(SecondaryTableMapper):
         ).join(
             wrkdossier,
             wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
-        ).filter(and_(wrkparam.columns['PARAM_VALUE'] == '1',
-                      wrkparam.columns['PARAM_NOMFUSION'].like(u'%avis préalable du FD%')))
+        ).filter(sqlalchemy.and_(wrkparam.columns['PARAM_VALUE'] == '1',
+                                 wrkparam.columns['PARAM_NOMFUSION'].like(self.getValueMapping('avisPrealableDuFD'))))
 
     def map(self, line, **kwargs):
         objects_args = {}
@@ -492,12 +406,12 @@ class Voirie_SolicitOpinionMapper(SubQueryMapper):
         ).join(
             wrkdossier,
             wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
-        ).filter(and_(wrkparam.columns['PARAM_VALUE'] == '1',
-                      or_(wrkparam.columns['PARAM_NOMFUSION'].like(u"%accordable à l'égout%"),
-                          wrkparam.columns['PARAM_NOMFUSION'].like(u"%voirie équipée%"),
-                          wrkparam.columns['PARAM_NOMFUSION'].like(u"%épuration individuelle%"))
-                      , or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766,
-                            wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753))
+        ).filter(sqlalchemy.and_(wrkparam.columns['PARAM_VALUE'] == '1',
+                                 sqlalchemy.or_(wrkparam.columns['PARAM_NOMFUSION'].like(u"%accordable à l'égout%"),
+                                                wrkparam.columns['PARAM_NOMFUSION'].like(u"%voirie équipée%"),
+                                                wrkparam.columns['PARAM_NOMFUSION'].like(u"%épuration individuelle%"))
+                                 , sqlalchemy.or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766,
+                                                  wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753))
                  )
 
     def mapRoadspecificfeatures(self, line, **kwargs):
@@ -600,7 +514,7 @@ class ErrorsMapper(FinalMapper):
 
 class ContactFactory(BaseFactory):
     def getPortalType(self, container, **kwargs):
-        if container.portal_type in ['UrbanCertificateOne', 'UrbanCertificateTwo', 'Division']:
+        if container.portal_type in self.importer.values_mappings.getValueMapping('contact_Proprietary_List'):
             return 'Proprietary'
         return 'Applicant'
 
@@ -646,13 +560,13 @@ class ApplicantMapper(SecondaryTableMapper):
                                                                          ).add_column(
             wrkdossier.columns['DOSSIER_TDOSSIERID'])
 
-        # cpsn type id 89801 = notaries
-        linesNotaries = self.query.filter(k2.columns['K2KND_ID'] == -204, cpsn.columns['CPSN_TYPE'] == 89801).all()
+        # cpsn type id = notaries
+        linesNotaries = self.query.filter(k2.columns['K2KND_ID'] == -204, sqlalchemy.or_(cpsn.columns['CPSN_TYPE'].in_ (self.getValueMapping('notaire_cpsn_type')), cpsn.columns['CPSN_NOM'].like(self.getValueMapping('notaire_cpsn_type_like')))).all()
         if linesNotaries:
             Utils.createNotaries(linesNotaries)
 
-        # cpsn type id 353506 = architects
-        linesArchitects = self.query.filter(k2.columns['K2KND_ID'] == -204, cpsn.columns['CPSN_TYPE'] == 353506).all()
+        # cpsn type id = architects
+        linesArchitects = self.query.filter(k2.columns['K2KND_ID'] == -204, sqlalchemy.or_(cpsn.columns['CPSN_TYPE'].in_(self.getValueMapping('architects_cpsn_type')), cpsn.columns['CPSN_NOM'].like(self.getValueMapping('architects_cpsn_type_like')))).all()
         if linesArchitects:
             Utils.createArchitects(linesArchitects)
 
@@ -730,9 +644,7 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
             k2cloc, cpsn.columns['CPSN_ID'] == k2cloc.columns['K_ID2']
         ).join(
             cloc, cloc.columns['CLOC_ID'] == k2cloc.columns['K_ID1']
-            # ).filter(or_(wrkdossier.columns['DOSSIER_TDOSSIERID'] == -5753,
-            #              wrkdossier.columns['DOSSIER_TDOSSIERID'] == -34766, )
-        ).filter(cpsn.columns['CPSN_TYPE'] == 89801
+        ).filter(sqlalchemy.or_(cpsn.columns['CPSN_TYPE'].in_ (self.getValueMapping('notaire_cpsn_type')), cpsn.columns['CPSN_NOM'].like(self.getValueMapping('notaire_cpsn_type_like')))
                  ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
                               ).add_column(wrkdossier.columns['DOSSIER_TDOSSIERID']
                                            ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
@@ -756,19 +668,17 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
     def mapNotarycontact(self, line, plone_object):
 
         wrkdossier = self.importer.datasource.get_table(self.table)
-
         lines = self.query.filter(wrkdossier.columns['WRKDOSSIER_ID'] == line[0]).all()
         if lines:
 
             firstPart = Utils.convertToUnicode(lines[0][36])
             secondPart = Utils.convertToUnicode(lines[0][37])
             idNotary = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Notary').replace(" ", ""))
-            containerNotaries = api.content.get(path='/Plone/urban/notaries')
+            containerNotaries = api.content.get(path='/urban/notaries')
 
             if idNotary not in containerNotaries.objectIds():
                 self.createNotary(lines[0])
-
-            item = api.content.get(path='/Plone/urban/notaries/' + idNotary)
+            item = api.content.get(path='/urban/notaries/' + idNotary)
             return item.UID()
 
     def createNotary(self, notary_infos):
@@ -791,7 +701,7 @@ class NotaryContactMapper(PostCreationMapper, SubQueryMapper):
         title_mapping = self.getValueMapping('titre_map')
         title = title_mapping.get(notarytitle, '')
 
-        container = api.content.get(path='/Plone/urban/notaries')
+        container = api.content.get(path='/urban/notaries')
 
         if not (new_id in container.objectIds()):
             object_id = container.invokeFactory('Notary', id=new_id,
@@ -827,8 +737,7 @@ class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
             k2cloc, cpsn.columns['CPSN_ID'] == k2cloc.columns['K_ID2']
         ).join(
             cloc, cloc.columns['CLOC_ID'] == k2cloc.columns['K_ID1']
-        ).filter(or_(cpsn.columns['CPSN_TYPE'] == 353506,
-                     cpsn.columns['CPSN_TYPE'] == 4314287, )
+        ).filter(sqlalchemy.or_(cpsn.columns['CPSN_TYPE'].in_ (self.getValueMapping('architects_cpsn_type')), cpsn.columns['CPSN_NOM'].like(self.getValueMapping('architects_cpsn_type_like')))
                  ).add_column(wrkdossier.columns['WRKDOSSIER_ID']
                               ).add_column(cpsn.columns['CPSN_NOM']
                                            ).add_column(cpsn.columns['CPSN_PRENOM']
@@ -857,12 +766,12 @@ class ArchitectsMapper(PostCreationMapper, SubQueryMapper):
         firstPart = Utils.convertToUnicode(lines[0][34])
         secondPart = Utils.convertToUnicode(lines[0][35])
         idArchitect = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Architect').replace(" ", ""))
-        containerArchitects = api.content.get(path='/Plone/urban/architects')
+        containerArchitects = api.content.get(path='/urban/architects')
 
         if idArchitect not in containerArchitects.objectIds():
             Utils.createArchitects([lines[0]])
 
-        item = api.content.get(path='/Plone/urban/architects/' + idArchitect)
+        item = api.content.get(path='/urban/architects/' + idArchitect)
         if item:
             return item.UID()
 
@@ -1044,8 +953,8 @@ class DecisionEventDateMapper(SecondaryTableMapper):
 
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
-        event_type = -207  # etape
         wrketape = self.importer.datasource.get_table('wrketape')
+        event_type = -207  # etape
         licence = self.importer.current_containers_stack[-1]
         decisionDateKeys = self.getValueMapping('event_decision_date_map')[licence.portal_type]
         lines = None
@@ -1161,7 +1070,8 @@ class CompleteFolderEventMapper(Mapper):
         urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['folder_complete']
         config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 class CompleteFolderDateMapper(Mapper):
@@ -1191,7 +1101,8 @@ class IncompleteFolderEventMapper(Mapper):
         urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = ('dossier-incomplet')
         config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 class IncompleteFolderDateMapper(Mapper):
@@ -1221,7 +1132,8 @@ class DecisionEventTypeMapper(Mapper):
         urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['decision_event']
         config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 class DecisionEventIdMapper(Mapper):
@@ -1269,7 +1181,8 @@ class LicenceToApplicantEventMapper(Mapper):
         urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['send_licence_applicant_event']
         config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 class LicenceToApplicantDateMapper(Mapper):
@@ -1299,7 +1212,8 @@ class LicenceToFDEventMapper(Mapper):
         urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = self.getValueMapping('eventtype_id_map')[licence.portal_type]['send_licence_fd_event']
         config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 class LicenceToFDDateMapper(Mapper):
@@ -1335,7 +1249,8 @@ class CollegeReportEventMapper(Mapper):
         urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = 'rapport-du-college'
         config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 class CollegeReportEventDateMapper(Mapper):
@@ -1384,7 +1299,8 @@ class CollegeReportDeclarationEventMapper(Mapper):
         urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = 'deliberation-college'
         config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 #
@@ -1406,7 +1322,8 @@ class CollegeReportBeforeFDDecisionEventMapper(Mapper):
         urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = 'college-report-before-FD-decision'
         config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 class CollegeReportBeforeFDDecisionEventDateMapper(Mapper):
@@ -1449,7 +1366,8 @@ class CollegeReportTransmittedToRWEventTypeMapper(Mapper):
         urban_tool = api.portal.get_tool('portal_urban')
         eventtype_id = 'college-report-transmitted-to-rw'
         config = urban_tool.getUrbanConfig(licence)
-        return getattr(config.urbaneventtypes, eventtype_id).UID()
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
 
 
 class CollegeReportTransmittedToRwEventIdMapper(Mapper):
@@ -1490,6 +1408,185 @@ class CollegeReportTransmittedToRwDecisionMapper(Mapper):
 
         return lines
 
+#
+# UrbanEvent EnvClassThree acceptability
+#
+
+# mappers
+
+
+
+class EnvClassThreeAcceptabilityEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'acceptation-de-la-demande'
+
+class EnvClassThreeAcceptabilityEventMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'acceptation-de-la-demande'
+        config = urban_tool.getUrbanConfig(licence)
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+class EventDateEnvClassThreeAcceptabilityMapper(SecondaryTableMapper):
+    def __init__(self, mysql_importer, args):
+        super(EventDateEnvClassThreeAcceptabilityMapper, self).__init__(mysql_importer, args)
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        urbmessagestatus = self.importer.datasource.get_table('urbmessagestatus')
+        self.query = self.query.join(
+            wrkdossier, urbmessagestatus.columns['STAT_NUM'] == wrkdossier.columns['DOSSIER_OCTROI']
+        ).add_column(urbmessagestatus.columns['STAT_MESSDOS']
+        ).add_column(wrkdossier.columns['DOSSIER_DATEDELIV'])
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        urbmessagestatus = self.importer.datasource.get_table('urbmessagestatus')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        licence = self.importer.current_containers_stack[-1]
+
+        keys = self.getValueMapping('event_envclass_ok_date_map')[licence.portal_type]
+        lines = None
+        if keys:
+            for key in keys:
+                lines = self.query.filter(sqlalchemy.and_(wrkdossier.columns['WRKDOSSIER_ID'] == licence_id,
+                    urbmessagestatus.columns['STAT_MESSDOS'] == key)).all()
+                if lines:
+                    break
+
+        if not lines:
+            raise NoObjectToCreateException
+
+        return lines
+
+class EnvClassThreeAcceptabilityEventDateMapper(Mapper):
+    def mapEventdate(self, line):
+        date = self.getData('DOSSIER_DATEDELIV')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+#
+# UrbanEvent EnvClassThree unacceptability
+#
+
+# mappers
+
+
+
+class EnvClassThreeUnacceptabilityEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'refus-de-la-demande'
+
+class EnvClassThreeUnacceptabilityEventMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'refus-de-la-demande'
+        config = urban_tool.getUrbanConfig(licence)
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+class EventDateEnvClassThreeUnacceptabilityMapper(SecondaryTableMapper):
+    def __init__(self, mysql_importer, args):
+        super(EventDateEnvClassThreeUnacceptabilityMapper, self).__init__(mysql_importer, args)
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        urbmessagestatus = self.importer.datasource.get_table('urbmessagestatus')
+        self.query = self.query.join(
+            wrkdossier, urbmessagestatus.columns['STAT_NUM'] == wrkdossier.columns['DOSSIER_OCTROI']
+        ).add_column(urbmessagestatus.columns['STAT_MESSDOS']
+        ).add_column(wrkdossier.columns['DOSSIER_DATEDELIV'])
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        urbmessagestatus = self.importer.datasource.get_table('urbmessagestatus')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        licence = self.importer.current_containers_stack[-1]
+
+        keys = self.getValueMapping('event_envclass_ko_date_map')[licence.portal_type]
+        lines = None
+        if keys:
+            for key in keys:
+                lines = self.query.filter(sqlalchemy.and_(wrkdossier.columns['WRKDOSSIER_ID'] == licence_id,
+                    urbmessagestatus.columns['STAT_MESSDOS'] == key)).all()
+                if lines:
+                    break
+
+        if not lines:
+            raise NoObjectToCreateException
+
+        return lines
+
+class EnvClassThreeUnacceptabilityEventDateMapper(Mapper):
+    def mapEventdate(self, line):
+        date = self.getData('DOSSIER_DATEDELIV')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+
+#
+# UrbanEvent EnvClassThree conditional acceptability
+#
+
+# mappers
+
+
+
+class EnvClassThreeCondAcceptabilityEventIdMapper(Mapper):
+    def mapId(self, line):
+        return 'acceptation-de-la-demande-cond'
+
+class EnvClassThreeCondAcceptabilityEventMapper(Mapper):
+    def mapEventtype(self, line):
+        licence = self.importer.current_containers_stack[-1]
+        urban_tool = api.portal.get_tool('portal_urban')
+        eventtype_id = 'acceptation-de-la-demande-cond'
+        config = urban_tool.getUrbanConfig(licence)
+        if hasattr(config.urbaneventtypes, eventtype_id):
+            return getattr(config.urbaneventtypes, eventtype_id).UID()
+
+class EventDateEnvClassThreeCondAcceptabilityMapper(SecondaryTableMapper):
+    def __init__(self, mysql_importer, args):
+        super(EventDateEnvClassThreeCondAcceptabilityMapper, self).__init__(mysql_importer, args)
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        urbmessagestatus = self.importer.datasource.get_table('urbmessagestatus')
+        self.query = self.query.join(
+            wrkdossier, urbmessagestatus.columns['STAT_NUM'] == wrkdossier.columns['DOSSIER_OCTROI']
+        ).add_column(urbmessagestatus.columns['STAT_MESSDOS']
+        ).add_column(wrkdossier.columns['DOSSIER_DATEDELIV'])
+
+    def query_secondary_table(self, line):
+        licence_id = self.getData('WRKDOSSIER_ID', line)
+        urbmessagestatus = self.importer.datasource.get_table('urbmessagestatus')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        licence = self.importer.current_containers_stack[-1]
+
+        keys = self.getValueMapping('event_envclass_ok_cond_date_map')[licence.portal_type]
+        lines = None
+        if keys:
+            for key in keys:
+                lines = self.query.filter(sqlalchemy.and_(wrkdossier.columns['WRKDOSSIER_ID'] == licence_id,
+                    urbmessagestatus.columns['STAT_MESSDOS'] == key)).all()
+                if lines:
+                    break
+
+        if not lines:
+            raise NoObjectToCreateException
+
+        return lines
+
+class EnvClassThreeCondAcceptabilityEventDateMapper(Mapper):
+    def mapEventdate(self, line):
+        date = self.getData('DOSSIER_DATEDELIV')
+        if not date:
+            raise NoObjectToCreateException
+        date = date and DateTime(date) or None
+        return date
+
+
 
 # *** Utils ***
 
@@ -1503,7 +1600,10 @@ class Utils():
         # convert to unicode if necessary, against iso-8859-1 : iso-8859-15 add € and oe characters
         data = ""
         if string and isinstance(string, str):
-            data = unicode(string, "iso-8859-15")
+            try:
+                data = unicodedata.normalize('NFKC', unicode(string, "iso-8859-15"))
+            except UnicodeDecodeError:
+                import ipdb; ipdb.set_trace() # TODO REMOVE BREAKPOINT
         return data
 
     @staticmethod
@@ -1556,7 +1656,7 @@ class Utils():
             secondPart = Utils.convertToUnicode(notaryInfo[35])
 
             idNotary = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Notary').replace(" ", ""))
-            containerNotaries = api.content.get(path='/Plone/urban/notaries')
+            containerNotaries = api.content.get(path='/urban/notaries')
 
             if idNotary not in containerNotaries.objectIds():
 
@@ -1564,8 +1664,8 @@ class Utils():
                 new_name1 = firstPart if firstPart else ""
                 new_name2 = secondPart if secondPart else ""
 
-                telfixe = str(notaryInfo[39]) if notaryInfo[39] else ""
-                telgsm = str(notaryInfo[40]) if notaryInfo[40] else ""
+                telfixe = Utils.getStringDigits(notaryInfo[39]) if notaryInfo[39] else ""
+                telgsm = Utils.getStringDigits(notaryInfo[40]) if notaryInfo[40] else ""
                 email = str(notaryInfo[36]) if notaryInfo[36] else ""
                 street = Utils.convertToUnicode(str(notaryInfo[41])) if notaryInfo[41] else ""
                 zipcode = str(notaryInfo[42]) if notaryInfo[42] else ""
@@ -1573,7 +1673,7 @@ class Utils():
 
                 title = 'master'
 
-                container = api.content.get(path='/Plone/urban/notaries')
+                container = api.content.get(path='/urban/notaries')
 
                 if not (new_id in container.objectIds()):
                     object_id = container.invokeFactory('Notary', id=new_id,
@@ -1596,7 +1696,7 @@ class Utils():
             secondPart = Utils.convertToUnicode(architectsInfo[35])
 
             idArchitect = idnormalizer.normalize(Utils.createId(firstPart, secondPart, 'Architect').replace(" ", ""))
-            containerArchitects = api.content.get(path='/Plone/urban/architects')
+            containerArchitects = api.content.get(path='/urban/architects')
 
             if idArchitect not in containerArchitects.objectIds():
 
@@ -1604,14 +1704,14 @@ class Utils():
                 new_name1 = firstPart if firstPart else ""
                 new_name2 = secondPart if secondPart else ""
 
-                telfixe = str(architectsInfo[39]) if architectsInfo[39] else ""
-                telgsm = str(architectsInfo[40]) if architectsInfo[40] else ""
+                telfixe = Utils.getStringDigits(architectsInfo[39]) if architectsInfo[39] else ""
+                telgsm = Utils.getStringDigits(architectsInfo[40]) if architectsInfo[40] else ""
                 email = str(architectsInfo[36]) if architectsInfo[36] else ""
                 street = Utils.convertToUnicode(str(architectsInfo[41])) if architectsInfo[41] else ""
                 zipcode = str(architectsInfo[42]) if architectsInfo[42] else ""
                 city = Utils.convertToUnicode(str(architectsInfo[43])) if architectsInfo[43] else ""
 
-                container = api.content.get(path='/Plone/urban/architects')
+                container = api.content.get(path='/urban/architects')
 
                 if not (new_id in container.objectIds()):
                     object_id = container.invokeFactory('Architect', id=new_id,
@@ -1631,3 +1731,9 @@ class Utils():
         # Expected valid date is greater than year 1800
         if date and (len(date) == 10) and int(date[-4:]) > 1800:
             return DateTime(date, datefmt='international')
+
+
+    @staticmethod
+    def getStringDigits(string):
+
+        return ''.join([letter for letter in string if letter.isdigit()]).strip()

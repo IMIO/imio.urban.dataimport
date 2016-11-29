@@ -26,7 +26,13 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     IncompleteFolderEventIdMapper, IncompleteFolderDateMapper, CollegeReportTransmittedToRwEventDateMapper, \
     CollegeReportTransmittedToRwDecisionDateMapper, CollegeReportTransmittedToRwDecisionMapper, DepositEventDateMapper, \
     DecisionDecisionEventDateMapper, EventParamDateMapper, CollegeReportDeclarationEventMapper, \
-    CollegeReportDeclarationEventIdMapper
+    CollegeReportDeclarationEventIdMapper, EnvClassThreeAcceptabilityEventMapper, \
+    EnvClassThreeAcceptabilityEventIdMapper, EventDateEnvClassThreeAcceptabilityMapper, \
+    EnvClassThreeAcceptabilityEventDateMapper, EnvClassThreeUnacceptabilityEventMapper, \
+    EnvClassThreeUnacceptabilityEventIdMapper, EventDateEnvClassThreeUnacceptabilityMapper, \
+    EnvClassThreeUnacceptabilityEventDateMapper, EnvClassThreeCondAcceptabilityEventMapper, \
+    EnvClassThreeCondAcceptabilityEventIdMapper, EventDateEnvClassThreeCondAcceptabilityMapper, \
+    EnvClassThreeCondAcceptabilityEventDateMapper
 
 OBJECTS_NESTING = [
     (
@@ -42,6 +48,9 @@ OBJECTS_NESTING = [
             ('COLLEGE REPORT BEFORE FD DECISION EVENT', []),
             ('COLLEGE REPORT DECLARATION EVENT', []),
             ('COLLEGE REPORT EVENT', []),
+            ('ACCEPTABLE DECLARATION EVENT', []),
+            ('UNACCEPTABLE DECLARATION EVENT', []),
+            ('ACCEPTABLE CONDITIONAL DECLARATION EVENT', []),
             ('DECISION EVENT', []),
         ],
 
@@ -190,6 +199,7 @@ FIELDS_MAPPINGS = {
     'CONTACT':
         {
             'factory': [ContactFactory],
+            # 'allowed_containers': ['BuildLicence', 'ParcelOutLicence', 'Article127', 'Declaration','Division', 'MiscDemand', 'Division', 'UrbanCertificateOne', 'Division', 'UrbanCertificateTwo'],
 
             'mappers': {
                 ApplicantMapper: {
@@ -678,6 +688,96 @@ FIELDS_MAPPINGS = {
                         },
                     },
                 },
+            },
+        },
+
+        'ACCEPTABLE DECLARATION EVENT':
+        {
+            'factory': [UrbanEventFactory],
+            'allowed_containers': ['EnvClassThree'],
+
+            'mappers': {
+                EnvClassThreeAcceptabilityEventMapper: {
+                    'from': (),
+                    'to': 'eventtype',
+                },
+
+                EnvClassThreeAcceptabilityEventIdMapper: {
+                    'from': (),
+                    'to': 'id',
+                },
+
+                EventDateEnvClassThreeAcceptabilityMapper: {
+                    'table': 'urbmessagestatus',
+                    'KEYS': ('WRKDOSSIER_ID', 'DOSSIER_OCTROI', 'STAT_NUM'),
+                    'mappers': {
+                        EnvClassThreeAcceptabilityEventDateMapper: {
+                            'from': ('DOSSIER_DATEDELIV',),
+                            'to': ('eventDate'),
+                        },
+                    },
+                },
+
+            },
+        },
+
+        'UNACCEPTABLE DECLARATION EVENT':
+        {
+            'factory': [UrbanEventFactory],
+            'allowed_containers': ['EnvClassThree'],
+
+            'mappers': {
+                EnvClassThreeUnacceptabilityEventMapper: {
+                    'from': (),
+                    'to': 'eventtype',
+                },
+
+                EnvClassThreeUnacceptabilityEventIdMapper: {
+                    'from': (),
+                    'to': 'id',
+                },
+
+                EventDateEnvClassThreeUnacceptabilityMapper: {
+                    'table': 'urbmessagestatus',
+                    'KEYS': ('WRKDOSSIER_ID', 'DOSSIER_OCTROI', 'STAT_NUM'),
+                    'mappers': {
+                        EnvClassThreeUnacceptabilityEventDateMapper: {
+                            'from': ('DOSSIER_DATEDELIV',),
+                            'to': ('eventDate'),
+                        },
+                    },
+                },
+
+            },
+        },
+
+        'ACCEPTABLE CONDITIONAL DECLARATION EVENT':
+        {
+            'factory': [UrbanEventFactory],
+            'allowed_containers': ['EnvClassThree'],
+
+            'mappers': {
+                EnvClassThreeCondAcceptabilityEventMapper: {
+                    'from': (),
+                    'to': 'eventtype',
+                },
+
+                EnvClassThreeCondAcceptabilityEventIdMapper: {
+                    'from': (),
+                    'to': 'id',
+                },
+
+                EventDateEnvClassThreeCondAcceptabilityMapper: {
+                    'table': 'urbmessagestatus',
+                    'KEYS': ('WRKDOSSIER_ID', 'DOSSIER_OCTROI', 'STAT_NUM'),
+                    'mappers': {
+                        EnvClassThreeCondAcceptabilityEventDateMapper: {
+                            'from': ('DOSSIER_DATEDELIV',),
+                            'to': ('eventDate'),
+                        },
+                    },
+                },
+
             },
         },
 
