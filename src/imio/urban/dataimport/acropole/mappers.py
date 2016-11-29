@@ -217,7 +217,7 @@ class PCATypeMapper(PCAInit):
         raw_pca_List = self.getValueMapping('raw_pca_List')
 
         if raw_pca in raw_pca_List:
-            return raw_pca
+            return raw_pca_List[raw_pca]
         else:
             return None
 
@@ -242,7 +242,7 @@ class PCAMapper(PCAInit):
         raw_pca_List = self.getValueMapping('raw_pca_List')
 
         if raw_pca in raw_pca_List:
-            return raw_pca
+            return raw_pca_List[raw_pca]
         else:
             return False
 
