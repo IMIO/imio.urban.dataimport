@@ -1152,10 +1152,18 @@ class DecisionDecisionEventDateMapper(Mapper):
 class DecisionEventDecisionMapper(Mapper):
     def mapDecision(self, line):
         decision = self.getData('PARAM_VALUE')
-        if decision and decision == u'1':
-            return u'Octroyé'
+        key = self.getData('PARAM_NOMFUSION')
+        declLine = self.getValueMapping('declaration_record')
+        if declLine and key in declLine:
+            if decision and decision == u'1':
+                return u'Favorable'
+            else:
+                return u'Défavorable'
         else:
-            return u'Refusé'
+            if decision and decision == u'1':
+                return u'Octroyé'
+            else:
+                return u'Refusé'
 
 
 class DecisionEventDecisionDateMapper(Mapper):

@@ -588,7 +588,7 @@ FIELDS_MAPPINGS = {
     'COLLEGE REPORT DECLARATION EVENT':
         {
             'factory': [UrbanEventFactory],
-            'allowed_containers': ['Declaration','MiscDemand'],
+            'allowed_containers': ['MiscDemand'],
 
             'mappers': {
                 CollegeReportDeclarationEventMapper: {
