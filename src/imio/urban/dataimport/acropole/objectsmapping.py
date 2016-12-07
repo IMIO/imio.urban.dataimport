@@ -32,7 +32,7 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     EnvClassThreeUnacceptabilityEventIdMapper, EventDateEnvClassThreeUnacceptabilityMapper, \
     EnvClassThreeUnacceptabilityEventDateMapper, EnvClassThreeCondAcceptabilityEventMapper, \
     EnvClassThreeCondAcceptabilityEventIdMapper, EventDateEnvClassThreeCondAcceptabilityMapper, \
-    EnvClassThreeCondAcceptabilityEventDateMapper
+    EnvClassThreeCondAcceptabilityEventDateMapper, DispensationMapper, InvestigationReasonsMapper
 
 OBJECTS_NESTING = [
     (
@@ -160,8 +160,22 @@ FIELDS_MAPPINGS = {
                 InvestigationDateMapper: {
                     'table': 'wrkparam',
                     'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
-                    'from': ('PARAM_VALUE', 'PARAM_VALUE',),
+                    'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
                     'to': ('investigationStart', 'investigationEnd',),
+                },
+
+                InvestigationReasonsMapper: {
+                    'table': 'wrkparam',
+                    'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID', 'CREMARQ_ID'),
+                    'from': ('PARAM_NOMFUSION', 'PARAM_VALUE', 'REMARQ_LIB'),
+                    'to': ('investigationReasons', ),
+                },
+
+                DispensationMapper: {
+                    'table': 'wrkparam',
+                    'KEYS': ('WRKDOSSIER_ID', 'WRKPARAM_ID'),
+                    'from': ('PARAM_NOMFUSION', 'PARAM_VALUE',),
+                    'to': ('derogation',),
                 },
 
                 FD_SolicitOpinionMapper: {

@@ -367,6 +367,65 @@ class InvestigationDateMapper(SecondaryTableMapper):
         return objects_args
 
 
+class DispensationMapper(FieldMultiLinesSecondaryTableMapper):
+    def __init__(self, mysql_importer, args):
+        super(DispensationMapper, self).__init__(mysql_importer, args)
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        k2 = self.importer.datasource.get_table('k2')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        self.query = self.query.join(
+            k2,
+            wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
+        ).filter(sqlalchemy.or_(wrkparam.columns['PARAM_IDENT'] == 'DerogCom',
+                                wrkparam.columns['PARAM_IDENT'] == 'Derog', )
+                 ).add_column(wrkparam.columns['WRKPARAM_ID'])
+
+    def map(self, line, **kwargs):
+        objects_args = ()
+        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
+        if lines:
+            for line in lines:
+                value = self.getData('PARAM_VALUE', line=line)
+                if (self.getData('PARAM_IDENT', line=line) == 'DerogCom'):
+                    if value and value == '1':
+                        objects_args = objects_args + ('dero-pca',)
+                elif (self.getData('PARAM_IDENT', line=line) == 'Derog'):
+                    if value and value == '1':
+                        objects_args = objects_args + ('dero-rru',)
+        # TODO WA code for mapDerogation : wrkdossier has no WRKPARAM_ID attribute
+        return {'derogation': objects_args}
+
+
+class InvestigationReasonsMapper(SecondaryTableMapper):
+    def __init__(self, mysql_importer, args):
+        super(InvestigationReasonsMapper, self).__init__(mysql_importer, args)
+        wrkparam = self.importer.datasource.get_table('wrkparam')
+        k2 = self.importer.datasource.get_table('k2')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+        cremarq = self.importer.datasource.get_table('cremarq')
+        investigation_object_key = self.getValueMapping('investigation_object_key')
+        if investigation_object_key:
+            self.query = self.query.join(
+                cremarq,
+                wrkparam.columns['PARAM_VALUE'] == cremarq.columns['CREMARQ_ID']
+            ).join(
+                k2,
+                wrkparam.columns['WRKPARAM_ID'] == k2.columns['K_ID2']
+            ).join(
+                wrkdossier,
+                wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID1']
+            ).filter(wrkparam.columns['PARAM_NOMFUSION'] == investigation_object_key
+            ).add_column(cremarq.columns['REMARQ_LIB'])
+
+    def map(self, line, **kwargs):
+        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
+        if lines:
+            return {'investigationReasons': self.getData('REMARQ_LIB', line=lines[0])}
+
+
 class FD_SolicitOpinionMapper(SecondaryTableMapper):
     def __init__(self, mysql_importer, args):
         super(FD_SolicitOpinionMapper, self).__init__(mysql_importer, args)
