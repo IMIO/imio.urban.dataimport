@@ -332,6 +332,41 @@ class StreetAndNumberMapper(SubQueryMapper):
         return objects_args
 
 
+class RubricsMapper(SubQueryMapper):
+    def __init__(self, mysql_importer, args):
+        super(RubricsMapper, self).__init__(mysql_importer, args)
+        urblistecat = self.importer.datasource.get_table('urblistecat')
+        k2 = self.importer.datasource.get_table('k2')
+        wrkdossier = self.importer.datasource.get_table('wrkdossier')
+
+        self.query = self.query.join(
+            k2,
+            k2.columns['K_ID1'] == urblistecat.columns['CAT_ID']
+        ).join(
+            wrkdossier,
+            wrkdossier.columns['WRKDOSSIER_ID'] == k2.columns['K_ID2']
+        ).add_column(urblistecat.columns['CAT_CLE']
+                     ).add_column(wrkdossier.columns['WRKDOSSIER_ID'])
+
+
+    def mapRubrics(self, line, **kwargs):
+        rubric_list = ()
+
+        lines = self.query.filter_by(WRKDOSSIER_ID=line[0]).all()
+        if lines:
+            for line in lines:
+                rubric = self.getData('CAT_CLE', line=line)
+                if rubric:
+                    rubric_uid = Utils.searchRubric(rubric)
+                    if not rubric_uid:
+                        self.logError(self, line, 'rubrics : Pas de rubrique trouvée pour cette valeur : ',
+                                      {'TYPE value': rubric, 'rubric': rubric})
+                    else:
+                        rubric_list  = rubric_list + (rubric_uid,)
+
+            return rubric_list
+
+
 class InvestigationDateMapper(SecondaryTableMapper):
     def __init__(self, mysql_importer, args):
         super(InvestigationDateMapper, self).__init__(mysql_importer, args)
@@ -548,6 +583,8 @@ class ErrorsMapper(FinalMapper):
                 data = error.data
                 if 'streets' in error.message:
                     error_trace.append('<p>adresse : %s</p>' % data['address'])
+                if 'rubrics' in error.message:
+                    error_trace.append('<p>rubrique : %s</p>' % data['rubric'])
                 elif 'notaries' in error.message:
                     error_trace.append('<p>notaire : %s %s %s</p>' % (data['title'], data['firstname'], data['name']))
                 elif 'architects' in error.message:
@@ -633,6 +670,10 @@ class ApplicantMapper(SecondaryTableMapper):
         with open("matchBestAddressError.csv", "w"):
             pass
 
+        # delete not found rubrics file content
+        with open("matchRubricsError.csv", "w"):
+            pass
+
     def query_secondary_table(self, line):
         licence_id = self.getData('WRKDOSSIER_ID', line)
         applicant_type = -204
@@ -641,11 +682,6 @@ class ApplicantMapper(SecondaryTableMapper):
         type_value = self.getData('DOSSIER_TDOSSIERID', line)
         portal_type = self.getValueMapping('type_map')[type_value]['portal_type']
 
-        # if portal_type != 'UrbanCertificateOne':
-        #     # remove notaries (89801)
-        #     lines = self.query.filter(k2.columns['K_ID2'] == licence_id, k2.columns['K2KND_ID'] == applicant_type, or_(cpsn.columns['CPSN_TYPE'] != 89801,cpsn.columns['CPSN_TYPE'] == None)).all()
-        # else:
-        # get notaries as Applicant possibility for CU1
         lines = self.query.filter(k2.columns['K_ID2'] == licence_id, k2.columns['K2KND_ID'] == applicant_type).all()
 
         return lines
@@ -1702,6 +1738,18 @@ class Utils():
                         file.write(Utils.convertToAscii(street, 'replace') + "\n")
 
         return street_uids
+
+    @staticmethod
+    def searchRubric(rubric):
+
+        catalog = api.portal.get_tool('portal_catalog')
+        rubric = rubric.strip()
+        rubric_uids = [brain.UID for brain in catalog(portal_type='EnvironmentRubricTerm', id=rubric)]
+        if not rubric_uids:
+                with open("matchRubricsError.csv", "a") as file:
+                    file.write(Utils.convertToAscii(rubric, 'replace') + "\n")
+        else:
+            return rubric_uids[0]
 
     @staticmethod
     def createId(name, firstName, type):

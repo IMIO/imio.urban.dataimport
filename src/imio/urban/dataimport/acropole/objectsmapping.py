@@ -32,7 +32,8 @@ from imio.urban.dataimport.acropole.mappers import LicenceFactory, \
     EnvClassThreeUnacceptabilityEventIdMapper, EventDateEnvClassThreeUnacceptabilityMapper, \
     EnvClassThreeUnacceptabilityEventDateMapper, EnvClassThreeCondAcceptabilityEventMapper, \
     EnvClassThreeCondAcceptabilityEventIdMapper, EventDateEnvClassThreeCondAcceptabilityMapper, \
-    EnvClassThreeCondAcceptabilityEventDateMapper, DispensationMapper, InvestigationReasonsMapper
+    EnvClassThreeCondAcceptabilityEventDateMapper, DispensationMapper, InvestigationReasonsMapper, \
+    RubricsMapper
 
 OBJECTS_NESTING = [
     (
@@ -196,6 +197,13 @@ FIELDS_MAPPINGS = {
                     'KEYS': ('WRKDOSSIER_ID', 'ADR_ID'),
                     'from': ('ADR_ADRESSE', 'ADR_ZIP', 'ADR_LOCALITE', 'ADR_NUM',),
                     'to': 'workLocations'
+                },
+
+                RubricsMapper: {
+                    'table': 'urblistecat',
+                    'KEYS': ('WRKDOSSIER_ID', 'CAT_ID'),
+                    'from': ('CAT_CLE', ),
+                    'to': 'rubrics'
                 },
 
                 CompletionStateMapper: {
