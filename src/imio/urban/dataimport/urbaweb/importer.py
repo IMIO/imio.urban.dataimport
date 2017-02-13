@@ -13,8 +13,8 @@ class UrbawebDataImporter(AccessDataImporter):
 
     implements(IUrbawebDataImporter)
 
-    def __init__(self, db_name='tab_urba_97.mdb', table_name='URBA', key_column='Cle_Urba', savepoint_length=0):
-        super(UrbawebDataImporter, self).__init__(db_name, table_name, key_column, savepoint_length)
+    def __init__(self, db_name='tab_urba_97.mdb', table_name='URBA', key_column='Cle_Urba', **kwargs):
+        super(UrbawebDataImporter, self).__init__(db_name, table_name, key_column, **kwargs)
 
 
 class UrbawebMapping(ObjectsMapping):

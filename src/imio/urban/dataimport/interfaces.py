@@ -126,6 +126,10 @@ class IImportSection(Interface):
     """ marker interface for any mapper or factory class """
 
 
+class IImportSplitter(Interface):
+    """ define a 'splitter', filtering the lines to import between different instances"""
+
+
 class IFactory(IImportSection):
     """ marker interface for factory objects """
 

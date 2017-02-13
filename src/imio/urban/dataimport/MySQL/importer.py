@@ -96,8 +96,8 @@ class MySQLDataImporter(UrbanDataImporter):
 
     implements(IMySQLImporter)
 
-    def __init__(self, db_name, table_name, key_column, savepoint_length=0):
-        super(MySQLDataImporter, self).__init__(savepoint_length)
+    def __init__(self, db_name, table_name, key_column, **kwargs):
+        super(MySQLDataImporter, self).__init__(**kwargs)
         self.db_name = db_name
         self.table_name = table_name
         self.key_column = key_column

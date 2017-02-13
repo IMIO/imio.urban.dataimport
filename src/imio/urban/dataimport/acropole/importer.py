@@ -23,13 +23,14 @@ class AcropoleImportSource(MySQLImportSource):
         records = result.order_by(wrkdossier.columns['WRKDOSSIER_ID'].desc()).all()
         return records
 
+
 class AcropoleDataImporter(MySQLDataImporter):
     """ """
 
     implements(IAcropoleDataImporter)
 
-    def __init__(self, db_name='urb64015ac', table_name='wrkdossier', key_column='WRKDOSSIER_ID', savepoint_length=0):
-        super(AcropoleDataImporter, self).__init__(db_name, table_name, key_column, savepoint_length)
+    def __init__(self, db_name='urb64015ac', table_name='wrkdossier', key_column='WRKDOSSIER_ID', **kwargs):
+        super(AcropoleDataImporter, self).__init__(db_name, table_name, key_columni, **kwargs)
 
 
 class AcropoleMapping(ObjectsMapping):

@@ -7,10 +7,11 @@ from imio.urban.dataimport.errors import FactoryArgumentsError
 from imio.urban.dataimport.exceptions import NoObjectToCreateException
 from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping,\
     IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage, \
-    IFinalMapper
+    IFinalMapper, IImportSplitter
 
 from plone import api
 
+from zope.component import queryAdapter
 from zope.interface import implements
 
 import os
@@ -24,17 +25,17 @@ class UrbanDataImporter(object):
 
     implements(IUrbanDataImporter)
 
-    def __init__(self, savepoint_length=0):
+    def __init__(self, split_division_range=1, split_division_target=0):
         """ """
 
         self.name = self.__class__.__name__
         self.datasource = None
         self.objects_mappings = None
         self.values_mappings = None
+        self.split_division_range = split_division_range
+        self.split_division_target = split_division_target
         self.mode = PRESERVE
-        self.savepoint_length = savepoint_length
         self.error_log_name = 'urban_dataimport'
-        self.error_treshold = 0.05
 
         # attributes to be set up before running import
         self.factories = {}
@@ -50,32 +51,15 @@ class UrbanDataImporter(object):
 
     def importData(self, start=1, end=0):
         """
-        Import data from line 'start' to line 'end' as long
-        the import error rate is kept under 'error_treshold' value.
+        Import data from line 'start' to line 'end'
         """
-
-        savepoint = self.savepoint_length
-        processed_lines = 0
+        splitter = queryAdapter(self, IImportSplitter)
 
         for dataline in self.datasource.iterdata():
             if end and self.current_line > end:
                 break
-            elif start <= self.current_line:
+            elif start <= self.current_line and splitter.allow(dataline):
                 self.importDataLine(dataline)
-                """
-                try:
-                    self.importDataLine(dataline)
-                except:
-                    errors += 1
-                    error_rate = errors / total
-                    if error_rate > self.error_treshold:
-                        break
-                """
-
-                # flush RAM every Nth line processed by setting a savepoint
-                processed_lines += 1
-                if savepoint and self.processed_lines % savepoint == 0:
-                    transaction.savepoint(True)
 
             self.current_line += 1
 

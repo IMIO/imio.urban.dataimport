@@ -22,4 +22,10 @@
         handler=".setuphandlers.post_install">
     </genericsetup:importStep>
 
+    <adapter
+        for="imio.urban.dataimport.interface.IUrbanDataImporter"
+        factory=".splitter.UrbanImportSplitter"
+        provides=".interfaces.IImportSplitter"
+        />
+
 </configure>

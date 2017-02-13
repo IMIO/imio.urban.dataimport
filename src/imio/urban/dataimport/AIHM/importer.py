@@ -14,8 +14,8 @@ class AIHMDataImporter(AccessDataImporter):
 
     implements(IAIHMDataImporter)
 
-    def __init__(self, db_name='Urbanisme.mdb', table_name='Urbanisme', key_column='CLEF', savepoint_length=0):
-        super(AIHMDataImporter, self).__init__(db_name, table_name, key_column, savepoint_length)
+    def __init__(self, db_name='Urbanisme.mdb', table_name='Urbanisme', key_column='CLEF', **kwargs):
+        super(AIHMDataImporter, self).__init__(db_name, table_name, key_column, **kwargs)
 
 
 class AIHMMapping(ObjectsMapping):

@@ -40,9 +40,16 @@ class IImporterSettingsSchema(Interface):
         required=True,
     )
 
-    savepoint_length = schema.Int(
-        title=_(u'Savepoint every nth object imported'),
-        required=True,
+    fragmentation_range = schema.Int(
+        title=_(u'Fragmentation range'),
+        default=1,
+        required=False,
+    )
+
+    fragmentation_target = schema.Int(
+        title=_(u'Fragmentation target'),
+        default=0,
+        required=False,
     )
 
 

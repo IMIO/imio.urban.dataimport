@@ -17,7 +17,8 @@ class ImporterFromSettingsForm(object):
 
     def get_importer_settings(self):
         settings = {
-            'savepoint_length': self.form_datas.get('savepoint_length'),
+            'split_division_range': self.form_datas.get('fragmentation_range'),
+            'split_division_target': self.form_datas.get('fragmentation_target'),
         }
         return settings
 
