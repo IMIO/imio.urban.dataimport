@@ -23,7 +23,7 @@
     </genericsetup:importStep>
 
     <adapter
-        for="imio.urban.dataimport.interface.IUrbanDataImporter"
+        for="imio.urban.dataimport.interfaces.IUrbanDataImporter"
         factory=".splitter.UrbanImportSplitter"
         provides=".interfaces.IImportSplitter"
         />
