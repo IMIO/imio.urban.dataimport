@@ -62,10 +62,13 @@ class JoinTableMapper(AccessMapper):
         self.key_column = self.key[1]
         self.lines = self._extract_by_key(self.secondary_table, self.key_column)
 
+    def get_db_path(self):
+        return self.db_path
+
     def _extract_by_key(self, table, key_name):
         """
         """
-        command_line = ['mdb-export', self.importer.db_path, table, '-d', ';']
+        command_line = ['mdb-export', self.get_db_path(), table, '-d', ';']
         csv_export = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         lines = csv.reader(csv_export.stdout, delimiter=';')
         header = lines.next()
