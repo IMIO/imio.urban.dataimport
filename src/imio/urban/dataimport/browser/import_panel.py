@@ -92,7 +92,7 @@ class ImporterSettingsForm(RegistryEditForm, ControlPanelSubForm):
         importer = self.new_importer(selected_importer)
         importer.setupImport()
         importer.importData(start, end)
-        # importer.picklesErrorLog()
+        importer.picklesErrorLog()
 
 
 class ImporterSettings(ControlPanelFormWrapper):
