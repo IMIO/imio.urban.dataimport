@@ -45,6 +45,9 @@ class AccessImportSource(UrbanImportSource):
 
     def _exportMdbToCsv(self, table=None):
         table = table or self.importer.table_name
+        if table == 'PermisUrba':
+            return open('/'.join(self.importer.db_path.split('/')[:-1]) + '/Permisurba.csv', 'r')
+
         command_line = ['mdb-export', self.importer.db_path, table]
         csv_export = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         return csv_export.stdout
