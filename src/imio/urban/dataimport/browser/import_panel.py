@@ -105,7 +105,7 @@ class AvailableImporters(object):
 
         site = api.portal.get()
         panel_view = site.restrictedTraverse('@@dataimport-controlpanel')
-        import_form = panel_view.import_form_instance.form_instance
+        import_form = panel_view.form_instance
         adapters = list(getAdapters((import_form,), IUrbanDataImporter))
 
         vocabulary_terms = []
