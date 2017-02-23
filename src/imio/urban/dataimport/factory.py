@@ -67,7 +67,7 @@ class UrbanEventFactory(BaseFactory):
         return urban_event
 
     def objectAlreadyExists(self, object_args, container):
-        eventtype = object_args.pop('eventtype')
+        eventtype = object_args.get('eventtype')
         events = [obj for obj in container.objectValues() if IUrbanEvent.providedBy(obj)]
         for event in events:
             if event.getUrbaneventtypes().UID() == eventtype:
