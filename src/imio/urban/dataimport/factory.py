@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from Products.urban.interfaces import IUrbanEvent
+
 from imio.urban.dataimport.errors import IdentifierError
 from imio.urban.dataimport.errors import NoPortalTypeError
 from imio.urban.dataimport.interfaces import IFactory
@@ -50,3 +52,23 @@ class BaseFactory(object):
     def objectAlreadyExists(self, object_args, container):
         existing_object = getattr(container, object_args.get('id', ''), None)
         return existing_object
+
+
+class UrbanEventFactory(BaseFactory):
+    """
+    Base class for urbanEvent factory.
+    """
+
+    def create(self, kwargs, container, line):
+        eventtype_uid = kwargs.pop('eventtype')
+        if 'eventDate' not in kwargs:
+            kwargs['eventDate'] = None
+        urban_event = container.createUrbanEvent(eventtype_uid, **kwargs)
+        return urban_event
+
+    def objectAlreadyExists(self, object_args, container):
+        eventtype = object_args.pop('eventtype')
+        events = [obj for obj in container.objectValues() if IUrbanEvent.providedBy(obj)]
+        for event in events:
+            if event.getUrbaneventtypes().UID() == eventtype:
+                return event
