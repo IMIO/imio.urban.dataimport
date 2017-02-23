@@ -39,7 +39,7 @@ class AccessImportSource(UrbanImportSource):
 
     def iterdata(self):
         csv_source = self._exportMdbToCsv()
-        lines = csv.reader(csv_source, dialect='excel')
+        lines = csv.reader(csv_source)
         lines.next()  # skip header
         return lines
 
