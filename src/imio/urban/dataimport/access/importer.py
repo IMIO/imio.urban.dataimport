@@ -39,15 +39,12 @@ class AccessImportSource(UrbanImportSource):
 
     def iterdata(self):
         csv_source = self._exportMdbToCsv()
-        lines = csv.reader(csv_source)
+        lines = csv.reader(csv_source, dialect='excel')
         lines.next()  # skip header
         return lines
 
     def _exportMdbToCsv(self, table=None):
         table = table or self.importer.table_name
-        if table == 'PermisUrba':
-            return open('/'.join(self.importer.db_path.split('/')[:-1]) + '/Permisurba.csv', 'r')
-
         command_line = ['mdb-export', self.importer.db_path, table]
         csv_export = subprocess.Popen(command_line, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         return csv_export.stdout
