@@ -2,6 +2,7 @@
 
 from imio.urban.dataimport.interfaces import IMapper, ISimpleMapper, IPostCreationMapper, \
     IDataExtractor, IFinalMapper
+from imio.urban.dataimport.exceptions import NoFieldToMapException
 
 from plone import api
 
@@ -45,7 +46,11 @@ class Mapper(BaseMapper):
         for dest in self.destinations:
             mapping_method = 'map%s' % dest.capitalize()
             if hasattr(self, mapping_method):
-                mapped[dest] = getattr(self, mapping_method)(line)
+                try:
+                    val = getattr(self, mapping_method)(line)
+                except NoFieldToMapException:
+                    continue
+                mapped[dest] = val
             else:
                 print ('%s: NO MAPPING METHOD FOUND' % self)
                 print ('target field : %s' % dest)
@@ -53,8 +58,8 @@ class Mapper(BaseMapper):
 
     def getData(self, valuename, line=''):
         if valuename not in self.sources:
-            print ('DATA SOURCE "%s" IS NOT EXPLICITLY DECLARED FOR MAPPER %s'\
-                  % (valuename, self.__class__.__name__))
+            print ('DATA SOURCE "%s" IS NOT EXPLICITLY DECLARED FOR MAPPER %s'
+                   % (valuename, self.__class__.__name__))
         line = line or self.line
 
         data = self.getValueFromLine(valuename, line)
@@ -80,7 +85,10 @@ class AfterCreationMapper(Mapper):
                 field = plone_object.getField(dest)
                 if field:
                     mutator = field.getMutator(plone_object)
-                    value = getattr(self, mapping_method)(line, plone_object)
+                    try:
+                        value = getattr(self, mapping_method)(line, plone_object)
+                    except NoFieldToMapException:
+                        continue
                     mutator(value)
                 else:
                     msg = '{mapper}: THE FIELD {field} DOES EXIST ON OBJECT {object}'.format(
