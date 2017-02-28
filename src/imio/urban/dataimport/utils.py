@@ -16,7 +16,7 @@ def normalizeDate(date):
 
 
 def parse_date(date):
-    return str(parser.parse(date, dayfirst=1, default=parser.parse('1/1/2017')))
+    return parser.parse(date, dayfirst=1, default=parser.parse('1/1/2017'))
 
 
 def cleanAndSplitWord(word):
