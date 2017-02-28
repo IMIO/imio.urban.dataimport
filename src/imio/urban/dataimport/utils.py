@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from dateutil import parser
+
 import copy
 
 import re
@@ -11,6 +13,10 @@ def normalizeDate(date):
     parts = date.split()[0].split('/')
     century = parts[2] > '40' and '19' or '20'
     return '%s/%s/%s%s' % (parts[1], parts[0], century, parts[2])
+
+
+def parse_date(date):
+    return str(parser.parse(date, dayfirst=1, default=parser.parse('1/1/2017')))
 
 
 def cleanAndSplitWord(word):
