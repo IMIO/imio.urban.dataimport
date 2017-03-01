@@ -9,6 +9,7 @@ from imio.urban.dataimport.csv.interfaces import ICSVImportSource, ICSVImporter
 from zope.interface import implements
 
 import csv
+import os
 
 
 class CSVImportSource(UrbanImportSource):
@@ -17,35 +18,40 @@ class CSVImportSource(UrbanImportSource):
 
     def __init__(self, importer):
         super(CSVImportSource, self).__init__(importer)
-        self.header = self.setHeader()
+        self.delimiter = getattr(self.importer, 'delimiter', ',')
+        self.header, self.header_indexes = self.setHeader()
 
     def setHeader(self):
+        headers = {}
         header_indexes = {}
-        header = self.getSourceAsCSV()
-        header = header.next()
 
-        header_indexes = dict([(headercell.strip(), index) for index, headercell in enumerate(header)])
+        for csv_filename in [f.split('.csv')[0] for f in os.listdir(IMPORT_FOLDER_PATH) if f.endswith('.csv')]:
+            csv_source = self.getSourceAsCSV(csv_filename)
+            headers[csv_filename] = csv_source.next()
+            header_indexes[csv_filename] = dict([(headercell.strip(), index) for index, headercell in enumerate(headers[csv_filename])])
+
+        return headers, header_indexes
 
         return header_indexes
 
     def iterdata(self):
-        lines = self.getSourceAsCSV()
+        lines = self.getSourceAsCSV(self.importer.csv_filename)
         lines.next()  # skip header
         return lines
 
-    def getSourceAsCSV(self):
-        csv_filename = self.importer.csv_filename
-        csv_filepath = '{}/{}'.format(IMPORT_FOLDER_PATH, csv_filename)
+    def getSourceAsCSV(self, csv_filename):
+        csv_filepath = '{}/{}.csv'.format(IMPORT_FOLDER_PATH, csv_filename)
         csv_file = open(csv_filepath)
-        csv_reader = csv.reader(csv_file)
+        csv_reader = csv.reader(csv_file, delimiter=self.delimiter)
         return csv_reader
 
 
 class CSVDataExtractor(DataExtractor):
 
     def extractData(self, valuename, line):
+        tablename = getattr(self.mapper, 'csv_filename', self.mapper.csv_filename)
         datasource = self.datasource
-        data = line[datasource.header[valuename]]
+        data = line[datasource.header_indexes[tablename][valuename]]
         return data
 
 
@@ -83,6 +89,6 @@ class CSVDataImporter(UrbanDataImporter):
         self.key_column = key_column
 
     def getData(self, valuename, line):
-        data_index = self.datasource.header[valuename]
+        data_index = self.datasource.header_indexes[self.csv_filename][valuename]
         data = line[data_index]
         return data
