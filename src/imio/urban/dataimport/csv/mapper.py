@@ -131,7 +131,7 @@ class SecondaryTableMapper(JoinTableMapper):
 class MultiLinesSecondaryTableMapper(SecondaryTableMapper):
 
     def map(self, line, **kwargs):
-        objects_args = []
+        all_objects_args = []
         lines = self.query_secondary_table(line)
         for secondary_line in lines:
             object_args = {}
@@ -144,5 +144,5 @@ class MultiLinesSecondaryTableMapper(SecondaryTableMapper):
                     skip = True
                     break
             if not skip:
-                objects_args.append(object_args)
-        return objects_args
+                all_objects_args.append(object_args)
+        return all_objects_args
