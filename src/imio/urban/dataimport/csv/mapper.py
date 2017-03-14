@@ -98,6 +98,8 @@ class MultivaluedFieldSecondaryTableMapper(JoinTableMapper):
                 else:
                     print ('%s: NO MAPPING METHOD FOUND' % self)
                     print ('target field : %s' % dest)
+        for k, v in mapped.iteritems():
+            mapped[k] = list(set(v))
         return mapped
 
 
