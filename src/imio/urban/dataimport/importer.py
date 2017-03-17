@@ -191,7 +191,7 @@ class UrbanDataImporter(object):
             if self.mode == PRESERVE:
                 urban_object = old_object
 
-            elif self.importer.mode == OVERRIDE:
+            elif self.mode == OVERRIDE:
                 api.content.delete(old_object)
                 urban_object = factory.create(factory_args, container=container, line=line)
 
