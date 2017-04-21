@@ -49,7 +49,7 @@ class CSVImportSource(UrbanImportSource):
 class CSVDataExtractor(DataExtractor):
 
     def extractData(self, valuename, line):
-        tablename = getattr(self.mapper, 'csv_filename', self.mapper.csv_filename)
+        tablename = getattr(self.mapper, 'csv_filename', self.mapper.importer.csv_filename)
         datasource = self.datasource
         data = line[datasource.header_indexes[tablename][valuename]]
         return data
