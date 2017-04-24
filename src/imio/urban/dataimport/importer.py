@@ -66,9 +66,9 @@ class UrbanDataImporter(object):
             self.current_line += 1
 
         self.register_import_transaction(start, self.current_line - 1)
-        self.reporting_mail()
+        self.reporting_mail("%s : line %s to %s" %(self.name, start, self.current_line - 1))
 
-    def reporting_mail(self):
+    def reporting_mail(self, body=None):
         config = configparser.ConfigParser()
         config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'utils.cfg'))
         active = config['sendmail']['active']
@@ -77,7 +77,8 @@ class UrbanDataImporter(object):
             send_from = config['sendmail']['send_from']
             send_to = config['sendmail']['send_to']
             subject = config['sendmail']['subject']
-            body = config['sendmail']['body']
+            if not body:
+                body = config['sendmail']['body']
             send_mail(sendmail_location, send_from, send_to, subject, body)
 
 
