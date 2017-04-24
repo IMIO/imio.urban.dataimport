@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 
 from dateutil import parser
 
@@ -131,3 +132,15 @@ class CadastralReference(object):
                 return False
 
         return True
+
+
+def send_mail(sendmail_location, from_mail, to_mail, subject, body):
+    p = os.popen("%s -t" % sendmail_location, "w")
+    p.write("From: %s\n" % from_mail)
+    p.write("To: %s\n" % to_mail)
+    p.write("Subject: %s\n" % subject)
+    p.write("\n")  # blank line separating headers from body
+    p.write(body)
+    status = p.close()
+    if status:
+        print "Sendmail exit status", status

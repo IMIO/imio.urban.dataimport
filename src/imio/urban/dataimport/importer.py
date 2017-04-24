@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import configparser as configparser
 
 from DateTime import DateTime
 
@@ -8,6 +9,7 @@ from imio.urban.dataimport.exceptions import NoObjectToCreateException
 from imio.urban.dataimport.interfaces import IUrbanDataImporter, IObjectsMapping,\
     IUrbanImportSource, IValuesMapping, IPostCreationMapper, IImportErrorMessage, \
     IFinalMapper, IImportSplitter
+from imio.urban.dataimport.utils import send_mail
 
 from plone import api
 
@@ -64,6 +66,20 @@ class UrbanDataImporter(object):
             self.current_line += 1
 
         self.register_import_transaction(start, self.current_line - 1)
+        self.reporting_mail()
+
+    def reporting_mail(self):
+        config = configparser.ConfigParser()
+        config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'utils.cfg'))
+        active = config['sendmail']['active']
+        if active == '1':
+            sendmail_location = config['sendmail']['sendmail_location']
+            send_from = config['sendmail']['send_from']
+            send_to = config['sendmail']['send_to']
+            subject = config['sendmail']['subject']
+            body = config['sendmail']['body']
+            send_mail(sendmail_location, send_from, send_to, subject, body)
+
 
     def register_import_transaction(self, start, end):
         """
