@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import configparser as configparser
+import ConfigParser as configparser
 
 from DateTime import DateTime
 
