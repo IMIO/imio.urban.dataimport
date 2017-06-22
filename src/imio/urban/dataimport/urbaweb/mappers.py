@@ -518,7 +518,7 @@ class ParcelFactory(BaseFactory):
         #check if we can find a parcel in the db cadastre with these infos
         found = searchview.search_parcels_custom(**parcel_args)
         if not found:
-            found = searchview.search_parcels_custom(browseoldparcels=True, **parcel_args)
+            found = searchview.search_parcels_custom(old=True, **parcel_args)
 
         if len(found) == 1 and parcel.has_same_attribute_values(found[0]):
             parcel_args['divisionCode'] = parcel_args['division']
