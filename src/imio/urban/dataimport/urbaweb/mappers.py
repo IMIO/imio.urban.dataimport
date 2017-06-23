@@ -237,7 +237,7 @@ class ReferenceMapper(PostCreationMapper, SubQueryMapper):
 
 class ArchitectMapper(PostCreationMapper):
     def mapArchitects(self, line, plone_object):
-        archi_name = self.getData('NomArchitecte')
+        archi_name = self.getData('A_Nom')
         fullname = cleanAndSplitWord(archi_name)
         if not fullname:
             return []
@@ -315,8 +315,10 @@ class PcaUIDMapper(Mapper):
         title = self.getData('PPA')
         if title:
             catalog = api.portal.get_tool('portal_catalog')
-            pca_id = catalog(portal_type='PcaTerm', Title=title)[0].id
-            return pca_id
+            if catalog(portal_type='PcaTerm', Title=title):
+                pca_id = catalog(portal_type='PcaTerm', Title=title)[0].id
+                if pca_id and pca_id[0].id:
+                    return pca_id[0].id
         return []
 
 
@@ -549,9 +551,16 @@ class ParcelDataMapper(SubQueryMapper):
         remaining_reference_2 = self.getData('Cadastre_2', line)
         if remaining_reference_2:
             remaining_reference = remaining_reference + ',' + remaining_reference_2
+        chars_to_remove = ['.', ',', '?', ';', ':', '#']
+        for char in chars_to_remove:
+            remaining_reference = remaining_reference.replace(char, '')
+
         if not remaining_reference:
             return []
-
+        if not division:
+            division = ''
+        if not section:
+            section = ''
         abbreviations = identify_parcel_abbreviations(remaining_reference)
         base_reference = parse_cadastral_reference(division + section + abbreviations[0])
 
@@ -570,9 +579,11 @@ class ParcelDataMapper(SubQueryMapper):
     def getDivision(self, line):
         key_value = self.getData('Division', line)
         db_query = "Select Num_D from DIVISIONS Where CLEF = '%s'" % key_value
-        division = self._query(db_query).next()[0]
-        return division
-
+        try:
+            division = self._query(db_query).next()[0]
+            return division
+        except StopIteration:
+            return
 
 #
 # UrbanEvent deposit
@@ -1013,6 +1024,14 @@ class DecisionEventTitleMapper(Mapper):
 class DecisionEventNotificationDateMapper(Mapper):
     def mapEventdate(self, line):
         eventDate = self.getData('Notifica')
+        # if no Notifica/eventDate, get decisionDate otherwise no created decision event
+        if not eventDate:
+            autorisa = self.getData('Autorisa')
+            refus = self.getData('Refus')
+            tutAutorisa = self.getData('TutAutorisa')
+            tutRefus = self.getData('TutRefus')
+            eventDate = autorisa or refus or tutAutorisa or tutRefus
+
         return eventDate
 
 #

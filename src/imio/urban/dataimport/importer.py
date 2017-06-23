@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import ConfigParser as configparser
+import ConfigParser
 
 from DateTime import DateTime
 
@@ -69,18 +69,16 @@ class UrbanDataImporter(object):
         self.reporting_mail("%s : line %s to %s" %(self.name, start, self.current_line - 1))
 
     def reporting_mail(self, body=None):
-        config = configparser.ConfigParser()
+        config = ConfigParser.ConfigParser()
         config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'utils.cfg'))
-        active = config['sendmail']['active']
+        active = config.get('sendmail', 'active')
         if active == '1':
-            sendmail_location = config['sendmail']['sendmail_location']
-            send_from = config['sendmail']['send_from']
-            send_to = config['sendmail']['send_to']
-            subject = config['sendmail']['subject']
-            if not body:
-                body = config['sendmail']['body']
+            sendmail_location = config.get('sendmail', 'sendmail_location')
+            send_from = config.get('sendmail', 'send_from')
+            send_to = config.get('sendmail', 'send_to')
+            subject = config.get('sendmail', 'subject')
+            body = config.get('sendmail', 'body')
             send_mail(sendmail_location, send_from, send_to, subject, body)
-
 
     def register_import_transaction(self, start, end):
         """
