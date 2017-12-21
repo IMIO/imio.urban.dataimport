@@ -51,6 +51,9 @@ class UrbanDataImporter(object):
         self.errors = {}
         self.sorted_errors = {}
 
+        with open("processing.csv", "w") as file:
+            pass
+
     def importData(self, start=1, end=0):
         """
         Import data from line 'start' to line 'end'
@@ -61,7 +64,17 @@ class UrbanDataImporter(object):
             if end and self.current_line > end:
                 break
             elif start <= self.current_line and splitter.allow(dataline):
-                self.importDataLine(dataline)
+                sp = transaction.savepoint()
+                try:
+                    self.importDataLine(dataline)
+                    # if self.current_line != 0 and self.current_line % 9 == 0:
+                    #     raise OSError("blabla2")
+                except OSError as e:
+                    sp.rollback()
+                    transaction.commit()
+                    date = DateTime()
+                    with open("processing.csv", "a") as file:
+                        file.write(date.strftime('%Y/%m/%d') + ":" + date.Time() + "," + "ROLLBACK ON OSERROR! " + "," + str(self.current_line) + "\n")
 
             self.current_line += 1
 
@@ -80,7 +93,6 @@ class UrbanDataImporter(object):
             if not body:
                 body = config.get("sendmail", "body")
             send_mail(sendmail_location, send_from, send_to, subject, body)
-
 
     def register_import_transaction(self, start, end):
         """
@@ -111,6 +123,9 @@ class UrbanDataImporter(object):
 
     def importDataLine(self, dataline):
         print "PROCESSING LINE %i" % self.current_line
+        with open("processing.csv", "a") as file:
+            file.write(dataline[0] + "," + dataline[1] + "," + dataline[2] + "," + dataline[3] + "," + dataline[4] + "," + dataline[5] + "," + "\n")
+
         objects_nesting = self.objects_mappings.getObjectsNesting()
         self.importGroupOfObjects(objects_nesting, dataline)
 
