@@ -75,6 +75,7 @@ class UrbanDataImporter(object):
                     date = DateTime()
                     with open("processing.csv", "a") as file:
                         file.write(date.strftime('%Y/%m/%d') + ":" + date.Time() + "," + "ROLLBACK ON OSERROR! " + "," + str(self.current_line) + "\n")
+                    raise
 
             self.current_line += 1
 
