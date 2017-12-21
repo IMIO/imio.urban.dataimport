@@ -67,8 +67,8 @@ class UrbanDataImporter(object):
                 sp = transaction.savepoint()
                 try:
                     self.importDataLine(dataline)
-                    # if self.current_line != 0 and self.current_line % 9 == 0:
-                    #     raise OSError("blabla2")
+                    if self.current_line != 0 and self.current_line % 9 == 0:
+                        raise OSError("blabla2")
                 except OSError as e:
                     sp.rollback()
                     transaction.commit()
