@@ -20,6 +20,8 @@ import os
 import transaction
 import zope
 
+import collective.noindexing
+
 
 class UrbanDataImporter(object):
     """
@@ -51,6 +53,11 @@ class UrbanDataImporter(object):
         self.errors = {}
         self.sorted_errors = {}
 
+        # transaction auto commit option
+        config = configparser.ConfigParser()
+        config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'utils.cfg'))
+        self.commit_range = config.get("auto_commit", "range") if config.get("auto_commit", "active") else 0
+
         with open("processing.csv", "w") as file:
             pass
 
@@ -60,25 +67,25 @@ class UrbanDataImporter(object):
         """
         splitter = queryAdapter(self, IImportSplitter)
 
+        collective.noindexing.patches.apply()
+
         for dataline in self.datasource.iterdata():
             if end and self.current_line > end:
                 break
             elif start <= self.current_line and splitter.allow(dataline):
                 sp = transaction.savepoint()
-                try:
-                    self.importDataLine(dataline)
-                except OSError as e:
-                    sp.rollback()
-                    transaction.commit()
-                    date = DateTime()
-                    with open("processing.csv", "a") as file:
-                        file.write(date.strftime('%Y/%m/%d') + ":" + date.Time() + "," + "ROLLBACK ON OSERROR! " + "," + str(self.current_line) + "\n")
-                    raise
+
+                self.importDataLine(dataline)
+
+                with open("processing.csv", "a") as file:
+                    file.write(date.strftime('%Y/%m/%d') + ":" + date.Time() + "," + "Folder current_line commit : " + "," + str(self.current_line) + "\n")
 
             self.current_line += 1
 
         self.register_import_transaction(start, self.current_line - 1)
         self.reporting_mail("%s : line %s to %s" %(self.name, start, self.current_line - 1))
+
+        collective.noindexing.patches.unapply()
 
     def reporting_mail(self, body=None):
         config = configparser.ConfigParser()

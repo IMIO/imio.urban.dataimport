@@ -40,7 +40,8 @@ setup(name='imio.urban.dataimport',
           'MySQL-python',
           'setuptools',
           'SQLAlchemy',
-          'Products.urban'
+          'Products.urban',
+          'collective.noindexing>=1.4',
       ],
       extras_require={'test': ['zope.testing', 'plone.testing', 'plone.app.testing']},
       )

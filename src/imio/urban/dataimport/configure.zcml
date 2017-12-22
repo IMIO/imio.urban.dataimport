@@ -5,6 +5,7 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     i18n_domain="imio.urban.dataimport">
 
+    <include package="collective.noindexing" />
     <include package=".AIHM" />
     <include package=".access" />
     <include package=".acropole" />
