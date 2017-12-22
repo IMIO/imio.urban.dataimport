@@ -76,7 +76,7 @@ class UrbanDataImporter(object):
                 sp = transaction.savepoint()
 
                 self.importDataLine(dataline)
-
+                date = DateTime()
                 with open("processing.csv", "a") as file:
                     file.write(date.strftime('%Y/%m/%d') + ":" + date.Time() + "," + "Folder current_line commit : " + "," + str(self.current_line) + "\n")
 
