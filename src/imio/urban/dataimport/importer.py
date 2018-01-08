@@ -55,7 +55,7 @@ class UrbanDataImporter(object):
 
         # parse option
         config = configparser.ConfigParser()
-        config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'utils.cfg'))
+        config.read(os.path.join(os.getcwd(), 'utils.cfg'))
         self.no_index = config.get("no_index", "active") if config.get("no_index", "active") else 0
 
         with open("processing.csv", "w") as file:
