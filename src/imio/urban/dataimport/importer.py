@@ -53,10 +53,10 @@ class UrbanDataImporter(object):
         self.errors = {}
         self.sorted_errors = {}
 
-        # transaction auto commit option
+        # parse option
         config = configparser.ConfigParser()
         config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'utils.cfg'))
-        self.commit_range = config.get("auto_commit", "range") if config.get("auto_commit", "active") else 0
+        self.no_index = config.get("no_index", "active") if config.get("no_index", "active") else 0
 
         with open("processing.csv", "w") as file:
             pass
@@ -67,13 +67,14 @@ class UrbanDataImporter(object):
         """
         splitter = queryAdapter(self, IImportSplitter)
 
-        collective.noindexing.patches.apply()
+        if self.no_index:
+            collective.noindexing.patches.apply()
 
         for dataline in self.datasource.iterdata():
             if end and self.current_line > end:
                 break
             elif start <= self.current_line and splitter.allow(dataline):
-                sp = transaction.savepoint()
+                # sp = transaction.savepoint()
 
                 self.importDataLine(dataline)
                 date = DateTime()
@@ -85,7 +86,8 @@ class UrbanDataImporter(object):
         self.register_import_transaction(start, self.current_line - 1)
         self.reporting_mail("%s : line %s to %s" %(self.name, start, self.current_line - 1))
 
-        collective.noindexing.patches.unapply()
+        if self.no_index:
+            collective.noindexing.patches.unapply()
 
     def reporting_mail(self, body=None):
         config = configparser.ConfigParser()
