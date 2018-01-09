@@ -53,11 +53,6 @@ class UrbanDataImporter(object):
         self.errors = {}
         self.sorted_errors = {}
 
-        # parse option
-        config = configparser.ConfigParser()
-        config.read(os.path.join(os.getcwd(), 'src/imio.urban.dataimport/src/imio/urban/dataimport', 'utils.cfg'))
-        self.no_index = config.get("no_index", "active") if config.get("no_index", "active") else 0
-
         with open("processing.csv", "w") as file:
             pass
 
@@ -66,9 +61,6 @@ class UrbanDataImporter(object):
         Import data from line 'start' to line 'end'
         """
         splitter = queryAdapter(self, IImportSplitter)
-
-        if self.no_index:
-            collective.noindexing.patches.apply()
 
         for dataline in self.datasource.iterdata():
             if end and self.current_line > end:
@@ -85,9 +77,6 @@ class UrbanDataImporter(object):
 
         self.register_import_transaction(start, self.current_line - 1)
         self.reporting_mail("%s : line %s to %s" %(self.name, start, self.current_line - 1))
-
-        if self.no_index:
-            collective.noindexing.patches.unapply()
 
     def reporting_mail(self, body=None):
         config = configparser.ConfigParser()

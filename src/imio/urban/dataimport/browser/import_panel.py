@@ -20,6 +20,11 @@ from zope.interface import implements
 from zope.schema.vocabulary import SimpleTerm
 from zope.schema.vocabulary import SimpleVocabulary
 
+import collective.noindexing
+
+import os
+import ConfigParser as configparser
+
 
 class IImporterSettingsSchema(Interface):
     """
@@ -91,7 +96,15 @@ class ImporterSettingsForm(RegistryEditForm, ControlPanelSubForm):
         selected_importer = data.get('selected_importer')
         importer = self.new_importer(selected_importer)
         importer.setupImport()
+        # parse option
+        config = configparser.ConfigParser()
+        config.read(os.path.join(os.getcwd(), 'src/imio.urban.dataimport/src/imio/urban/dataimport', 'utils.cfg'))
+        self.no_index = config.get("no_index", "active") if config.get("no_index", "active") else 0
+        if self.no_index:
+            collective.noindexing.patches.apply()
         importer.importData(start, end)
+        if self.no_index:
+            collective.noindexing.patches.unapply()
         importer.picklesErrorLog()
 
 
