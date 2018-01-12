@@ -66,7 +66,6 @@ class UrbanDataImporter(object):
             if end and self.current_line > end:
                 break
             elif start <= self.current_line and splitter.allow(dataline):
-                # sp = transaction.savepoint()
 
                 self.importDataLine(dataline)
                 date = DateTime()
@@ -74,6 +73,8 @@ class UrbanDataImporter(object):
                     file.write(date.strftime('%Y/%m/%d') + ":" + date.Time() + "," + "Folder current_line commit : " + "," + str(self.current_line) + "\n")
 
             self.current_line += 1
+            if self.current_line % 500 == 0:
+                transaction.commit()
 
         self.register_import_transaction(start, self.current_line - 1)
         self.reporting_mail("%s : line %s to %s" %(self.name, start, self.current_line - 1))
