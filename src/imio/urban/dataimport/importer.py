@@ -62,6 +62,10 @@ class UrbanDataImporter(object):
         """
         splitter = queryAdapter(self, IImportSplitter)
 
+        config = configparser.ConfigParser()
+        config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'utils.cfg'))
+        commit_range = config.get("transaction-commit", "range")
+
         for dataline in self.datasource.iterdata():
             if end and self.current_line > end:
                 break
@@ -73,7 +77,7 @@ class UrbanDataImporter(object):
                     file.write(date.strftime('%Y/%m/%d') + ":" + date.Time() + "," + "Folder current_line commit : " + "," + str(self.current_line) + "\n")
 
             self.current_line += 1
-            if self.current_line % 500 == 0:
+            if self.current_line % int(commit_range) == 0:
                 transaction.commit()
 
         self.register_import_transaction(start, self.current_line - 1)
