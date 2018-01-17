@@ -20,8 +20,6 @@ import os
 import transaction
 import zope
 
-import collective.noindexing
-
 
 class UrbanDataImporter(object):
     """
