@@ -12,6 +12,7 @@
     <include package=".browser" />
     <include package=".csv" />
     <include package=".MySQL" />
+    <include package=".Postgres" />
     <include package=".urbaweb" />
 
     <include file="profiles.zcml" />

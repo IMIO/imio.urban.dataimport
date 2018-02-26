@@ -1,0 +1,30 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="imio.urban.dataimport">
+
+  <adapter
+     for="imio.urban.dataimport.Postgres.interfaces.IPostgresImporter"
+     factory=".importer.PostgresImportSource"
+     provides="imio.urban.dataimport.interfaces.IUrbanImportSource"
+     name="data source"
+  />
+
+  <adapter
+     for="imio.urban.dataimport.Postgres.interfaces.IPostgresImportSource
+          imio.urban.dataimport.Postgres.interfaces.IPostgresMapper"
+     factory=".importer.PostgresDataExtractor"
+     provides="imio.urban.dataimport.interfaces.IDataExtractor"
+     />
+
+  <adapter
+     for="imio.urban.dataimport.Postgres.interfaces.IPostgresImporter
+          imio.urban.dataimport.interfaces.IImportSection
+          zope.interface.Interface
+          zope.interface.Interface
+          zope.interface.Interface"
+     factory="imio.urban.dataimport.Postgres.importer.PostgresErrorMessage"
+     provides="imio.urban.dataimport.interfaces.IImportErrorMessage"
+  />
+
+</configure>

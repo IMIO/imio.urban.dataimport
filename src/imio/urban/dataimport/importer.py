@@ -51,9 +51,6 @@ class UrbanDataImporter(object):
         self.errors = {}
         self.sorted_errors = {}
 
-        with open("processing.csv", "w") as file:
-            pass
-
     def importData(self, start=1, end=0):
         """
         Import data from line 'start' to line 'end'
@@ -123,8 +120,6 @@ class UrbanDataImporter(object):
 
     def importDataLine(self, dataline):
         print "PROCESSING LINE %i" % self.current_line
-        with open("processing.csv", "a") as file:
-            file.write(dataline[0] + "," + dataline[1] + "," + dataline[2] + "," + dataline[3] + "," + dataline[4] + "," + dataline[5] + "," + "\n")
 
         objects_nesting = self.objects_mappings.getObjectsNesting()
         self.importGroupOfObjects(objects_nesting, dataline)
