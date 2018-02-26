@@ -30,7 +30,7 @@ class AcropoleDataImporter(MySQLDataImporter):
     implements(IAcropoleDataImporter)
 
     def __init__(self, db_name='urb64015ac', table_name='wrkdossier', key_column='WRKDOSSIER_ID', **kwargs):
-        super(AcropoleDataImporter, self).__init__(db_name, table_name, key_columni, **kwargs)
+        super(AcropoleDataImporter, self).__init__(db_name, table_name, key_column, **kwargs)
 
 
 class AcropoleMapping(ObjectsMapping):
