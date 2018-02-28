@@ -76,7 +76,7 @@ class UrbanDataImporter(object):
                 transaction.commit()
 
         self.register_import_transaction(start, self.current_line - 1)
-        self.reporting_mail("%s : line %s to %s" %(self.name, start, self.current_line - 1))
+        self.reporting_mail("%s : line %s to %s" % (self.name, start, self.current_line - 1))
 
     def reporting_mail(self, body=None):
         config = configparser.ConfigParser()

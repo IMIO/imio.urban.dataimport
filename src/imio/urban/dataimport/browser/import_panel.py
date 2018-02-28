@@ -99,7 +99,7 @@ class ImporterSettingsForm(RegistryEditForm, ControlPanelSubForm):
         # parse option
         config = configparser.ConfigParser()
         config.read(os.path.join(os.getcwd(), 'var/urban.dataimport', 'utils.cfg'))
-        self.no_index = config.get("no_index", "active") if config.get("no_index", "active") else 0
+        self.no_index = int(config.get("no_index", "active"))
         if self.no_index:
             collective.noindexing.patches.apply()
         importer.importData(start, end)
