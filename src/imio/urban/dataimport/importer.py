@@ -58,7 +58,7 @@ class UrbanDataImporter(object):
         splitter = queryAdapter(self, IImportSplitter)
 
         config = configparser.ConfigParser()
-        config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'utils.cfg'))
+        config.read(os.path.join(os.getcwd(), 'var/urban.dataimport', 'utils.cfg'))
         commit_range = config.get("transaction-commit", "range")
 
         for dataline in self.datasource.iterdata():
@@ -72,7 +72,7 @@ class UrbanDataImporter(object):
                     file.write(date.strftime('%Y/%m/%d') + ":" + date.Time() + "," + "Folder current_line commit : " + "," + str(self.current_line) + "\n")
 
             self.current_line += 1
-            if self.current_line % int(commit_range) == 0:
+            if not commit_range == '0' and self.current_line % int(commit_range) == 0:
                 transaction.commit()
 
         self.register_import_transaction(start, self.current_line - 1)
@@ -80,7 +80,7 @@ class UrbanDataImporter(object):
 
     def reporting_mail(self, body=None):
         config = configparser.ConfigParser()
-        config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'utils.cfg'))
+        config.read(os.path.join(os.getcwd(), 'var/urban.dataimport', 'utils.cfg'))
         active = config.get("sendmail", "active")
         if active == '1':
             sendmail_location = config.get("sendmail", "sendmail_location")
