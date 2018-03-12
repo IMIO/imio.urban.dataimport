@@ -4,7 +4,7 @@ import os
 version = '0.4.dev0'
 
 long_description = (
-    open('README.txt').read()
+    open('README.md').read()
     + '\n' +
     'Contributors\n'
     '============\n'
