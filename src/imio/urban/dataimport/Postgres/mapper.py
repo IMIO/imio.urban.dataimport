@@ -98,14 +98,23 @@ class SecondaryTableMapper(SubQueryMapper):
 
 class MultiLinesSecondaryTableMapper(SecondaryTableMapper):
 
+
     def map(self, line, **kwargs):
-        objects_args = []
+        all_objects_args = []
         lines = self.query_secondary_table(line)
         for secondary_line in lines:
+            object_args = {}
+            skip = False
             for mapper in self.mappers:
                 mapper.line = secondary_line
-                objects_args.append(mapper.map(line, **kwargs))
-        return objects_args
+                try:
+                    object_args.update(mapper.map(secondary_line, **kwargs))
+                except NoObjectToCreateException:
+                    skip = True
+                    break
+            if not skip:
+                all_objects_args.append(object_args)
+        return all_objects_args
 
 
 class FieldMultiLinesSecondaryTableMapper(SecondaryTableMapper):
