@@ -96,14 +96,14 @@ class PostgresDataImporter(UrbanDataImporter):
 
     implements(IPostgresImporter)
 
-    def __init__(self, db_name, table_name, key_column, **kwargs):
+    def __init__(self, db_name, table_name, key_column, username='postgres', password='postgres', host='localhost' **kwargs):
         super(PostgresDataImporter, self).__init__(**kwargs)
         self.db_name = db_name
         self.table_name = table_name
         self.key_column = key_column
-        self.username = 'postgres'
-        self.password = 'postgres'
-        self.host = 'localhost'
+        self.username = username
+        self.password = password
+        self.host = host
 
     def getData(self, valuename, line):
         return getattr(line, valuename)
