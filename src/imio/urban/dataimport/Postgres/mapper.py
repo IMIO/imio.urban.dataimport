@@ -86,6 +86,7 @@ class SecondaryTableMapper(SubQueryMapper):
             secondary_line = lines[0]
             for mapper in self.mappers:
                 mapper.line = secondary_line
+                mapper.original_line = line
                 objects_args.update(mapper.map(secondary_line, **kwargs))
         else:
             raise NoObjectToCreateException
@@ -97,7 +98,6 @@ class SecondaryTableMapper(SubQueryMapper):
 
 
 class MultiLinesSecondaryTableMapper(SecondaryTableMapper):
-
 
     def map(self, line, **kwargs):
         all_objects_args = []
