@@ -63,7 +63,12 @@ class UrbanEventFactory(BaseFactory):
         eventtype_uid = kwargs.pop('eventtype')
         if 'eventDate' not in kwargs:
             kwargs['eventDate'] = None
-        urban_event = container.createUrbanEvent(eventtype_uid, **kwargs)
+        main_args = {'eventDate': kwargs.pop('eventDate')}
+        urban_event = container.createUrbanEvent(eventtype_uid, **main_args)
+        for k, v in kwargs.iteritems():
+            field = urban_event.getField(k)
+            setter = field.getMutator(urban_event)
+            setter(v)
         return urban_event
 
     def objectAlreadyExists(self, object_args, container):
