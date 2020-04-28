@@ -19,6 +19,7 @@ class CSVImportSource(UrbanImportSource):
     def __init__(self, importer):
         super(CSVImportSource, self).__init__(importer)
         self.delimiter = getattr(self.importer, 'delimiter', ',')
+        self.quotechar = getattr(self.importer, 'quotechar', '"')
         self.header, self.header_indexes = self.setHeader()
 
     def setHeader(self):
@@ -31,8 +32,6 @@ class CSVImportSource(UrbanImportSource):
             header_indexes[csv_filename] = dict([(headercell.strip(), index) for index, headercell in enumerate(headers[csv_filename])])
 
         return headers, header_indexes
-
-        return header_indexes
 
     def iterdata(self):
         lines = self.getSourceAsCSV(self.importer.csv_filename)
