@@ -35,6 +35,11 @@ class BaseFactory(object):
         else:
             raise IdentifierError
         obj = getattr(container, object_id)
+        if obj:
+            for field_name, val in kwargs.iteritems():
+                if field_name.lower() not in ['id', 'title', 'portal_type']:
+                    field = obj.getField(field_name)
+                    field.getMutator(obj)(val)
         return obj
 
     def logError(self, factory, line, msg, data={}):
