@@ -63,7 +63,8 @@ class JoinTableMapper(CSVMapper):
         csv_file = open(csv_filepath)
         delimiter = getattr(self.importer, 'delimiter', ';')
         quotechar = getattr(self.importer, 'quotechar', '"')
-        lines = csv.reader(csv_file, delimiter=delimiter, quotechar=quotechar)
+        escapechar = getattr(self.importer, 'escapechar', '\\')
+        lines = csv.reader(csv_file, delimiter=delimiter, quotechar=quotechar, escapechar=escapechar)
         header = lines.next()
         key_index = header.index(key_name)
         lines_by_key = {}

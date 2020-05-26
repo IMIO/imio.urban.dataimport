@@ -20,6 +20,7 @@ class CSVImportSource(UrbanImportSource):
         super(CSVImportSource, self).__init__(importer)
         self.delimiter = getattr(self.importer, 'delimiter', ',')
         self.quotechar = getattr(self.importer, 'quotechar', '"')
+        self.escapechar = getattr(self.importer, 'escapechar', '\\')
         self.header, self.header_indexes = self.setHeader()
 
     def setHeader(self):
