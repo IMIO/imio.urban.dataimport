@@ -41,8 +41,8 @@ class CSVImportSource(UrbanImportSource):
 
     def getSourceAsCSV(self, csv_filename):
         csv_filepath = '{}/{}.csv'.format(IMPORT_FOLDER_PATH, csv_filename)
-        csv_file = open(csv_filepath)
-        csv_reader = csv.reader(csv_file, delimiter=self.delimiter)
+        csv_file = open(csv_filepath, 'rU')
+        csv_reader = csv.reader(csv_file, delimiter=self.delimiter, quotechar=self.quotechar, escapechar=self.escapechar)
         return csv_reader
 
 

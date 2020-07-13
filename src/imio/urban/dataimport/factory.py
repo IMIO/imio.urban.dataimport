@@ -39,7 +39,8 @@ class BaseFactory(object):
             for field_name, val in kwargs.iteritems():
                 if field_name.lower() not in ['id', 'title', 'portal_type']:
                     field = obj.getField(field_name)
-                    field.getMutator(obj)(val)
+                    if field:
+                        field.getMutator(obj)(val)
         return obj
 
     def logError(self, factory, line, msg, data={}):
