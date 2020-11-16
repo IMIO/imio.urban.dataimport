@@ -272,7 +272,8 @@ class UrbanDataImporter(object):
             elif type(args) is list:
                 factory_args_list.extend(args)
 
-        factory_args_list.append(factory_args)
+        if factory_args:
+            factory_args_list.append(factory_args)
         return factory_args_list
 
     def updateObjectFields(self, line, object_name, urban_object, mapper_type):
