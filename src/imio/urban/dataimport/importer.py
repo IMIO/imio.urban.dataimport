@@ -264,14 +264,16 @@ class UrbanDataImporter(object):
 
     def getFactoryArguments(self, line, object_name):
         factory_args = {}
+        factory_args_list = []
         for mapper in self.mappers[object_name]['pre']:
             args = mapper.map(line)
             if type(args) is dict:
                 factory_args.update(args)
             elif type(args) is list:
-                return args
+                factory_args_list.extend(args)
 
-        return factory_args
+        factory_args_list.append(factory_args)
+        return factory_args_list
 
     def updateObjectFields(self, line, object_name, urban_object, mapper_type):
         for mapper in self.mappers[object_name][mapper_type]:
